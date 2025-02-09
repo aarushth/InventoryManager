@@ -34,10 +34,7 @@ import kotlinx.serialization.json.Json
 class LoginActivity : AppCompatActivity() {
     lateinit var client: HttpClient
     lateinit var signInButton : Button
-    companion object {
-        var globalVar = 2
-    }
-
+    //git commit test
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
