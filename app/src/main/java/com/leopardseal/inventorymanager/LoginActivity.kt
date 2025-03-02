@@ -2,10 +2,10 @@ package com.leopardseal.inventorymanager
 
 
 import android.content.ContentValues.TAG
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.RemoteViewsService
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.credentials.*
@@ -13,13 +13,11 @@ import androidx.credentials.exceptions.GetCredentialException
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
-import com.google.firebase.crashlytics.buildtools.api.net.Constants.Http
-import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpResponse
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
+import com.leopardseal.inventorymanager.entity.MyUsers
+import com.leopardseal.inventorymanager.entity.SignInResponse
 import io.ktor.client.*
-import io.ktor.client.call.body
 import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.statement.bodyAsText
@@ -32,16 +30,12 @@ import kotlinx.serialization.json.Json
 
 
 class LoginActivity : AppCompatActivity() {
-    lateinit var client: HttpClient
+
     lateinit var signInButton : Button
-    //git commit test
+    lateinit var serverComms: ServerComms
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
-
-
-
-        client = HttpClient(CIO)
 
 
         signInButton = findViewById<Button>(R.id.GoogleSignInBtn);
@@ -50,7 +44,7 @@ class LoginActivity : AppCompatActivity() {
             val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
                 .setFilterByAuthorizedAccounts(false)
                 .setServerClientId("354946788079-aermo39q0o3gshsgf46oqhkicovqcuo8.apps.googleusercontent.com")
-                .setAutoSelectEnabled(true)
+                .setAutoSelectEnabled(false)
                 .build()
 
             val credentialManager = CredentialManager.create(this)
@@ -79,37 +73,33 @@ class LoginActivity : AppCompatActivity() {
                     try {
                         val googleIdTokenCredential = GoogleIdTokenCredential
                             .createFrom(credential.data)
+                        serverComms = ServerComms(googleIdTokenCredential)
+                        var response :SignInResponse? = null
                         try{
-                            val verify : io.ktor.client.statement.HttpResponse = client.get("http://192.168.68.77:8080/signIn" ){
-                                headers{
-                                    append(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-                                    append(HttpHeaders.Authorization, googleIdTokenCredential.idToken)
+                            response = serverComms.signIn()
+                        }catch(e: IllegalAccessError){
+                            Toast.makeText(this@LoginActivity, "user not found in system", Toast.LENGTH_LONG).show()
+                        }catch (e: InternalError){
+                            Toast.makeText(this@LoginActivity, "an error occured.", Toast.LENGTH_LONG).show()
+                        }
+                        //TODO send response to Main activity, show orgs fragment
+                        if(response != null) {
+                            var role = ""
+                            for (r in response.roles) {
+                                if (r.id == response.userRoles[0].roleId) {
+                                    role = r.role
                                 }
                             }
-                            if((verify.status.value == HttpStatus.SC_BAD_REQUEST) or (verify.status.value == HttpStatus.SC_INTERNAL_SERVER_ERROR)){
-                                Toast.makeText(this@LoginActivity, "an error occured.", Toast.LENGTH_LONG).show()
-                            } else if(verify.status.value == HttpStatus.SC_NOT_FOUND){
-                                Toast.makeText(this@LoginActivity, "user not found in system", Toast.LENGTH_LONG).show()
-                            }else{
-                                val user: User = Json.decodeFromString<User>(verify.bodyAsText())
-                                Toast.makeText(this@LoginActivity, "logged in as " + user.email, Toast.LENGTH_LONG).show()
-                            }
-                //            var body : User = Json.decodeF
-//                            if(verify.body() != "") {
-//                                val intent = Intent(this, MainActivity::class.java)
-//                                intent.
-//                                startActivity(intent)
-//                            }
+                            Toast.makeText(this@LoginActivity, response.myUser.email + " in org " + response.orgs[0].name + " as " + role, Toast.LENGTH_LONG).show()
+                        }
 
-                        }catch(_: Error){}
                     } catch (e: GoogleIdTokenParsingException) {
                         Log.e(TAG, "Received an invalid google id token response", e)
                     }
                 } else {
                     Log.e(TAG, "Unexpected type of credential")
                 }
-            }
-            else -> {
+            }else -> {
                 Log.e(TAG, "Unexpected type of credential")
             }
         }
