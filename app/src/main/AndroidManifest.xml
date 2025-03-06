@@ -19,7 +19,7 @@
             android:name=".MainActivity"
             android:exported="false"
             android:label="@string/title_activity_main"
-            android:theme="@style/Theme.InventoryManager" />
+            android:theme="@style/Theme.InventoryManager.NoActionBar" />
         <activity
             android:name=".LoginActivity"
             android:exported="true">
@@ -29,6 +29,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>

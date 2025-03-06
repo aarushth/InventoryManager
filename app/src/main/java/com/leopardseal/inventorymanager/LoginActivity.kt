@@ -1,11 +1,13 @@
 package com.leopardseal.inventorymanager
 
 
+//import io.ktor.http.ContentType.Application.Json
+//import io.ktor.serialization.kotlinx.json.json
 import android.content.ContentValues.TAG
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
-import android.widget.RemoteViewsService
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.credentials.*
@@ -13,20 +15,10 @@ import androidx.credentials.exceptions.GetCredentialException
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
-import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
-import com.leopardseal.inventorymanager.entity.MyUsers
 import com.leopardseal.inventorymanager.entity.SignInResponse
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
-import io.ktor.client.request.get
-import io.ktor.client.request.headers
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-//import io.ktor.http.ContentType.Application.Json
-import io.ktor.http.HttpHeaders
-//import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.*
-import kotlinx.serialization.json.Json
 
 
 class LoginActivity : AppCompatActivity() {
@@ -91,6 +83,8 @@ class LoginActivity : AppCompatActivity() {
                                 }
                             }
                             Toast.makeText(this@LoginActivity, response.myUser.email + " in org " + response.orgs[0].name + " as " + role, Toast.LENGTH_LONG).show()
+                            val intent: Intent = Intent(this@LoginActivity,MainActivity::class.java)
+                            this@LoginActivity.startActivity(intent)
                         }
 
                     } catch (e: GoogleIdTokenParsingException) {
