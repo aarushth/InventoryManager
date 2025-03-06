@@ -14,9 +14,9 @@ import com.leopardseal.inventorymanager.databinding.FragmentMainBinding
 /**
  * A placeholder fragment containing a simple view.
  */
-class PlaceholderFragment : Fragment() {
+class ItemsFragment : Fragment() {
 
-    private lateinit var pageViewModel: PageViewModel
+    private lateinit var itemsViewModel: ItemsViewModel
     private var _binding: FragmentMainBinding? = null
 
     // This property is only valid between onCreateView and
@@ -25,8 +25,9 @@ class PlaceholderFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        pageViewModel = ViewModelProvider(this).get(PageViewModel::class.java).apply {
-            setIndex(arguments?.getInt(ARG_SECTION_NUMBER) ?: 1)
+        //ViewModel stores data to be shown
+        itemsViewModel = ViewModelProvider(this).get(ItemsViewModel::class.java).apply {
+            setIndex("items")
         }
     }
 
@@ -34,35 +35,39 @@ class PlaceholderFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
+        //binding is connection to xml layout i think
         _binding = FragmentMainBinding.inflate(inflater, container, false)
         val root = binding.root
 
+        //sectionLabel is name of textView
         val textView: TextView = binding.sectionLabel
-        pageViewModel.text.observe(viewLifecycleOwner, Observer {
+    
+        //this connects a live data to a xml component    
+        itemsViewModel.text.observe(viewLifecycleOwner, Observer {
             textView.text = it
         })
         return root
     }
-
+    //Instatiates Fragment and stores static data to be passed to it.
     companion object {
         /**
          * The fragment argument representing the section number for this
          * fragment.
          */
-        private const val ARG_SECTION_NUMBER = "section_number"
+        // private const val ARG_SECTION_NUMBER = "section_number"
 
         /**
          * Returns a new instance of this fragment for the given section
          * number.
          */
         @JvmStatic
-        fun newInstance(sectionNumber: Int): PlaceholderFragment {
-            return PlaceholderFragment().apply {
-                arguments = Bundle().apply {
-                    putInt(ARG_SECTION_NUMBER, sectionNumber)
-                }
-            }
+        fun newInstance(): PlaceholderFragment {
+            return PlaceholderFragment()
+            // .apply {
+            //     arguments = Bundle().apply {
+            //         putInt(ARG_SECTION_NUMBER, sectionNumber)
+            //     }
+            // }
         }
     }
 

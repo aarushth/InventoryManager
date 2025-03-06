@@ -83,7 +83,9 @@ class LoginActivity : AppCompatActivity() {
                                 }
                             }
                             Toast.makeText(this@LoginActivity, response.myUser.email + " in org " + response.orgs[0].name + " as " + role, Toast.LENGTH_LONG).show()
-                            val intent: Intent = Intent(this@LoginActivity,MainActivity::class.java)
+                            val intent: Intent = Intent(this@LoginActivity, MainActivity::class.java)
+                            intent.putExtra(name:"SignInResponse", value = response)
+                            intent.putExtra(name:"ServerComms", value = serverComms)
                             this@LoginActivity.startActivity(intent)
                         }
 

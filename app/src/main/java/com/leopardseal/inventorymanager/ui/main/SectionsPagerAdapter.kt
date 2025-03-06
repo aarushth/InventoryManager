@@ -6,9 +6,9 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
 import com.leopardseal.inventorymanager.R
 
+//names of tabs
 private val TAB_TITLES = arrayOf(
-    R.string.tab_text_1,
-    R.string.tab_text_2
+    "Items"
 )
 
 /**
@@ -21,15 +21,19 @@ class SectionsPagerAdapter(private val context: Context, fm: FragmentManager) :
     override fun getItem(position: Int): Fragment {
         // getItem is called to instantiate the fragment for the given page.
         // Return a PlaceholderFragment.
+        when(position){
+            0 -> return ItemsFragment.newInstance();
+            
+        }
         return PlaceholderFragment.newInstance(position + 1)
     }
 
+    //sets name of Tabs/Fragments
     override fun getPageTitle(position: Int): CharSequence? {
         return context.resources.getString(TAB_TITLES[position])
     }
 
     override fun getCount(): Int {
-        // Show 2 total pages.
-        return 2
+        return 1
     }
 }
