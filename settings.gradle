@@ -1,8 +1,14 @@
 pluginManagement {
     repositories {
-        gradlePluginPortal()
-        google()
+        google {
+            content {
+                includeGroupByRegex("com\\.android.*")
+                includeGroupByRegex("com\\.google.*")
+                includeGroupByRegex("androidx.*")
+            }
+        }
         mavenCentral()
+        gradlePluginPortal()
     }
 }
 dependencyResolutionManagement {
@@ -12,6 +18,8 @@ dependencyResolutionManagement {
         mavenCentral()
         maven {url "https://jitpack.io"}
     }
+
 }
-rootProject.name = "Inventory Manager"
+
+rootProject.name = "Inventory Manager App"
 include ':app'
