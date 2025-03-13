@@ -13,7 +13,13 @@ class LoginViewModel(
     private val repository: LoginRepository
 ) : ViewModel(){
 
+    private val _loginResponse : MutableLiveData<Resource<LoginResponse>> = MutableLiveData()
+    val loginResponse: LiveData<Resource<LoginResponse>>
+        get() = _loginResponse
+
+
+
     fun login() = viewModelScope.launch {
-        repository.login()
+        _loginResponse.value = repository.login()
     }
 }

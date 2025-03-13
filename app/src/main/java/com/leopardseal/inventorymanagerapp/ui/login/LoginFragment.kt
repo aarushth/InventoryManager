@@ -19,8 +19,43 @@ class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRe
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.googleSignInBtn.setOnClickListener{
+        viewModel.loginResponse.observe(viewLifecycleOwner, Observer{
+            when(it){
+                is Resource.Success -> {
+                    Toast.makeText(requireContext(), "logged in as" + it.myUser.email, Toast.LENGTH_LONG).show()
+                }
+                is Resource.Failure -> {
+                    Toast.makeText(requireContext(), "user not found in system" , Toast.LENGTH_LONG).show()
+                }
+            }
+        })
 
+
+        binding.googleSignInBtn.setOnClickListener{
+            val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
+                 .setFilterByAuthorizedAccounts(false)
+                 .setServerClientId("354946788079-aermo39q0o3gshsgf46oqhkicovqcuo8.apps.googleusercontent.com")
+                 .setAutoSelectEnabled(false)
+                 .build()
+            val ctext : Context = requireContext()
+            val credentialManager = CredentialManager.create(ctext)
+            val request: GetCredentialRequest = GetCredentialRequest.Builder()
+                 .addCredentialOption(googleIdOption)
+                 .build()
+ 
+            runBlocking {
+ 
+                 try {
+                     val result = credentialManager.getCredential(
+                         request = request,
+                         context = ctext,
+                     )
+                     serverComms.setToken(GoogleIdTokenCredential.createFrom(result.credential.data))
+                     viewModel.login()
+                 } catch (e: Throwable) {
+                     Log.e(TAG, "something failed")
+                 }
+            }
         }
     }
 

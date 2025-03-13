@@ -5,10 +5,11 @@ import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
 
 interface LoginAPI {
-
+    @InjectAuth
     @FormUrlEncoded
     @POST("signIn")
     fun login(
-        @Field("authToken") authToken: String
+        // @Header("Authorization") authToken: String
+        // @Field("authToken") authToken: String
     ) :Any
 }
