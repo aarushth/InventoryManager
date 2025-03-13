@@ -1,3 +1,4 @@
+#App is not working right now, dont try it
 # How to run
 ## 1. Install android studio at - https://developer.android.com/studio
 ## 2. Ensure backend server is running. See - https://github.com/aarushth/InventoryManagerBackend
