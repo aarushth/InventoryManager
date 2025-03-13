@@ -4,10 +4,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.leopardseal.inventorymanagerapp.databinding.FragmentLoginBinding
 import com.leopardseal.inventorymanagerapp.network.LoginAPI
 import com.leopardseal.inventorymanagerapp.repositories.LoginRepository
 import com.leopardseal.inventorymanagerapp.ui.base.BaseFragment
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.CredentialManager
+import kotlinx.coroutines.runBlocking
 
 
 class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRepository>() {
@@ -15,7 +19,9 @@ class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRe
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        
+        binding.googleSignInBtn.setOnClickListener{
+
+        }
     }
 
 

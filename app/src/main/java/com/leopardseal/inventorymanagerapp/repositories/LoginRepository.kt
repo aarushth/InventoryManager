@@ -7,8 +7,7 @@ class LoginRepository(
 ):BaseRepository() {
 
     suspend fun login(
-        tokenCredential: String
     ) = safeApiCall {
-        api.login(tokenCredential)
+
     }
 }
