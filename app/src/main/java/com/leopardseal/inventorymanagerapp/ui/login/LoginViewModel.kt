@@ -1,13 +1,16 @@
 package com.leopardseal.inventorymanagerapp.ui.login
 
-import androidx.credentials.CredentialManager
-import androidx.credentials.GetCredentialRequest
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.leopardseal.inventorymanagerapp.repositories.BaseRepository
+
+import com.leopardseal.inventorymanagerapp.network.Resource
+
 import com.leopardseal.inventorymanagerapp.repositories.LoginRepository
+import com.leopardseal.inventorymanagerapp.responses.LoginResponse
 import kotlinx.coroutines.launch
+
 
 class LoginViewModel(
     private val repository: LoginRepository
@@ -20,6 +23,6 @@ class LoginViewModel(
 
 
     fun login() = viewModelScope.launch {
-        _loginResponse.value = repository.login()
+        _loginResponse.value = repository.login() as Resource<LoginResponse>
     }
 }

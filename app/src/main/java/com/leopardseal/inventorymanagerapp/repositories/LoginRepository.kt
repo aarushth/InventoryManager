@@ -6,9 +6,7 @@ class LoginRepository(
     private val api: LoginAPI
 ):BaseRepository() {
 
-    suspend fun login(
-        token : String
-    ) = safeApiCall (
+    suspend fun login() = safeApiCall {
         api.login()
-    )
+    }
 }
