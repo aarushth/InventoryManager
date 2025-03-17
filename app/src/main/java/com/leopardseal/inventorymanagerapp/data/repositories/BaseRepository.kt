@@ -1,6 +1,6 @@
-package com.leopardseal.inventorymanagerapp.repositories
+package com.leopardseal.inventorymanagerapp.data.repositories
 
-import com.leopardseal.inventorymanagerapp.network.Resource
+import com.leopardseal.inventorymanagerapp.data.network.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
@@ -8,7 +8,7 @@ import retrofit2.HttpException
 abstract class BaseRepository {
     suspend fun <T> safeApiCall(
         apiCall: suspend () -> T
-    ) : Resource<T>{
+    ) : Resource<T> {
         return withContext(Dispatchers.IO){
             try{
                 Resource.Success(apiCall.invoke())

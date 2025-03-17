@@ -19,35 +19,54 @@ import androidx.lifecycle.Observer
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 
 import com.leopardseal.inventorymanagerapp.databinding.FragmentLoginBinding
-import com.leopardseal.inventorymanagerapp.network.LoginAPI
-import com.leopardseal.inventorymanagerapp.network.Resource
-import com.leopardseal.inventorymanagerapp.repositories.LoginRepository
+import com.leopardseal.inventorymanagerapp.data.network.LoginAPI
+import com.leopardseal.inventorymanagerapp.data.network.Resource
+import com.leopardseal.inventorymanagerapp.data.repositories.LoginRepository
+import com.leopardseal.inventorymanagerapp.data.responses.MyUsers
 import com.leopardseal.inventorymanagerapp.ui.base.BaseFragment
+import com.leopardseal.inventorymanagerapp.ui.home.HomeActivity
+import com.leopardseal.inventorymanagerapp.ui.startNewActivity
+import com.leopardseal.inventorymanagerapp.ui.visible
 import kotlinx.coroutines.runBlocking
 
 
 class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRepository>() {
-    companion object {
-        const val RC_SIGN_IN = 9001  // You can choose any integer value
-    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.progressBar.visible(false)
+//        binding.googleSignInBtn.enabled(false)
+
         viewModel.loginResponse.observe(viewLifecycleOwner, Observer {
+            binding.progressBar.visible(false)
             when (it) {
-                is Resource.Success<*> -> {
-                    Toast.makeText(requireContext(), it.toString(), Toast.LENGTH_LONG).show()
+                is Resource.Success<MyUsers> -> {
+                    Toast.makeText(requireContext(), it.value.email, Toast.LENGTH_LONG).show()
                 }
 
                 is Resource.Failure -> {
-                    Toast.makeText(requireContext(), "user not found in system", Toast.LENGTH_LONG)
-                        .show()
+                    if(it.isNetworkError) {
+                        Toast.makeText(requireContext(),"please check your internet and try again",Toast.LENGTH_LONG).show()
+                    }else if(it.errorCode == HttpStatus.SC_UNAUTHORIZED){
+                        Toast.makeText(requireContext(),"user not found in system",Toast.LENGTH_LONG).show()
+                    }else{
+                        Toast.makeText(requireContext(),"an error occured, please try again later",Toast.LENGTH_LONG).show()
+                    }
                 }
             }
         })
+        triggerLogin()
+        binding.googleSignInBtn.setOnClickListener{
+            triggerLogin()
+        }
 
+    }
+    fun triggerLogin(){
+        binding.progressBar.visible(true)
         val context: Context = requireContext()
         val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(true)
@@ -76,7 +95,6 @@ class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRe
                         val request2: GetCredentialRequest = GetCredentialRequest.Builder()
                             .addCredentialOption(googleIdOption2)
                             .build()
-
                         login(context, credentialManager, request2)
                     } catch (e: GetCredentialException) {
                         Log.e(TAG, e.toString())
@@ -88,15 +106,16 @@ class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRe
             }
         }
     }
-
     suspend fun login(context: Context, credentialManager: CredentialManager, request: GetCredentialRequest){
         val result = credentialManager.getCredential(
             request = request,
             context = context,
         )
         if(result.credential is CustomCredential && result.credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL){
-            serverComms.setToken(GoogleIdTokenCredential.createFrom(result.credential.data).idToken)
-            viewModel.login()
+            val token : String = GoogleIdTokenCredential.createFrom(result.credential.data).idToken
+            viewModel.saveAuthToken(token)
+            viewModel.login(token)
+            requireActivity().startNewActivity(HomeActivity::class.java)
         }
     }
 
@@ -107,6 +126,6 @@ class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRe
         container: ViewGroup?
     ) = FragmentLoginBinding.inflate(inflater, container, false)
 
-    override fun getRepository() = LoginRepository(serverComms.buildApi(LoginAPI::class.java))
+    override fun getRepository() = LoginRepository(serverComms.buildApi(LoginAPI::class.java), userPreferences)
 
 }

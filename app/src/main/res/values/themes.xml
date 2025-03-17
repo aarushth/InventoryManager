@@ -19,9 +19,9 @@
         <item name="windowNoTitle">true</item>
     </style>
 
-<!--    <style name="Theme.InventoryManagerApp.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />-->
+    <!--    <style name="Theme.InventoryManagerApp.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />-->
 
-<!--    <style name="Theme.InventoryManagerApp.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />-->
+    <!--    <style name="Theme.InventoryManagerApp.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />-->
 
     <style name="ThemeOverlay.InventoryManagerApp.FullscreenContainer" parent="">
         <item name="fullscreenBackgroundColor">@color/light_blue_600</item>

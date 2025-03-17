@@ -1,4 +1,4 @@
-package com.leopardseal.inventorymanagerapp.network
+package com.leopardseal.inventorymanagerapp.data.network
 
 import com.developer.gbuttons.BuildConfig
 import okhttp3.OkHttpClient
@@ -8,20 +8,20 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class ServerComms {
     companion object{
-        private const val BASE_URL = "http://192.168.68.56:8080"
+        private const val BASE_URL = "http://192.168.68.74:8080"
     }
-    private lateinit var token : String
-    val tokenProvider: () -> String? = { 
-        token
-    }
-    fun setToken(tok: String){
-        token = tok
-    } 
+//    private lateinit var token : String
+//    val tokenProvider: () -> String? = {
+//        token
+//    }
+//    fun setTokenProvider(provider: String){
+//        token = tok
+//    }
 
     fun <Api> buildApi(
-        api:Class<Api>
+        api:Class<Api>,
+        authToken: String? = null
     ):Api {
-
         val okHttpClient = OkHttpClient.Builder()
             .also { client -> 
                 if(BuildConfig.DEBUG){
@@ -30,7 +30,7 @@ class ServerComms {
                     client.addInterceptor(logging)
                 }
             }
-            .addInterceptor(AuthInterceptor(tokenProvider))
+            .addInterceptor(AuthInterceptor(authToken))
             .build()
 
         return Retrofit.Builder()

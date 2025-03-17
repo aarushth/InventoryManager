@@ -5,10 +5,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
-import com.leopardseal.inventorymanagerapp.network.Resource
 
-import com.leopardseal.inventorymanagerapp.repositories.LoginRepository
-import com.leopardseal.inventorymanagerapp.responses.LoginResponse
+import com.leopardseal.inventorymanagerapp.data.network.Resource
+
+import com.leopardseal.inventorymanagerapp.data.repositories.LoginRepository
+import com.leopardseal.inventorymanagerapp.data.responses.MyUsers
 import kotlinx.coroutines.launch
 
 
@@ -16,13 +17,16 @@ class LoginViewModel(
     private val repository: LoginRepository
 ) : ViewModel(){
 
-    private val _loginResponse : MutableLiveData<Resource<LoginResponse>> = MutableLiveData()
-    val loginResponse: LiveData<Resource<LoginResponse>>
+    private val _loginResponse : MutableLiveData<Resource<MyUsers>> = MutableLiveData()
+    val loginResponse: LiveData<Resource<MyUsers>>
         get() = _loginResponse
 
 
+    fun saveAuthToken(authToken: String) = viewModelScope.launch{
+        repository.saveAuthToken(authToken)
+    }
 
-    fun login() = viewModelScope.launch {
-        _loginResponse.value = repository.login() as Resource<LoginResponse>
+    fun login(authToken : String) = viewModelScope.launch {
+        _loginResponse.value = repository.login(authToken) as Resource<MyUsers>
     }
 }

@@ -1,4 +1,4 @@
-package com.leopardseal.inventorymanagerapp.network
+package com.leopardseal.inventorymanagerapp.data.network
 
 import okhttp3.ResponseBody
 

@@ -1,3 +1,3 @@
-package com.leopardseal.inventorymanagerapp.responses
+package com.leopardseal.inventorymanagerapp.data.responses
 
 data class Orgs (var id: Long, var name: String, var imageId: Long?)

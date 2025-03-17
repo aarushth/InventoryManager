@@ -2,8 +2,8 @@ package com.leopardseal.inventorymanagerapp.ui.base
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.leopardseal.inventorymanagerapp.repositories.BaseRepository
-import com.leopardseal.inventorymanagerapp.repositories.LoginRepository
+import com.leopardseal.inventorymanagerapp.data.repositories.BaseRepository
+import com.leopardseal.inventorymanagerapp.data.repositories.LoginRepository
 import com.leopardseal.inventorymanagerapp.ui.login.LoginViewModel
 
 class VMFactory(
