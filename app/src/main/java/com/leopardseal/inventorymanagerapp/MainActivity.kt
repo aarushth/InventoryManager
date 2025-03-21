@@ -15,12 +15,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val userPreferences : UserPreferences = UserPreferences(this)
-
-        val liveData = userPreferences.authToken.asLiveData()
-        liveData.observe(this, Observer{
-            val activity = if(it == null) LoginActivity::class.java else HomeActivity::class.java
-            startNewActivity(activity)
-        })
+        this.startNewActivity(LoginActivity::class.java)
+//        val liveData = userPreferences.authToken.asLiveData()
+//        liveData.observe(this, Observer{
+//            val activity = if(it == null) LoginActivity::class.java else HomeActivity::class.java
+//            this.startNewActivity(activity)
+//        })
 
 
     }

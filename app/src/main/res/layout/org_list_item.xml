@@ -22,7 +22,7 @@
             android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/default_img"/>
+            android:src="@drawable/default_img" />
 
         <TextView
             android:id="@+id/listName"

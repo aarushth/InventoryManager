@@ -10,26 +10,20 @@ class ServerComms {
     companion object{
         private const val BASE_URL = "http://192.168.68.74:8080"
     }
-//    private lateinit var token : String
-//    val tokenProvider: () -> String? = {
-//        token
-//    }
-//    fun setTokenProvider(provider: String){
-//        token = tok
-//    }
+
 
     fun <Api> buildApi(
         api:Class<Api>,
         authToken: String? = null
     ):Api {
         val okHttpClient = OkHttpClient.Builder()
-            .also { client -> 
-                if(BuildConfig.DEBUG){
-                    val logging = HttpLoggingInterceptor()
-                    logging.setLevel(HttpLoggingInterceptor.Level.BODY)
-                    client.addInterceptor(logging)
-                }
-            }
+//            .also { client ->
+//                if(BuildConfig.DEBUG){
+//                    val logging = HttpLoggingInterceptor()
+//                    logging.setLevel(HttpLoggingInterceptor.Level.HEADERS)
+//                    client.addInterceptor(logging)
+//                }
+//            }
             .addInterceptor(AuthInterceptor(authToken))
             .build()
 

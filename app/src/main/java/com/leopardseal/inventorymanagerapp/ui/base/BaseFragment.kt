@@ -29,10 +29,11 @@ abstract class BaseFragment<VM : ViewModel, B: ViewBinding, R: BaseRepository> :
         savedInstanceState: Bundle?
     ): View? {
         userPreferences = UserPreferences(requireContext())
+        lifecycleScope.launch { userPreferences.authToken.first() }
         binding = getFragmentBinding(inflater, container)
         val factory = VMFactory(getRepository())
         viewModel = ViewModelProvider(this, factory).get(getViewModel())
-        lifecycleScope.launch { userPreferences.authToken.first() }
+
         return binding.root
     }
 

@@ -1,4 +1,4 @@
-package com.leopardseal.inventorymanagerapp.ui.home
+package com.leopardseal.inventorymanagerapp.ui.home.org
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -9,8 +9,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.responses.Orgs
+import com.squareup.picasso.Picasso
 
-class OrgsListAdapter(context: Context, dataArrayList : ArrayList<Orgs?>?):
+class OrgsListAdapter(context: Context, dataArrayList : List<Orgs?>?):
     ArrayAdapter<Orgs?>(context, R.layout.org_list_item, dataArrayList!!){
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
@@ -24,9 +25,14 @@ class OrgsListAdapter(context: Context, dataArrayList : ArrayList<Orgs?>?):
         val listImage = view!!.findViewById<ImageView>(R.id.listImage)
         val listName = view.findViewById<TextView>(R.id.listName)
 
-        if(org!!.imageId != null){
-            listName.setImageResource()
-        }
+        Picasso.get()
+            .load(org!!.imageUrl)
+            .placeholder(R.drawable.default_img)
+            .error(R.drawable.default_img)
+            .into(listImage);
+
+        listName.text = org.name
+
         return super.getView(position, convertView, parent)
     }
 }

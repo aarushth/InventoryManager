@@ -39,13 +39,16 @@ class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRe
         super.onViewCreated(view, savedInstanceState)
 
         binding.progressBar.visible(false)
-//        binding.googleSignInBtn.enabled(false)
 
         viewModel.loginResponse.observe(viewLifecycleOwner, Observer {
             binding.progressBar.visible(false)
             when (it) {
                 is Resource.Success<MyUsers> -> {
-                    Toast.makeText(requireContext(), it.value.email, Toast.LENGTH_LONG).show()
+//                    viewModel.saveUserId(it.value.id)
+                    if(it.value.picture != null) {
+                        viewModel.savePictureUrl(it.value.picture!!)
+                    }
+                    requireActivity().startNewActivity(HomeActivity::class.java)
                 }
 
                 is Resource.Failure -> {
@@ -59,19 +62,19 @@ class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRe
                 }
             }
         })
-        triggerLogin()
+
         binding.googleSignInBtn.setOnClickListener{
             triggerLogin()
         }
-
+        triggerLogin()
     }
     fun triggerLogin(){
         binding.progressBar.visible(true)
         val context: Context = requireContext()
         val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(true)
+            .setAutoSelectEnabled(true)
             .setServerClientId("354946788079-aermo39q0o3gshsgf46oqhkicovqcuo8.apps.googleusercontent.com")
-//            .setAutoSelectEnabled(false)
             .build()
 
         val credentialManager = CredentialManager.create(context)
@@ -115,7 +118,6 @@ class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRe
             val token : String = GoogleIdTokenCredential.createFrom(result.credential.data).idToken
             viewModel.saveAuthToken(token)
             viewModel.login(token)
-            requireActivity().startNewActivity(HomeActivity::class.java)
         }
     }
 

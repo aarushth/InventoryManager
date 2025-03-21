@@ -1,6 +1,5 @@
 package com.leopardseal.inventorymanagerapp.data.repositories
 
-import android.media.session.MediaSession.Token
 import com.leopardseal.inventorymanagerapp.data.UserPreferences
 import com.leopardseal.inventorymanagerapp.data.network.LoginAPI
 
@@ -16,6 +15,11 @@ class LoginRepository(
     suspend fun saveAuthToken(authToken: String){
         preferences.saveAuthToken(authToken)
     }
-
+//    suspend fun saveUserId(userId: Long){
+//        preferences.saveUserId(userId)
+//    }
+    suspend fun savePictureUrl(pictureUrl: String){
+        preferences.savePictureUrl(pictureUrl)
+    }
 
 }

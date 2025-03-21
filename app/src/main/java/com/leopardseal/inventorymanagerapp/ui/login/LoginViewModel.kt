@@ -26,6 +26,13 @@ class LoginViewModel(
         repository.saveAuthToken(authToken)
     }
 
+//    fun saveUserId(userId: Long) = viewModelScope.launch{
+//        repository.saveUserId(userId)
+//    }
+    fun savePictureUrl(pictureUrl: String) = viewModelScope.launch{
+        repository.savePictureUrl(pictureUrl)
+    }
+
     fun login(authToken : String) = viewModelScope.launch {
         _loginResponse.value = repository.login(authToken) as Resource<MyUsers>
     }

@@ -12,6 +12,6 @@
         android:scrollbars="vertical"
         android:layout_marginTop="12dp"
         tools:listitem="@layout/org_list_item"
-        android:divider="transparent"
+        android:divider="@color/light_blue_A200"
         android:dividerHeight="5.0sp"/>
 </LinearLayout>
