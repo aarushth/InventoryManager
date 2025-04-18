@@ -8,7 +8,11 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class ServerComms {
     companion object{
-        private const val BASE_URL = "http://192.168.68.74:8080"
+        //use this when using production server
+        private const val BASE_URL = "https://inventory-manager-backend-a2or.onrender.com"
+
+//        use this when testing on local server, change to pc ip
+//        private const val BASE_URL = "http://172.24.160.1:8001"
     }
 
 

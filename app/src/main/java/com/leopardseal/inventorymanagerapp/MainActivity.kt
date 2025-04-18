@@ -16,6 +16,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val userPreferences : UserPreferences = UserPreferences(this)
         this.startNewActivity(LoginActivity::class.java)
+        actionBar?.hide()
 //        val liveData = userPreferences.authToken.asLiveData()
 //        liveData.observe(this, Observer{
 //            val activity = if(it == null) LoginActivity::class.java else HomeActivity::class.java

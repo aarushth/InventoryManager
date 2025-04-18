@@ -1,11 +1,14 @@
 package com.leopardseal.inventorymanagerapp.ui.home.org
 
+import android.graphics.drawable.shapes.Shape
 import android.os.Bundle
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.ListView
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
@@ -26,20 +29,27 @@ import kotlinx.coroutines.runBlocking
 
 class OrgFragment : BaseFragment<OrgViewModel, FragmentOrgBinding, OrgRepository>() {
 
+
     private lateinit var orgsListAdapter : OrgsListAdapter
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
 
-
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        var v : View? = super.onCreateView(inflater, container, savedInstanceState)
         viewModel.orgResponse.observe(viewLifecycleOwner, Observer {
 //            binding.progressBar.visible(false)
             when (it) {
                 is Resource.Success<List<Orgs>> -> {
-                    orgsListAdapter = OrgsListAdapter(requireContext(), it.value)
-                    binding.listView.adapter = orgsListAdapter
-                    binding.listView.isClickable = true
-                    binding.listView.onItemClickListener = AdapterView.OnItemClickListener { adapterView, view, i, l ->
-                        Toast.makeText(requireContext(), "you selected ${it.value[i].name}", Toast.LENGTH_LONG).show()
+                    var dataArrayList: ArrayList<Orgs?> = it.value as ArrayList<Orgs?>
+                    var listView : ListView = binding.listView
+                    orgsListAdapter = OrgsListAdapter(requireContext(), dataArrayList)
+                    listView.adapter = orgsListAdapter
+                    listView.onItemClickListener = AdapterView.OnItemClickListener{adapterView, view, i, l ->
+                        var org :Orgs = listView.getItemAtPosition(i) as Orgs
+                        Toast.makeText(requireContext(), "you selected ${org.name}", Toast.LENGTH_LONG).show()
+
                     }
                 }
 
@@ -55,9 +65,14 @@ class OrgFragment : BaseFragment<OrgViewModel, FragmentOrgBinding, OrgRepository
                 }
             }
         })
-        viewModel.getOrgs()
+
+        return v
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewModel.getOrgs()
+    }
 
     override fun getViewModel() = OrgViewModel::class.java
 

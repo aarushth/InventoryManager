@@ -15,6 +15,7 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.credentials.exceptions.NoCredentialException
 import androidx.lifecycle.Observer
+import androidx.navigation.fragment.findNavController
 
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 
@@ -55,7 +56,8 @@ class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRe
                     if(it.isNetworkError) {
                         Toast.makeText(requireContext(),"please check your internet and try again",Toast.LENGTH_LONG).show()
                     }else if(it.errorCode == HttpStatus.SC_UNAUTHORIZED){
-                        Toast.makeText(requireContext(),"user not found in system",Toast.LENGTH_LONG).show()
+//                        Toast.makeText(requireContext(),"user not found in system",Toast.LENGTH_LONG).show()
+
                     }else{
                         Toast.makeText(requireContext(),"an error occured, please try again later",Toast.LENGTH_LONG).show()
                     }

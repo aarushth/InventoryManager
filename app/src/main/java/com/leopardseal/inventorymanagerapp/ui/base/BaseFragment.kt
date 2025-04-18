@@ -33,7 +33,7 @@ abstract class BaseFragment<VM : ViewModel, B: ViewBinding, R: BaseRepository> :
         binding = getFragmentBinding(inflater, container)
         val factory = VMFactory(getRepository())
         viewModel = ViewModelProvider(this, factory).get(getViewModel())
-
+        
         return binding.root
     }
 

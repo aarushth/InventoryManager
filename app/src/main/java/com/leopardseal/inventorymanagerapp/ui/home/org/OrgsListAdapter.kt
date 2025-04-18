@@ -11,13 +11,14 @@ import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.responses.Orgs
 import com.squareup.picasso.Picasso
 
-class OrgsListAdapter(context: Context, dataArrayList : List<Orgs?>?):
-    ArrayAdapter<Orgs?>(context, R.layout.org_list_item, dataArrayList!!){
+class OrgsListAdapter(context: Context, dataArrayList : ArrayList<Orgs?>?): ArrayAdapter<Orgs?>(context, R.layout.org_list_item, dataArrayList!!){
+
+
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
 
         var view = convertView
-        var org = getItem(position)
+        var org : Orgs? = getItem(position)
 
         if(view == null){
             view  = LayoutInflater.from(context).inflate(R.layout.org_list_item, parent, false)
@@ -33,6 +34,6 @@ class OrgsListAdapter(context: Context, dataArrayList : List<Orgs?>?):
 
         listName.text = org.name
 
-        return super.getView(position, convertView, parent)
+        return view
     }
 }
