@@ -1,4 +1,4 @@
-package com.leopardseal.inventorymanagerapp.ui.home.org
+package com.leopardseal.inventorymanagerapp.ui.main.org
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -25,7 +25,7 @@ class OrgsListAdapter(context: Context, dataArrayList : ArrayList<Orgs?>?): Arra
         }
         val listImage = view!!.findViewById<ImageView>(R.id.listImage)
         val listName = view.findViewById<TextView>(R.id.listName)
-
+        val listRole = view.findViewById<TextView>(R.id.listRole)
         Picasso.get()
             .load(org!!.imageUrl)
             .placeholder(R.drawable.default_img)
@@ -33,6 +33,7 @@ class OrgsListAdapter(context: Context, dataArrayList : ArrayList<Orgs?>?): Arra
             .into(listImage);
 
         listName.text = org.name
+        listRole.text = org.role
 
         return view
     }

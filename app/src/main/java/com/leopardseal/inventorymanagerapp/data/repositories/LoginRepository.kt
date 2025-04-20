@@ -1,7 +1,7 @@
 package com.leopardseal.inventorymanagerapp.data.repositories
 
 import com.leopardseal.inventorymanagerapp.data.UserPreferences
-import com.leopardseal.inventorymanagerapp.data.network.LoginAPI
+import com.leopardseal.inventorymanagerapp.data.network.API.LoginAPI
 
 class LoginRepository(
     private val api: LoginAPI,

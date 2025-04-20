@@ -8,13 +8,16 @@
     app:cardCornerRadius="20dp"
     app:cardElevation="8dp"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="25dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:gravity="start">
 
         <com.google.android.material.imageview.ShapeableImageView
+            app:shapeAppearanceOverlay="@style/roundedImageViewRounded"
             android:id="@+id/listImage"
             android:layout_width="60dp"
             android:layout_height="60dp"
@@ -22,7 +25,8 @@
             android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/default_img" />
+            android:src="@drawable/default_img"
+            />
 
         <TextView
             android:id="@+id/listName"
@@ -34,6 +38,28 @@
             android:text="Name"
             android:textColor="@color/black"
             android:textSize="20sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/listRole"
+            android:layout_toEndOf="@+id/listImage"
+            android:layout_marginTop="50dp"
+            android:layout_marginStart="30dp"
+            android:text="role"
+            android:textSize="15sp"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="4dp"
+            android:layout_toEndOf="@+id/listName"
+            android:backgroundTint="@color/green"
+            android:text="Accept Invite"
+            android:layout_centerVertical="true"
+            android:id="@+id/listAccept"/>
 
     </RelativeLayout>
 </androidx.cardview.widget.CardView>

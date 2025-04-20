@@ -1,9 +1,7 @@
 package com.leopardseal.inventorymanagerapp.ui.login
 
-import android.content.ContentValues.TAG
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,22 +11,23 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 
 import androidx.credentials.exceptions.GetCredentialException
-import androidx.credentials.exceptions.NoCredentialException
 import androidx.lifecycle.Observer
-import androidx.navigation.fragment.findNavController
+import androidx.navigation.findNavController
 
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
+import com.leopardseal.inventorymanagerapp.R
 
 import com.leopardseal.inventorymanagerapp.databinding.FragmentLoginBinding
-import com.leopardseal.inventorymanagerapp.data.network.LoginAPI
+import com.leopardseal.inventorymanagerapp.data.network.API.LoginAPI
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.repositories.LoginRepository
 import com.leopardseal.inventorymanagerapp.data.responses.MyUsers
 import com.leopardseal.inventorymanagerapp.ui.base.BaseFragment
-import com.leopardseal.inventorymanagerapp.ui.home.HomeActivity
+import com.leopardseal.inventorymanagerapp.ui.enabled
+import com.leopardseal.inventorymanagerapp.ui.main.MainActivity
 import com.leopardseal.inventorymanagerapp.ui.startNewActivity
 import com.leopardseal.inventorymanagerapp.ui.visible
 import kotlinx.coroutines.runBlocking
@@ -38,27 +37,30 @@ class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRe
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        navController = view.findNavController()
         binding.progressBar.visible(false)
-
+//        getActionBar()?.setTitle("Login");
         viewModel.loginResponse.observe(viewLifecycleOwner, Observer {
             binding.progressBar.visible(false)
             when (it) {
+
                 is Resource.Success<MyUsers> -> {
 //                    viewModel.saveUserId(it.value.id)
                     if(it.value.picture != null) {
                         viewModel.savePictureUrl(it.value.picture!!)
                     }
-                    requireActivity().startNewActivity(HomeActivity::class.java)
+                    requireActivity().startNewActivity(MainActivity::class.java)
                 }
 
                 is Resource.Failure -> {
                     if(it.isNetworkError) {
+                        binding.googleSignInBtn.enabled(true)
                         Toast.makeText(requireContext(),"please check your internet and try again",Toast.LENGTH_LONG).show()
                     }else if(it.errorCode == HttpStatus.SC_UNAUTHORIZED){
 //                        Toast.makeText(requireContext(),"user not found in system",Toast.LENGTH_LONG).show()
-
+                        navController.navigate(R.id.login_fail)
                     }else{
+                        binding.googleSignInBtn.enabled(true)
                         Toast.makeText(requireContext(),"an error occured, please try again later",Toast.LENGTH_LONG).show()
                     }
                 }
@@ -70,12 +72,17 @@ class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRe
         }
         triggerLogin()
     }
+
+
+
+
     fun triggerLogin(){
         binding.progressBar.visible(true)
+        binding.googleSignInBtn.enabled(false)
         val context: Context = requireContext()
         val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(true)
-            .setAutoSelectEnabled(true)
+            .setAutoSelectEnabled(false)
             .setServerClientId("354946788079-aermo39q0o3gshsgf46oqhkicovqcuo8.apps.googleusercontent.com")
             .build()
 
@@ -89,27 +96,27 @@ class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRe
             try {
                 login(context, credentialManager, request)
             } catch (e: GetCredentialException) {
-                if (e is NoCredentialException) {
-                    try {
-                        val googleIdOption2: GetGoogleIdOption = GetGoogleIdOption.Builder()
-                            .setFilterByAuthorizedAccounts(false)
-                            .setServerClientId("354946788079-aermo39q0o3gshsgf46oqhkicovqcuo8.apps.googleusercontent.com")
-                            .setAutoSelectEnabled(false)
-                            .build()
-
-                        val request2: GetCredentialRequest = GetCredentialRequest.Builder()
-                            .addCredentialOption(googleIdOption2)
-                            .build()
-                        login(context, credentialManager, request2)
-                    } catch (e: GetCredentialException) {
-                        Log.e(TAG, e.toString())
-                    }
-                } else {
-                    Log.e(TAG, e.toString())
-                }
-
+//                if (e is NoCredentialException) {
+//                    try {
+//                        val googleIdOption2: GetGoogleIdOption = GetGoogleIdOption.Builder()
+//                            .setFilterByAuthorizedAccounts(false)
+//                            .setServerClientId("354946788079-aermo39q0o3gshsgf46oqhkicovqcuo8.apps.googleusercontent.com")
+//                            .setAutoSelectEnabled(false)
+//                            .build()
+//
+//                        val request2: GetCredentialRequest = GetCredentialRequest.Builder()
+//                            .addCredentialOption(googleIdOption2)
+//                            .build()
+//                        login(context, credentialManager, request2)
+//                    } catch (e: GetCredentialException) {
+//                        Log.e(TAG, e.toString())
+//                    }
+//                } else {
+//                    Log.e(TAG, e.toString())
+//                }
             }
         }
+        binding.googleSignInBtn.enabled(true)
     }
     suspend fun login(context: Context, credentialManager: CredentialManager, request: GetCredentialRequest){
         val result = credentialManager.getCredential(

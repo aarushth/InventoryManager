@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_main"
+    app:startDestination="@id/fragment_item">
+    <fragment
+        android:id="@+id/fragment_item"
+        android:name="com.leopardseal.inventorymanagerapp.ui.main.item.ItemFragment"
+        android:label="fragment_item"
+        tools:layout="@layout/fragment_item" >
+    </fragment>
+    <fragment
+        android:id="@+id/fragment_box"
+        android:name="com.leopardseal.inventorymanagerapp.ui.main.box.BoxFragment"
+        android:label="fragment_box"
+        tools:layout="@layout/fragment_box" >
+    </fragment>
+    <fragment
+        android:id="@+id/fragment_location"
+        android:name="com.leopardseal.inventorymanagerapp.ui.main.location.LocationFragment"
+        android:label="fragment_location"
+        tools:layout="@layout/fragment_location" >
+    </fragment>
+    <fragment
+        android:id="@+id/fragment_org"
+        android:name="com.leopardseal.inventorymanagerapp.ui.main.org.OrgFragment"
+        android:label="fragment_org"
+        tools:layout="@layout/fragment_org" >
+<!--        <action-->
+<!--            android:id="@+id/org_to_item"-->
+<!--            app:destination="@+id/fragment_item" />-->
+    </fragment>
+    <fragment
+        android:id="@+id/fragment_invite"
+        android:name="com.leopardseal.inventorymanagerapp.ui.main.invite.InviteFragment"
+        android:label="fragment_invite"
+        tools:layout="@layout/fragment_invite" >
+<!--        <action-->
+<!--            android:id="@+id/invite_to_org"-->
+<!--            app:destination="@+id/fragment_org" />-->
+    </fragment>
+</navigation>

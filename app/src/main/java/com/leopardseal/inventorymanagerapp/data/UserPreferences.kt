@@ -29,12 +29,18 @@ class UserPreferences(
     val authToken : Flow<String?>
         get() = appContext.dataStore.data.map { it[KEY_AUTH] }
 
-//    val userId : Flow<Long?>
-//        get() = appContext.dataStore.data.map { it[USER_ID] }
+    val orgId : Flow<Long?>
+        get() = appContext.dataStore.data.map { it[ORG_ID] }
 
     val pictureUrl : Flow<String?>
         get() = appContext.dataStore.data.map { it[PICTURE_URL] }
-//    val authToken = [Keys.KEY_AUTH] ?: false
+
+    val orgImg : Flow<String?>
+        get() = appContext.dataStore.data.map { it[ORG_IMG] }
+
+    val orgName : Flow<String?>
+        get() = appContext.dataStore.data.map { it[ORG_NAME] }
+
 
 
     suspend fun saveAuthToken(authToken: String){
@@ -43,11 +49,22 @@ class UserPreferences(
         }
     }
 
-//    suspend fun saveUserId(userId: Long){
-//        appContext.dataStore.edit {
-//            it[USER_ID] = userId
-//        }
-//    }
+    suspend fun saveOrgId(orgId: Long){
+        appContext.dataStore.edit {
+            it[ORG_ID] = orgId
+        }
+    }
+    suspend fun saveOrgImg(orgImg: String){
+        appContext.dataStore.edit {
+            it[ORG_IMG] = orgImg
+        }
+    }
+    suspend fun saveOrgName(orgName: String){
+        appContext.dataStore.edit {
+            it[ORG_NAME] = orgName
+        }
+    }
+
 
     suspend fun savePictureUrl(pictureUrl: String){
         appContext.dataStore.edit {
@@ -57,7 +74,9 @@ class UserPreferences(
 
     companion object {
         private val KEY_AUTH = stringPreferencesKey("authToken")
-//        private val USER_ID = longPreferencesKey("userId")
+        private val ORG_ID = longPreferencesKey("orgId")
+        private val ORG_NAME = stringPreferencesKey("orgName")
+        private val ORG_IMG = stringPreferencesKey("orgImg")
         private val PICTURE_URL = stringPreferencesKey("pictureUrl")
     }
 }

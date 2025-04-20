@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn = "navigation_view">
+
+    <group
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/fragment_invite"
+            android:icon="@drawable/ic_notifications_black_24dp"
+            android:title="Check for Invites"/>
+        <item
+            android:id="@+id/fragment_org"
+            android:icon="@drawable/ic_notifications_black_24dp"
+            android:title="Change Org"/>
+    </group>
+</menu>
