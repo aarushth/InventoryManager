@@ -44,12 +44,13 @@ class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRe
             binding.progressBar.visible(false)
             when (it) {
 
-                is Resource.Success<MyUsers> -> {
+                is Resource.Success<LoginResponse> -> {
 //                    viewModel.saveUserId(it.value.id)
                     if(it.value.picture != null) {
-                        viewModel.savePictureUrl(it.value.picture!!)
+                        viewModel.savePictureUrl(it.value.user.picture!!)
                     }
-                    requireActivity().startNewActivity(MainActivity::class.java)
+                    viewModel.saveAuthToken(it.value.token)
+                    
                 }
 
                 is Resource.Failure -> {
@@ -71,6 +72,15 @@ class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRe
             triggerLogin()
         }
         triggerLogin()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.tokenSaved.collect { saved ->
+                if (saved) {
+                    viewModel.resetTokenSavedFlag()
+                    requireActivity().startNewActivity(MainActivity::class.java)
+                    
+                }
+            }
+        }
     }
 
 
@@ -125,7 +135,6 @@ class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRe
         )
         if(result.credential is CustomCredential && result.credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL){
             val token : String = GoogleIdTokenCredential.createFrom(result.credential.data).idToken
-            viewModel.saveAuthToken(token)
             viewModel.login(token)
         }
     }

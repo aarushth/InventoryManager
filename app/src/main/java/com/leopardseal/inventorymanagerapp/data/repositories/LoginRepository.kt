@@ -8,18 +8,17 @@ class LoginRepository(
     private val preferences: UserPreferences
 ): BaseRepository() {
 
-    suspend fun login( authToken : String) = safeApiCall {
+    suspend fun login(authToken : String) = safeApiCall {
         api.login(authToken)
     }
 
-    suspend fun saveAuthToken(authToken: String){
-        preferences.saveAuthToken(authToken)
-    }
 //    suspend fun saveUserId(userId: Long){
 //        preferences.saveUserId(userId)
 //    }
     suspend fun savePictureUrl(pictureUrl: String){
         preferences.savePictureUrl(pictureUrl)
     }
-
+    suspend fun saveToken(token: String){
+        preferences.saveAuthToken(token)
+    }
 }

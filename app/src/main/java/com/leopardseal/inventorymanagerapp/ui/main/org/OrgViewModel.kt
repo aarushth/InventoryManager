@@ -26,12 +26,13 @@ class OrgViewModel(
         _orgSaved.value = false
     }
 
-    fun getOrgs() = viewModelScope.launch {
-        _orgResponse.value = repository.getOrgs() as Resource<List<Orgs>>
-    }
-
     fun saveOrg(org: Orgs) = viewModelScope.launch{
         repository.saveOrg(org)
         _orgSaved.emit(true)
     }
+    fun getOrgs() = viewModelScope.launch {
+        _orgResponse.value = repository.getOrgs() as Resource<List<Orgs>>
+    }
+
+    
 }

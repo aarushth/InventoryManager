@@ -17,8 +17,8 @@ class LoginViewModel(
     private val repository: LoginRepository
 ) : ViewModel(){
 
-    private val _loginResponse : MutableLiveData<Resource<MyUsers>> = MutableLiveData()
-    val loginResponse: LiveData<Resource<MyUsers>>
+    private val _loginResponse : MutableLiveData<Resource<LoginResponse>> = MutableLiveData()
+    val loginResponse: LiveData<Resource<LoginResponse>>
         get() = _loginResponse
 
 
@@ -29,11 +29,22 @@ class LoginViewModel(
 //    fun saveUserId(userId: Long) = viewModelScope.launch{
 //        repository.saveUserId(userId)
 //    }
+    private val _tokenSaved = MutableStateFlow(false)
+    val tokenSaved: StateFlow<Boolean> = _tokenSaved
+
+    fun resetTokenSavedFlag() {
+        _tokenSaved.value = false
+    }
+
+    fun saveToken(token: String) = viewModelScope.launch{
+        repository.saveToken(token)
+        _tokenSaved.emit(true)
+    }
     fun savePictureUrl(pictureUrl: String) = viewModelScope.launch{
         repository.savePictureUrl(pictureUrl)
     }
 
     fun login(authToken : String) = viewModelScope.launch {
-        _loginResponse.value = repository.login(authToken) as Resource<MyUsers>
+        _loginResponse.value = repository.login(authToken) as Resource<LoginResponse>
     }
 }

@@ -10,5 +10,5 @@ interface LoginAPI {
     @GET("login")
     suspend fun login(
          @Header("Authorization") authToken: String
-    ) : MyUsers
+    ) : LoginResponse
 }
