@@ -3,7 +3,7 @@ package com.leopardseal.inventorymanagerapp.ui.main
 
 
 
-import android.app.Notification.Action
+
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageButton
@@ -15,7 +15,6 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.navigation.NavController
-import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -23,13 +22,13 @@ import com.google.android.material.navigation.NavigationView
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.UserPreferences
 import com.squareup.picasso.Picasso
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
-
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-//    private var drawerLockMode : Int = DrawerLayout.LOCK_MODE_UNLOCKED
     private lateinit var toggle : ActionBarDrawerToggle
     private lateinit var drawerLayout : DrawerLayout
     private lateinit var navController: NavController
@@ -40,7 +39,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-//        binding = ActivityMainBinding.inflate(layoutInflater)
 
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragment_container_view) as NavHostFragment
         navController = navHostFragment.navController
@@ -50,7 +48,6 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         drawerLayout = findViewById<DrawerLayout>(R.id.drawer_layout)
-//        drawerLayout.setDrawerLockMode(drawerLockMode)
 
 
         var userPreferences : UserPreferences = UserPreferences(this)
@@ -72,15 +69,9 @@ class MainActivity : AppCompatActivity() {
         searchButton = findViewById<ImageButton>(R.id.search)
         customTitle = findViewById<TextView>(R.id.customTitle)
         orgImg = findViewById<ImageView>(R.id.orgImage)
-//        if(drawerLockMode == DrawerLayout.LOCK_MODE_UNLOCKED){
-//            drawerLayout.setDrawerLockMode(drawerLockMode)
-//
-//        }else{
-//            toggle.isDrawerIndicatorEnabled = false
-//            supportActionBar?.setDisplayHomeAsUpEnabled(false)
-//            toggle.syncState()
-//        }
+
         navController.addOnDestinationChangedListener { _, destination, _ ->
+            supportActionBar?.title = destination.label
             when (destination.id) {
                 R.id.fragment_org, R.id.fragment_invite -> {
                     drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
@@ -97,7 +88,7 @@ class MainActivity : AppCompatActivity() {
                     showViews(bottomNav, searchButton, orgImg, customTitle)
                     toolbar.title = ""
 
-                    customTitle.text = runBlocking { userPreferences.orgName.first()!! }
+                    customTitle.text = runBlocking { if(userPreferences.orgName.first()!= null)userPreferences.orgName.first()!! else "" }
 
                     val imageUrl = runBlocking { userPreferences.orgImg.first() ?: "" }
 

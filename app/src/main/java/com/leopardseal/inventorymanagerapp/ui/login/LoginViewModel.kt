@@ -9,11 +9,15 @@ import androidx.lifecycle.viewModelScope
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 
 import com.leopardseal.inventorymanagerapp.data.repositories.LoginRepository
-import com.leopardseal.inventorymanagerapp.data.responses.MyUsers
+import com.leopardseal.inventorymanagerapp.data.responses.dto.LoginResponse
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-
-class LoginViewModel(
+@HiltViewModel
+class LoginViewModel @Inject constructor(
     private val repository: LoginRepository
 ) : ViewModel(){
 
@@ -22,9 +26,7 @@ class LoginViewModel(
         get() = _loginResponse
 
 
-    fun saveAuthToken(authToken: String) = viewModelScope.launch{
-        repository.saveAuthToken(authToken)
-    }
+
 
 //    fun saveUserId(userId: Long) = viewModelScope.launch{
 //        repository.saveUserId(userId)

@@ -7,9 +7,12 @@ import androidx.lifecycle.viewModelScope
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.repositories.InviteRepository
 import com.leopardseal.inventorymanagerapp.data.responses.Orgs
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class InviteViewModel(
+@HiltViewModel
+class InviteViewModel @Inject constructor(
         private val repository: InviteRepository
 ) : ViewModel(){
 
@@ -21,10 +24,11 @@ class InviteViewModel(
         _inviteResponse.value = repository.getInvites() as Resource<List<Orgs>>
     }
 
-    private val _acceptResponse : MutableLiveData<Resource<String>> = MutableLiveData()
-    val acceptResponse: LiveData<Resource<String>>
+    private val _acceptResponse : MutableLiveData<Resource<Unit>> = MutableLiveData()
+    val acceptResponse: LiveData<Resource<Unit>>
         get() = _acceptResponse
+
     fun acceptInvite(orgId : Long, role : String) = viewModelScope.launch {
-        _acceptResponse.value = repository.acceptInvite(orgId, role) as Resource<String>
+        _acceptResponse.value = repository.acceptInvite(orgId, role) as Resource<Unit>
     }
 }

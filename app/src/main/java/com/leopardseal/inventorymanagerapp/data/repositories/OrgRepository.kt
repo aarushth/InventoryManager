@@ -3,8 +3,9 @@ package com.leopardseal.inventorymanagerapp.data.repositories
 import com.leopardseal.inventorymanagerapp.data.UserPreferences
 import com.leopardseal.inventorymanagerapp.data.network.API.OrgAPI
 import com.leopardseal.inventorymanagerapp.data.responses.Orgs
+import javax.inject.Inject
 
-class OrgRepository(
+class OrgRepository @Inject constructor(
     private val api: OrgAPI,
     private val preferences: UserPreferences
 ): BaseRepository() {

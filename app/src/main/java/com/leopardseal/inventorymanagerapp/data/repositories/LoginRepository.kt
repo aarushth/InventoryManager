@@ -2,8 +2,10 @@ package com.leopardseal.inventorymanagerapp.data.repositories
 
 import com.leopardseal.inventorymanagerapp.data.UserPreferences
 import com.leopardseal.inventorymanagerapp.data.network.API.LoginAPI
+import javax.inject.Inject
 
-class LoginRepository(
+
+class LoginRepository @Inject constructor(
     private val api: LoginAPI,
     private val preferences: UserPreferences
 ): BaseRepository() {

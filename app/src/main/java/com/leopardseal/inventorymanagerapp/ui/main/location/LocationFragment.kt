@@ -28,7 +28,7 @@ private var _binding: FragmentLocationBinding? = null
     _binding = FragmentLocationBinding.inflate(inflater, container, false)
     val root: View = binding.root
 
-//  (activity as DrawerLocker).setDrawerEnabled(true)
+
 
     val textView: TextView = binding.textLocation
     locationViewModel.text.observe(viewLifecycleOwner) {

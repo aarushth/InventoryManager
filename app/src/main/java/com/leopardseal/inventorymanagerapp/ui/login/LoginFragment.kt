@@ -1,7 +1,9 @@
 package com.leopardseal.inventorymanagerapp.ui.login
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,6 +13,8 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 
 import androidx.credentials.exceptions.GetCredentialException
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.findNavController
 
@@ -21,22 +25,40 @@ import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStat
 import com.leopardseal.inventorymanagerapp.R
 
 import com.leopardseal.inventorymanagerapp.databinding.FragmentLoginBinding
-import com.leopardseal.inventorymanagerapp.data.network.API.LoginAPI
+
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.data.repositories.LoginRepository
-import com.leopardseal.inventorymanagerapp.data.responses.MyUsers
-import com.leopardseal.inventorymanagerapp.ui.base.BaseFragment
+
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavController
+import com.leopardseal.inventorymanagerapp.data.responses.dto.LoginResponse
 import com.leopardseal.inventorymanagerapp.ui.enabled
 import com.leopardseal.inventorymanagerapp.ui.main.MainActivity
 import com.leopardseal.inventorymanagerapp.ui.startNewActivity
 import com.leopardseal.inventorymanagerapp.ui.visible
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 
-class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRepository>() {
+@AndroidEntryPoint
+class LoginFragment : Fragment() {
+
+    private val viewModel: LoginViewModel by viewModels()
+    private lateinit var navController: NavController
+    private lateinit var binding: FragmentLoginBinding
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.fragment_login, container, false)
+    }
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        binding = FragmentLoginBinding.bind(view)
         navController = view.findNavController()
         binding.progressBar.visible(false)
 //        getActionBar()?.setTitle("Login");
@@ -46,10 +68,10 @@ class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRe
 
                 is Resource.Success<LoginResponse> -> {
 //                    viewModel.saveUserId(it.value.id)
-                    if(it.value.picture != null) {
+                    if(it.value.user.picture != null) {
                         viewModel.savePictureUrl(it.value.user.picture!!)
                     }
-                    viewModel.saveAuthToken(it.value.token)
+                    viewModel.saveToken(it.value.token)
                     
                 }
 
@@ -91,7 +113,7 @@ class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRe
         binding.googleSignInBtn.enabled(false)
         val context: Context = requireContext()
         val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
-            .setFilterByAuthorizedAccounts(true)
+            .setFilterByAuthorizedAccounts(false)
             .setAutoSelectEnabled(false)
             .setServerClientId("354946788079-aermo39q0o3gshsgf46oqhkicovqcuo8.apps.googleusercontent.com")
             .build()
@@ -128,6 +150,7 @@ class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRe
         }
         binding.googleSignInBtn.enabled(true)
     }
+    @SuppressLint("CredentialManagerMisuse")
     suspend fun login(context: Context, credentialManager: CredentialManager, request: GetCredentialRequest){
         val result = credentialManager.getCredential(
             request = request,
@@ -139,13 +162,13 @@ class LoginFragment : BaseFragment<LoginViewModel, FragmentLoginBinding, LoginRe
         }
     }
 
-    override fun getViewModel() = LoginViewModel::class.java
-
-    override fun getFragmentBinding(
-        inflater: LayoutInflater,
-        container: ViewGroup?
-    ) = FragmentLoginBinding.inflate(inflater, container, false)
-
-    override fun getRepository() = LoginRepository(serverComms.buildApi(LoginAPI::class.java), userPreferences)
+//    override fun getViewModel() = LoginViewModel::class.java
+//
+//    override fun getFragmentBinding(
+//        inflater: LayoutInflater,
+//        container: ViewGroup?
+//    ) = FragmentLoginBinding.inflate(inflater, container, false)
+//
+//    override fun getRepository() = LoginRepository(serverComms.buildApi(LoginAPI::class.java), userPreferences)
 
 }

@@ -1,12 +1,11 @@
 package com.leopardseal.inventorymanagerapp.data.repositories
 
-import com.leopardseal.inventorymanagerapp.data.UserPreferences
 import com.leopardseal.inventorymanagerapp.data.network.API.InviteAPI
-import com.leopardseal.inventorymanagerapp.data.network.API.LoginAPI
 
-class InviteRepository(
-    private val api: InviteAPI,
-    private val preferences: UserPreferences
+import javax.inject.Inject
+
+class InviteRepository @Inject constructor(
+    private val api: InviteAPI
 ): BaseRepository() {
 
     suspend fun getInvites() = safeApiCall {

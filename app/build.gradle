@@ -2,10 +2,12 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-
+    id 'com.google.devtools.ksp'
+    id 'com.google.dagger.hilt.android'
+    id 'androidx.navigation.safeargs.kotlin'
 }
-apply plugin: 'kotlin-kapt'
-apply plugin: "androidx.navigation.safeargs"
+
+
 android {
     namespace 'com.leopardseal.inventorymanagerapp'
     compileSdk 35
@@ -40,27 +42,24 @@ android {
     sourceSets {
         main {
             res {
-                srcDirs 'src\\main\\res', 'src\\main\\res\\layouts\\login', 'src\\main\\res\\layouts\\home', 'src\\main\\res\\main', 'src\\main\\res\\layouts\\main'
+                srcDirs 'src\\main\\res', 'src\\main\\res\\layouts\\login', 'src\\main\\res\\layouts\\home', 'src\\main\\res\\main', 'src\\main\\res\\layouts\\main', 'src\\main\\res\\layouts\\items', 'src\\main\\res\\layouts\\box', 'src\\main\\res\\layouts\\boxes', 'src\\main\\res\\layouts\\locations', 'src\\main\\res\\layouts\\invites', 'src\\main\\res\\layouts\\orgs'
             }
         }
     }
 }
 
 dependencies {
-
     implementation libs.androidx.core.ktx
     implementation libs.androidx.appcompat
     implementation libs.material.v1120
     implementation libs.androidx.constraintlayout.v220
     implementation libs.firebase.crashlytics.buildtools
     implementation libs.androidx.lifecycle.runtime.ktx.v261
-    implementation libs.androidx.activity.compose.v180
     implementation platform(libs.androidx.compose.bom.v20250300)
     implementation libs.ui
     implementation libs.ui.graphics
     implementation libs.ui.tooling.preview
     implementation libs.material3
-    implementation libs.androidx.activity
     implementation libs.androidx.lifecycle.livedata.ktx
     implementation libs.androidx.lifecycle.viewmodel.ktx
     implementation libs.androidx.navigation.fragment.ktx.v289
@@ -70,6 +69,8 @@ dependencies {
     implementation libs.androidx.legacy.support.v4
     implementation libs.androidx.recyclerview
     implementation libs.androidx.navigation.compose
+    implementation libs.androidx.fragment.ktx
+    implementation libs.androidx.room.runtime.android
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso.core
@@ -88,10 +89,15 @@ dependencies {
     implementation libs.converter.gson
     implementation libs.logging.interceptor
     implementation libs.play.services.auth
-    implementation "androidx.datastore:datastore-preferences:1.0.0-alpha08"
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.2.0"
-    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.3.0-alpha07"
-    implementation "androidx.cardview:cardview:1.0.0"
-    implementation 'com.squareup.picasso:picasso:2.8'
+    implementation libs.androidx.datastore.preferences.v116
+    implementation libs.androidx.lifecycle.livedata.ktx.v220
+    implementation libs.androidx.lifecycle.runtime.ktx.v230alpha07
+    implementation libs.androidx.cardview
+    implementation libs.picasso
+
+    implementation "com.google.dagger:hilt-android:2.56.1"
+    ksp "com.google.dagger:hilt-compiler:2.56.1"
+    implementation libs.converter.scalars
 
 }
+

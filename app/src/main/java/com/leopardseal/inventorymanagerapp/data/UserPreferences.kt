@@ -1,30 +1,27 @@
 package com.leopardseal.inventorymanagerapp.data
 
 import android.content.Context
-import android.graphics.Picture
+
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
+
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
 
 private val Context.dataStore : DataStore<Preferences> by preferencesDataStore("app_preferences")
-class UserPreferences(
-    context: Context
+class UserPreferences @Inject constructor(
+    @ApplicationContext context: Context
 ) {
     private val appContext = context.applicationContext
 
-//    private val dataStore : DataStore<Preferences>
-//    init{
-//        dataStore = applicationContext.createDataStore(
-//            name = "my_data_store"
-//        )
-//    }
+
 
     val authToken : Flow<String?>
         get() = appContext.dataStore.data.map { it[KEY_AUTH] }

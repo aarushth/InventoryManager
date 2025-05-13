@@ -4,59 +4,74 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.ListView
 import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.navigation.NavController
+import androidx.navigation.findNavController
+import androidx.recyclerview.widget.GridLayoutManager
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
 
-import com.leopardseal.inventorymanagerapp.data.network.API.ItemAPI
+
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 
-import com.leopardseal.inventorymanagerapp.data.repositories.ItemRepository
+
 import com.leopardseal.inventorymanagerapp.data.responses.Items
 
 import com.leopardseal.inventorymanagerapp.databinding.FragmentItemBinding
-import com.leopardseal.inventorymanagerapp.ui.base.BaseFragment
 import com.leopardseal.inventorymanagerapp.ui.login.LoginActivity
 
 import com.leopardseal.inventorymanagerapp.ui.startNewActivity
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
+import dagger.hilt.android.AndroidEntryPoint
 
 
-class ItemFragment : BaseFragment<ItemViewModel, FragmentItemBinding, ItemRepository>() {
 
-private lateinit var itemsListAdapter : ItemsListAdapter
+@AndroidEntryPoint
+class ItemFragment : Fragment() {
+
+
+    private lateinit var itemsListAdapter : ItemsListAdapter
+
+    private val viewModel : ItemViewModel by viewModels()
+    private lateinit var binding : FragmentItemBinding
+    private lateinit var navController: NavController
 
     override fun onCreateView(
         inflater: LayoutInflater,
-        container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.fragment_item, container, false)
+    }
 
-        var v : View? = super.onCreateView(inflater, container, savedInstanceState)
-
-        //        (activity as DrawerLocker).setDrawerEnabled(false)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding = FragmentItemBinding.bind(view)
+        navController = view.findNavController()
 
         viewModel.itemResponse.observe(viewLifecycleOwner, Observer {
-        //            binding.progressBar.visible(false)
+            binding.swipeRefreshLayout.isRefreshing = false
             when (it) {
                 is Resource.Success<List<Items>> -> {
                     var dataArrayList: ArrayList<Items?> = it.value as ArrayList<Items?>
                     if(dataArrayList.size == 0){
                         binding.itemText.text = "It looks like this org doesn't have any items. Click + to add an item"
                     }else{
-                      binding.itemText.text = "Items:"
+                        binding.itemText.text = "Items:"
                     }
-                    var listView : ListView = binding.listView
-                    itemsListAdapter = ItemsListAdapter(requireContext(), dataArrayList)
-                    listView.adapter = itemsListAdapter
-                    listView.onItemClickListener = AdapterView.OnItemClickListener{ adapterView, view, i, l ->
-                        var item : Items = listView.getItemAtPosition(i) as Items
+                    val recyclerView = binding.itemsRecyclerView
+                    recyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
+                    recyclerView.adapter = ItemsListAdapter(dataArrayList.toList(), object : ItemsListAdapter.OnItemClickListener {
+                        override fun onItemClick(item: Items) {
 
-                        //            view.findNavController().navigate(R.id.fragment_item)
-                        Toast.makeText(requireContext(), "you selected ${item.name}", Toast.LENGTH_LONG).show()
-                    }
+                            val action = ItemFragmentDirections.actionItemFragmentToItemExpandedFragment(item.id)
+                            navController.navigate(action)
+                        }
+                    })
+
+
                 }
 
                 is Resource.Failure -> {
@@ -66,17 +81,14 @@ private lateinit var itemsListAdapter : ItemsListAdapter
                         requireActivity().startNewActivity(LoginActivity::class.java)
                     }else{
                         Toast.makeText(requireContext(),"an error occured, please try again later",
-                        Toast.LENGTH_LONG).show()
+                            Toast.LENGTH_LONG).show()
                     }
                 }
             }
         })
-
-        return v
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            viewModel.getItems()
+        }
         viewModel.getItems()
     }
     override fun onResume() {
@@ -84,17 +96,5 @@ private lateinit var itemsListAdapter : ItemsListAdapter
         viewModel.getItems()
     }
 
-    override fun getViewModel() = ItemViewModel::class.java
-
-    override fun getFragmentBinding(
-        inflater: LayoutInflater,
-    container: ViewGroup?
-    ) = FragmentItemBinding.inflate(inflater, container, false)
-
-    override fun getRepository(): ItemRepository {
-        val token = runBlocking { userPreferences.authToken.first()}
-        val orgId = runBlocking { userPreferences.orgId.first() }
-        return ItemRepository(serverComms.buildApi(ItemAPI::class.java, token), userPreferences)
-    }
 
 }

@@ -1,36 +1,36 @@
 package com.leopardseal.inventorymanagerapp.data.network
 
-import com.developer.gbuttons.BuildConfig
+
 import com.google.gson.GsonBuilder
+import com.leopardseal.inventorymanagerapp.data.UserPreferences
+
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
-class ServerComms {
+class ServerComms @Inject constructor(){
     companion object{
         //use this when using production server
-        private const val BASE_URL = "https://inventory-manager-backend-a2or.onrender.com"
+//        private const val BASE_URL = "https://inventory-manager-backend-a2or.onrender.com"
 
 //        use this when testing on local server, change to pc ip
-//        private const val BASE_URL = "http://192.168.68.73:8080"
+        private const val BASE_URL = "http://192.168.68.52:8080"
     }
 
 
     fun <Api> buildApi(
         api:Class<Api>,
-        authToken: String? = null
+        userPreferences: UserPreferences
     ):Api {
+
         val okHttpClient = OkHttpClient.Builder()
-//            .also { client ->
-//                if(BuildConfig.DEBUG){
-//                    val logging = HttpLoggingInterceptor()
-//                    logging.setLevel(HttpLoggingInterceptor.Level.HEADERS)
-//                    client.addInterceptor(logging)
-//                }
-//            }
-            .addInterceptor(AuthInterceptor(authToken))
+            .addInterceptor(HttpLoggingInterceptor())
+            .addInterceptor(AuthInterceptor(userPreferences))
             .readTimeout(60, TimeUnit.SECONDS)
             .connectTimeout(60, TimeUnit.SECONDS)
             .build()
@@ -43,6 +43,7 @@ class ServerComms {
             .baseUrl(BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create(gson))
+            .addConverterFactory(ScalarsConverterFactory.create())
             .build()
             .create(api)
     }

@@ -14,4 +14,8 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item> <!-- Makes it a perfect circle -->
     </style>
+    <style name="ShapeAppearanceOverlay.App.CornerSize16" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
 </resources>

@@ -1,14 +1,18 @@
 package com.leopardseal.inventorymanagerapp.data.network.API
 
 
-import com.leopardseal.inventorymanagerapp.data.responses.MyUsers
-import retrofit2.http.GET
-import retrofit2.http.Header
+
+import com.leopardseal.inventorymanagerapp.data.responses.dto.LoginResponse
+import retrofit2.Response
+
+import retrofit2.http.Body
+import retrofit2.http.POST
 
 interface LoginAPI {
 
-    @GET("login")
+
+    @POST("login")
     suspend fun login(
-         @Header("Authorization") authToken: String
-    ) : LoginResponse
+        @Body authToken: String
+    ) : Response<LoginResponse>
 }

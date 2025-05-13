@@ -7,11 +7,14 @@ import androidx.lifecycle.viewModelScope
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.repositories.OrgRepository
 import com.leopardseal.inventorymanagerapp.data.responses.Orgs
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class OrgViewModel(
+@HiltViewModel
+class OrgViewModel @Inject constructor(
     private val repository: OrgRepository
 ) : ViewModel(){
 
