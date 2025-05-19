@@ -47,4 +47,22 @@ class ServerComms @Inject constructor(){
             .build()
             .create(api)
     }
+    fun <Api> buildImageApi(
+        api:Class<Api>
+    ):Api {
+
+        val azureOkHttpClient = OkHttpClient.Builder()
+            .addInterceptor(HttpLoggingInterceptor()) // optional for debugging
+            .readTimeout(60, TimeUnit.SECONDS)
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .build()
+
+        return Retrofit.Builder()
+            .baseUrl("https://dummy.base.url/") // Required, but overridden by @Url
+            .client(azureOkHttpClient)
+            .addConverterFactory(ScalarsConverterFactory.create())
+            .build()
+            .create(api)
+    }
+
 }

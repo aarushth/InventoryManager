@@ -18,11 +18,11 @@ class OrgViewModel @Inject constructor(
     private val repository: OrgRepository
 ) : ViewModel(){
 
-    private val _orgResponse : MutableLiveData<Resource<List<Orgs>>> = MutableLiveData()
-    val orgResponse: LiveData<Resource<List<Orgs>>>
+    private val _orgResponse = MutableStateFlow<Resource<List<Orgs>>>(Resource.Loading)
+    val orgResponse: StateFlow<Resource<List<Orgs>>>
         get() = _orgResponse
 
-    private val _orgSaved = MutableStateFlow(false)
+    private val _orgSaved = MutableStateFlow<Boolean>(false)
     val orgSaved: StateFlow<Boolean> = _orgSaved
 
     fun resetOrgSavedFlag() {

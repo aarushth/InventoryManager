@@ -87,6 +87,9 @@ class LoginFragment : Fragment() {
                         Toast.makeText(requireContext(),"an error occured, please try again later",Toast.LENGTH_LONG).show()
                     }
                 }
+
+                is Resource.Loading, Resource.Init -> TODO()
+
             }
         })
 

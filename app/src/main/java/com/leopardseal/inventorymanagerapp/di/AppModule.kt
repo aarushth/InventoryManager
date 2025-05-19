@@ -1,6 +1,7 @@
 package com.leopardseal.inventorymanagerapp.di
 
 import com.leopardseal.inventorymanagerapp.data.UserPreferences
+import com.leopardseal.inventorymanagerapp.data.network.API.ImageAPI
 import com.leopardseal.inventorymanagerapp.data.network.API.InviteAPI
 import com.leopardseal.inventorymanagerapp.data.network.API.ItemAPI
 import com.leopardseal.inventorymanagerapp.data.network.API.LoginAPI
@@ -34,6 +35,11 @@ object AppModule{
     @Provides
     fun provideItemApi(userPreferences : UserPreferences, serverComms: ServerComms) : ItemAPI {
         return serverComms.buildApi(ItemAPI::class.java, userPreferences)
+    }
+
+    @Provides
+    fun provideImageApi(serverComms: ServerComms) : ImageAPI {
+        return serverComms.buildImageApi(ImageAPI::class.java)
     }
 
 }

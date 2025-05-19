@@ -1,6 +1,7 @@
 package com.leopardseal.inventorymanagerapp.data.network.API
 
 import com.leopardseal.inventorymanagerapp.data.responses.Items
+import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
 import retrofit2.Response
 import retrofit2.http.Body
 
@@ -22,8 +23,10 @@ interface ItemAPI {
         @Path("item_id") itemId : Long
     ) : Response<Items>
 
-    @POST("update_item")
+    @POST("update_item/{img_changed}")
     suspend fun updateItem(
-        @Body items: Items
-    ) : Response<Unit>
+        @Body items: Items,
+        @Path("img_changed") imgChanged : Boolean
+    ) : Response<SaveResponse>
+
 }

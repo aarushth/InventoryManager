@@ -8,6 +8,8 @@ import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.repositories.InviteRepository
 import com.leopardseal.inventorymanagerapp.data.responses.Orgs
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -16,19 +18,23 @@ class InviteViewModel @Inject constructor(
         private val repository: InviteRepository
 ) : ViewModel(){
 
-    private val _inviteResponse : MutableLiveData<Resource<List<Orgs>>> = MutableLiveData()
-    val inviteResponse: LiveData<Resource<List<Orgs>>>
+    private val _inviteResponse = MutableStateFlow<Resource<List<Orgs>>>(Resource.Loading)
+    val inviteResponse: StateFlow<Resource<List<Orgs>>>
     get() = _inviteResponse
 
     fun getInvites() = viewModelScope.launch {
         _inviteResponse.value = repository.getInvites() as Resource<List<Orgs>>
     }
 
-    private val _acceptResponse : MutableLiveData<Resource<Unit>> = MutableLiveData()
-    val acceptResponse: LiveData<Resource<Unit>>
+    private val _acceptResponse = MutableStateFlow<Resource<Unit>>(Resource.Init)
+    val acceptResponse: StateFlow<Resource<Unit>>
         get() = _acceptResponse
 
-    fun acceptInvite(orgId : Long, role : String) = viewModelScope.launch {
-        _acceptResponse.value = repository.acceptInvite(orgId, role) as Resource<Unit>
+    fun acceptInvite(invite : Orgs) = viewModelScope.launch {
+        _acceptResponse.value = repository.acceptInvite(invite.id, invite.role) as Resource<Unit>
+    }
+
+    fun resetAcceptResponse() = viewModelScope.launch {
+        _acceptResponse.value = Resource.Init
     }
 }
