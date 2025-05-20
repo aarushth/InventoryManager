@@ -43,8 +43,8 @@ fun ItemEditScreen(
     uploadImgResponse: Resource<Unit>,
     parentEntry: NavBackStackEntry,
     orgId : Long,
-    onSave: (Items, Uri?) -> Unit,
-    onSaveComplete: (imageUri : Uri?) -> Unit,
+    onSave: (Items, Boolean) -> Unit,
+    onSaveComplete: (imageUri : File?) -> Unit,
     onUnauthorized: () -> Unit,
     onImageSaved: () -> Unit,
     onScanBarcodeClick: () -> Unit
@@ -58,6 +58,7 @@ fun ItemEditScreen(
     var alertQuantity by remember { mutableStateOf(item?.alert?.toString().orEmpty()) }
     var barcode by remember { mutableStateOf(item?.barcode.orEmpty()) }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var imageFile by remember { mutableStateOf<File?>(null) }
     var saveEnable by remember{ mutableStateOf(true) }
 
 
@@ -71,16 +72,6 @@ fun ItemEditScreen(
             parentEntry.savedStateHandle["barcode"] = "" // clear after handling
         }
     }
-//    LaunchedEffect(savedStateHandle) {
-//        val liveData = savedStateHandle.getLiveData<String>("barcode")
-//        liveData.observeForever { scannedValue ->
-//            if (scannedValue != null) {
-//                barcode = scannedValue
-//                // Optionally clear it so it doesn't get triggered again
-//                savedStateHandle.set("barcode", null)
-//            }
-//        }
-//    }
 
     // Camera launcher
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
@@ -92,21 +83,14 @@ fun ItemEditScreen(
             val squareBitmap = Bitmap.createBitmap(it, xOffset, yOffset, size, size)
 
             // Save to MediaStore and get URI
-            val uri = Uri.parse(
-                MediaStore.Images.Media.insertImage(
-                    context.contentResolver,
-                    squareBitmap,
-                    "item_image",
-                    null
-                )
-            )
-            imageUri = uri
+            imageFile = saveImageTemporarily(context, bitmap)
+            imageUri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", imageFile)
         }
     }
     when (updateResponse) {
         is Resource.Success<SaveResponse> -> {
             Toast.makeText(context, "Item saved", Toast.LENGTH_LONG).show()
-            item!!.id?.let { onSaveComplete(imageUri) }
+            item!!.id?.let { onSaveComplete(imageFile) }
         }
         is Resource.Failure -> {
             if ((updateResponse as Resource.Failure).isNetworkError) {
@@ -275,7 +259,7 @@ fun ItemEditScreen(
                     imageUrl = null
                 )
                 saveEnable = false
-                onSave(newItem, imageUri)
+                onSave(newItem, (imageFile != null))
             },
             modifier = Modifier.fillMaxWidth(),
             enabled = name.isNotBlank() && quantity.isNotBlank() && saveEnable

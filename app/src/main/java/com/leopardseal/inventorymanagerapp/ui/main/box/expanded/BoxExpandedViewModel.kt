@@ -1,4 +1,4 @@
-package com.leopardseal.inventorymanagerapp.ui.main.item.expanded
+package com.leopardseal.inventorymanagerapp.ui.main.box.expanded
 
 
 import android.content.Context
@@ -7,8 +7,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.data.repositories.ItemRepository
-import com.leopardseal.inventorymanagerapp.data.responses.Items
+import com.leopardseal.inventorymanagerapp.data.repositories.BoxRepository
+import com.leopardseal.inventorymanagerapp.data.responses.Boxes
 import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
 
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,51 +21,51 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 
 @HiltViewModel
-class ItemExpandedViewModel @Inject constructor(
-    private val repository: ItemRepository,
+class BoxExpandedViewModel @Inject constructor(
+    private val repository: BoxRepository,
     private val imageRepository : ImageRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val itemId: Long = savedStateHandle["item_id"] ?: -1L
+    private val boxId: Long = savedStateHandle["box_id"] ?: -1L
 
-    private val _item = MutableStateFlow<Items?>(repository.getCachedItemById(itemId))
-    val item: StateFlow<Items?>
-        get() = _item
+    private val _box = MutableStateFlow<Boxes?>(repository.getCachedBoxById(boxId))
+    val box: StateFlow<Boxes?>
+        get() = _box
 
     private val _updateResponse = MutableStateFlow<Resource<SaveResponse>>(Resource.Init)
     val updateResponse: StateFlow<Resource<SaveResponse>>
         get() = _updateResponse
 
     init {
-        _item.value = repository.getCachedItemById(itemId)
+        _box.value = repository.getCachedBoxById(boxId)
         // Then refresh from server
-        if(itemId >= 0 ) {
+        if(boxId >= 0 ) {
             viewModelScope.launch {
 
-                val response = repository.fetchItemById(itemId)
+                val response = repository.fetchBoxById(boxId)
                 if (response is Resource.Success) {
-                    _item.value = response.value
+                    _box.value = response.value
                 }
 
             }
         }
 
     }
-    fun updateItemQuantity(newQuantity: Long) = viewModelScope.launch {
-        val newItem = _item.value!!.copy(quantity = newQuantity)
+    fun updateBoxQuantity(newQuantity: Long) = viewModelScope.launch {
+        val newBox = _box.value!!.copy(quantity = newQuantity)
 
-        _updateResponse.value = repository.updateItem(newItem, false) as Resource<SaveResponse>
-        _item.value = newItem
+        _updateResponse.value = repository.updateBox(newBox, false) as Resource<SaveResponse>
+        _box.value = newBox
     }
-    fun saveOrUpdateItem(updatedItem: Items, imageChanged : Boolean) = viewModelScope.launch {
+    fun saveOrUpdateBox(updatedBox: Boxes, imageChanged : Boolean) = viewModelScope.launch {
         _updateResponse.value = Resource.Loading
 
         try {
-            _updateResponse.value = repository.updateItem(updatedItem, imageChanged)
+            _updateResponse.value = repository.updateBox(updatedBox, imageChanged)
 
             if (_updateResponse.value is Resource.Success) {
-                updatedItem.id = (_updateResponse.value as Resource.Success<SaveResponse>).value.id
-                _item.value = updatedItem
+                updatedBox.id = (_updateResponse.value as Resource.Success<SaveResponse>).value.id
+                _box.value = updatedBox
             }
 
         } catch (e: Exception) {

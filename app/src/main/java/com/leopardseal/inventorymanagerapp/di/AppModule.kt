@@ -4,6 +4,7 @@ import com.leopardseal.inventorymanagerapp.data.UserPreferences
 import com.leopardseal.inventorymanagerapp.data.network.API.ImageAPI
 import com.leopardseal.inventorymanagerapp.data.network.API.InviteAPI
 import com.leopardseal.inventorymanagerapp.data.network.API.ItemAPI
+import com.leopardseal.inventorymanagerapp.data.network.API.BoxAPI
 import com.leopardseal.inventorymanagerapp.data.network.API.LoginAPI
 import com.leopardseal.inventorymanagerapp.data.network.API.OrgAPI
 import com.leopardseal.inventorymanagerapp.data.network.ServerComms
@@ -35,6 +36,11 @@ object AppModule{
     @Provides
     fun provideItemApi(userPreferences : UserPreferences, serverComms: ServerComms) : ItemAPI {
         return serverComms.buildApi(ItemAPI::class.java, userPreferences)
+    }
+
+    @Provides
+    fun provideBoxApi(userPreferences : UserPreferences, serverComms: ServerComms) : BoxAPI {
+        return serverComms.buildApi(BoxAPI::class.java, userPreferences)
     }
 
     @Provides

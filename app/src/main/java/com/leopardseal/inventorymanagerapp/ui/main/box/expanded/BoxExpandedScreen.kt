@@ -1,4 +1,4 @@
-package com.leopardseal.inventorymanagerapp.ui.main.item.expanded
+package com.leopardseal.inventorymanagerapp.ui.main.expanded
 
 import android.content.Context
 import android.widget.Toast
@@ -52,15 +52,15 @@ import coil.request.ImageRequest
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.data.responses.Items
+import com.leopardseal.inventorymanagerapp.data.responses.Boxes
 import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
 
 
 @Composable
-fun ItemExpandedScreen(
-    item : Items?,
+fun BoxExpandedScreen(
+    box : Boxes?,
     updateResponse : Resource<SaveResponse>,
-    onEdit : (itemId : Long) -> Unit,
+    onEdit : (boxId : Long) -> Unit,
     onUpdate : (currentQuantity : Long) -> Unit,
     onUnauthorized : () -> Unit
 ) {
@@ -91,13 +91,13 @@ fun ItemExpandedScreen(
         }
         else -> {}
     }
-    LaunchedEffect(item) {
-        if (item != null) {
-            originalQuantity = item!!.quantity
-            currentQuantity = item!!.quantity
+    LaunchedEffect(box) {
+        if (box != null) {
+            originalQuantity = box!!.quantity
+            currentQuantity = box!!.quantity
         }
     }
-    if (item == null) {
+    if (box == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
@@ -114,7 +114,7 @@ fun ItemExpandedScreen(
                 // Image + Edit button overlay
                 Box(modifier = Modifier.fillMaxWidth()) {
                     val painter = rememberAsyncImagePainter(
-                        ImageRequest.Builder(LocalContext.current).data(data =item!!.imageUrl + "?t=${System.currentTimeMillis()}")
+                        ImageRequest.Builder(LocalContext.current).data(data =box!!.imageUrl + "?t=${System.currentTimeMillis()}")
                             .apply(block = fun ImageRequest.Builder.() {
                                 placeholder(R.drawable.default_img)
                                 error(R.drawable.default_img)
@@ -122,7 +122,7 @@ fun ItemExpandedScreen(
                     )
                     Image(
                         painter = painter,
-                        contentDescription = item!!.name,
+                        contentDescription = box!!.name,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(347.dp)
@@ -131,7 +131,7 @@ fun ItemExpandedScreen(
                     )
 
                     IconButton(
-                        onClick = { item!!.id?.let { onEdit(it) } },
+                        onClick = { box!!.id?.let { onEdit(it) } },
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(12.dp)
@@ -140,7 +140,7 @@ fun ItemExpandedScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Edit,
-                            contentDescription = "Edit Item Name",
+                            contentDescription = "Edit Box Name",
                             tint = Color.Black
                         )
                     }
@@ -153,95 +153,38 @@ fun ItemExpandedScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(modifier = Modifier.weight(0.6f)) {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = item!!.name,
+                            text = box!!.name,
                             color = Color.Black,
                             modifier = Modifier.padding(top = 4.dp)
                         )
                         Text(
-                            text = item!!.barcode!!,
-                            color = Color.Gray,
+                            text = box!!.size!!,
+                            color = Color.Black,
                             modifier = Modifier.padding(top = 4.dp)
                         )
+                        Text(
+                            text = box!!.barcode!!,
+                            color = Color.Gray,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )   
                     }
 
                     Spacer(modifier = Modifier.width(16.dp))
 
-                    Column(
-                        modifier = Modifier.weight(0.4f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(onClick = {
-                                if (currentQuantity > 0) currentQuantity--
-                            }) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.baseline_subtract_24),
-                                    contentDescription = "Decrease quantity"
-                                )
-                            }
-                            Text(
-                                text = currentQuantity.toString(),
-                                modifier = Modifier.width(32.dp),
-                                textAlign = TextAlign.Center
-                            )
-                            IconButton(onClick = { currentQuantity++ }) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "Increase quantity"
-                                )
-                            }
-                        }
-                        Text(
-                            text = when {
-                                item.quantity <= 0L -> "Out of stock"
-                                item.quantity <= item.alert -> "Low stock"
-                                else -> "In stock"
-                            }
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Description
-                Text(
-                    text = item!!.description!!,
-                    color = Color.DarkGray,
-                    modifier = Modifier.padding(vertical = 10.dp)
-                )
-
-                // Box and Location info
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Box", fontWeight = FontWeight.Bold)
-                        Text(
-                            item!!.boxId?.toString() ?: "This is a box",
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
-                    }
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Location", fontWeight = FontWeight.Bold)
                         Text("This is a location", modifier = Modifier.padding(vertical = 8.dp))
                     }
                 }
 
-                Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-            }
-            if (currentQuantity != originalQuantity && saveEnable) {
-                Button(
-                    onClick = {
-                        saveEnable = false
-                        onUpdate(currentQuantity)
-                              },
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(16.dp)
-                        .fillMaxWidth()
-                ) {
-                    Text("Save")
+
+                // Items contained and Location info
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    //Fill with items list horizontal
                 }
             }
         }

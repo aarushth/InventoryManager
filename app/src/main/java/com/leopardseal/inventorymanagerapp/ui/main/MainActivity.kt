@@ -378,14 +378,13 @@ class MainActivity : AppCompatActivity() {
                 arguments = listOf(navArgument("item_id") { type = NavType.LongType })
             ) { backStackEntry ->
                 val viewModel: ItemExpandedViewModel = hiltViewModel()
+                val imageViewModel: ImageExpandedViewModel = hiltViewModel()
                 val item by viewModel.item.collectAsState()
                 val updateResponse by viewModel.updateResponse.collectAsState()
                 val uploadImgResponse by viewModel.uploadResult.collectAsState()
                 val parentEntry = remember(backStackEntry) {
                     navController.getBackStackEntry(backStackEntry.destination.route ?: "itemEdit/{item_id}")
                 }
-
-
                 ItemEditScreen(
                     item = item,
                     updateResponse = updateResponse,
@@ -393,17 +392,16 @@ class MainActivity : AppCompatActivity() {
                     parentEntry = parentEntry,
                     orgId = runBlocking { userPreferences.orgId.first()?:-1L },
                     onUnauthorized = { login() },
-                    onSave = { updatedItem, imageUri ->
-                        viewModel.saveOrUpdateItem(updatedItem, (imageUri != null))
+                    onSave = { updatedItem, imageChanged ->
+                        viewModel.saveOrUpdateItem(updatedItem, imageChanged)
                     },
-                    onSaveComplete = {imageUri ->
+                    onSaveComplete = {imageFile ->
                         if((updateResponse as Resource.Success).value.imageUrl == null){
                             navController.navigate("itemExpanded/${(updateResponse as Resource.Success).value.id}")
                         }else{
-
-                            viewModel.uploadImage(
+                            imageViewModel.uploadImage(
                                 (updateResponse as Resource.Success).value.imageUrl!!,
-                                imageUri!!,
+                                imageFile!!,
                                 this@MainActivity
                             )
                         }
@@ -413,7 +411,69 @@ class MainActivity : AppCompatActivity() {
                 )
             }
             composable("box") {
-
+                val viewModel: BoxViewModel = hiltViewModel()
+                val boxState by viewModel.boxResponse.collectAsState()
+                viewModel.getBoxes()
+                BoxScreen(
+                    boxState = boxState,
+                    onRefresh = { viewModel.getBoxes() },
+                    onBoxClick = { boxId -> navController.navigate("boxExpanded/${boxId}") },
+                    onUnauthorized = { login() })
+            }
+            composable(
+                route = "boxExpanded/{box_id}",
+                arguments = listOf(navArgument("box_id") { type = NavType.LongType })
+            ) {
+                val viewModel: BoxExpandedViewModel = hiltViewModel()
+                val box by viewModel.box.collectAsState()
+                val updateResponse by viewModel.updateResponse.collectAsState()
+                BoxExpandedScreen(
+                    box = box,
+                    updateResponse = updateResponse,
+                    onEdit = { boxId -> navController.navigate("boxEdit/${boxId}") },
+                    onUpdate = { currentQuantity ->
+                        viewModel.updateBoxQuantity(
+                            currentQuantity
+                        )
+                    },
+                    onUnauthorized = { login() },
+                )
+            }
+            composable(
+                route = "boxEdit/{box_id}",
+                arguments = listOf(navArgument("box_id") { type = NavType.LongType })
+            ) { backStackEntry ->
+                val viewModel: BoxExpandedViewModel = hiltViewModel()
+                val box by viewModel.box.collectAsState()
+                val updateResponse by viewModel.updateResponse.collectAsState()
+                val uploadImgResponse by viewModel.uploadResult.collectAsState()
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry(backStackEntry.destination.route ?: "boxEdit/{box_id}")
+                }
+                BoxEditScreen(
+                    box = box,
+                    updateResponse = updateResponse,
+                    uploadImgResponse = uploadImgResponse,
+                    parentEntry = parentEntry,
+                    orgId = runBlocking { userPreferences.orgId.first()?:-1L },
+                    onUnauthorized = { login() },
+                    onSave = { updatedBox, uploadChanged ->
+                        viewModel.saveOrUpdateBox(updatedBox, uploadChanged)
+                    },
+                    onSaveComplete = {imageFile ->
+                        if((updateResponse as Resource.Success).value.imageFile == null){
+                            navController.navigate("boxExpanded/${(updateResponse as Resource.Success).value.id}")
+                        }else{
+                            viewModel.uploadImage(
+                                (updateResponse as Resource.Success).value.imageUrl!!,
+                                imageUri!!,
+                                this@MainActivity
+                            )
+                        }
+                    },
+                    onImageSaved = {navController.navigate("boxExpanded/${box!!.id}") },
+                    onScanBarcodeClick = { navController.navigate("barcode") }
+                )
             }
             composable("location") {}
             composable("barcode") {

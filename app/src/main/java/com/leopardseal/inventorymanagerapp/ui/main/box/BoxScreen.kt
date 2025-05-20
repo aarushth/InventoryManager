@@ -1,4 +1,4 @@
-package com.leopardseal.inventorymanagerapp.ui.main.item
+package com.leopardseal.inventorymanagerapp.ui.main.box
 
 import android.content.Context
 import android.widget.Toast
@@ -41,7 +41,7 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 
 
-import com.leopardseal.inventorymanagerapp.data.responses.Items
+import com.leopardseal.inventorymanagerapp.data.responses.Boxes
 
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -51,10 +51,10 @@ import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStat
 import com.leopardseal.inventorymanagerapp.R
 
 @Composable
-fun ItemScreen(
-        itemState : Resource<List<Items?>>,
+fun BoxScreen(
+        boxState : Resource<List<Boxes?>>,
         onRefresh: () -> Unit,
-        onItemClick: (itemId:Long) -> Unit,
+        onBoxClick: (boxId:Long) -> Unit,
         onUnauthorized: () -> Unit
         ) {
     val context = LocalContext.current
@@ -62,10 +62,10 @@ fun ItemScreen(
 
     when (itemState) {
         is Resource.Success -> {
-            val items = (itemState as Resource.Success<List<Items>>).value
+            val boxes = (boxState as Resource.Success<List<Boxes>>).value
             Column(modifier = Modifier.fillMaxSize()) {
                 Text(
-                    text = if (items.isEmpty()) "It looks like this org doesn't have any items. Click + to add an item" else "Items:",
+                    text = if (boxes.isEmpty()) "It looks like this org doesn't have any boxes. Click + to add an box" else "Boxes:",
                     fontSize = 30.sp,
                     modifier = Modifier
                         .padding(10.dp)
@@ -81,9 +81,9 @@ fun ItemScreen(
                         columns = GridCells.Fixed(2),
                         contentPadding = PaddingValues(8.dp)
                     ) {
-                        items(items) { item ->
-                            item?.let {
-                                ItemCard(item = it, onClick = { it.id?.let { it1 -> onItemClick(it1) } })
+                        boxes(boxes) { box ->
+                            box?.let {
+                                BoxCard(box = it, onClick = { it.id?.let { it1 -> onBoxClick(it1) } })
                             }
                         }
                     }
@@ -91,9 +91,9 @@ fun ItemScreen(
             }
         }
         is Resource.Failure -> {
-            if((itemState as Resource.Failure).isNetworkError) {
+            if((boxState as Resource.Failure).isNetworkError) {
                 Toast.makeText(context,"please check your internet and try again", Toast.LENGTH_LONG).show()
-            }else if((itemState as Resource.Failure).errorCode == HttpStatus.SC_UNAUTHORIZED){
+            }else if((boxState as Resource.Failure).errorCode == HttpStatus.SC_UNAUTHORIZED){
                 onUnauthorized()
             }else{
                 Toast.makeText(context,"an error occured, please try again later", Toast.LENGTH_LONG).show()
@@ -107,7 +107,7 @@ fun ItemScreen(
 }
 
 @Composable
-fun ItemCard(item: Items, onClick: () -> Unit) {
+fun BoxCard(box: Boxes, onClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(6.dp),
@@ -117,16 +117,16 @@ fun ItemCard(item: Items, onClick: () -> Unit) {
             .clickable { onClick() },
         colors = CardDefaults.cardColors(
             containerColor = when {
-                item.quantity <= 0L -> Color.Red          // Out of stock
-                item.quantity <= item.alert -> Color.Yellow // Low stock
+                box.quantity <= 0L -> Color.Red          // Out of stock
+                box.quantity <= box.alert -> Color.Yellow // Low stock
                 else -> Color.LightGray                   // Normal
             }
         )
     ) {
         Column(modifier = Modifier.padding(15.dp)) {
             AsyncImage(
-                model = item.imageUrl + "?t=${System.currentTimeMillis()}",
-                contentDescription = item.name,
+                model = box.imageUrl + "?t=${System.currentTimeMillis()}",
+                contentDescription = box.name,
                 placeholder = painterResource(R.drawable.default_img),
                 error = painterResource(R.drawable.default_img),
                 modifier = Modifier
@@ -139,10 +139,10 @@ fun ItemCard(item: Items, onClick: () -> Unit) {
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
-                    Text(text = item.name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Text(text = item.barcode!!, fontSize = 12.sp, color = Color.Gray)
+                    Text(text = box.name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(text = box.barcode!!, fontSize = 12.sp, color = Color.Gray)
                 }
-                Text(text = "${item.quantity}", fontSize = 18.sp)
+                Icon(/*put icon in */, contentDescription = "Box Icon")
 
             }
         }
