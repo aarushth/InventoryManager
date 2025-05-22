@@ -1,22 +1,16 @@
 package com.leopardseal.inventorymanagerapp.data.repositories
 
-import android.content.Context
-import android.net.Uri
 import com.leopardseal.inventorymanagerapp.data.UserPreferences
-import com.leopardseal.inventorymanagerapp.data.network.API.ImageAPI
-import com.leopardseal.inventorymanagerapp.data.network.API.BoxAPI
+import com.leopardseal.inventorymanagerapp.data.network.api.ImageAPI
+import com.leopardseal.inventorymanagerapp.data.network.api.BoxAPI
 import com.leopardseal.inventorymanagerapp.data.responses.Boxes
 import kotlinx.coroutines.flow.first
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class BoxRepository @Inject constructor(
     private val api: BoxAPI,
-    private val imageApi : ImageAPI,
     private val preferences: UserPreferences
 ): BaseRepository() {
 

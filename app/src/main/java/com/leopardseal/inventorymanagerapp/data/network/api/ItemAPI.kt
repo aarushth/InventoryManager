@@ -1,4 +1,4 @@
-package com.leopardseal.inventorymanagerapp.data.network.API
+package com.leopardseal.inventorymanagerapp.data.network.api
 
 import com.leopardseal.inventorymanagerapp.data.responses.Items
 import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse

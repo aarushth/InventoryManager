@@ -59,44 +59,9 @@ import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
 @Composable
 fun BoxExpandedScreen(
     box : Boxes?,
-    updateResponse : Resource<SaveResponse>,
     onEdit : (boxId : Long) -> Unit,
-    onUpdate : (currentQuantity : Long) -> Unit,
-    onUnauthorized : () -> Unit
 ) {
-    val context = LocalContext.current
 
-    var currentQuantity by remember { mutableStateOf(0L) }
-    var originalQuantity by remember { mutableStateOf(0L) }
-    var saveEnable by remember { mutableStateOf(true) }
-    when (updateResponse) {
-        is Resource.Success -> {
-            Toast.makeText(context, "Quantity updated to $currentQuantity", Toast.LENGTH_LONG).show()
-            originalQuantity = currentQuantity
-            saveEnable = true
-        }
-        is Resource.Failure -> {
-            if ((updateResponse as Resource.Failure).isNetworkError) {
-                Toast.makeText(context, "Please check your internet and try again", Toast.LENGTH_LONG).show()
-            } else if ((updateResponse as Resource.Failure).errorCode == HttpStatus.SC_UNAUTHORIZED) {
-                onUnauthorized()
-            } else {
-                Toast.makeText(context, "An error occurred, please try again later", Toast.LENGTH_LONG).show()
-            }
-        }
-        is Resource.Loading-> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        }
-        else -> {}
-    }
-    LaunchedEffect(box) {
-        if (box != null) {
-            originalQuantity = box!!.quantity
-            currentQuantity = box!!.quantity
-        }
-    }
     if (box == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()

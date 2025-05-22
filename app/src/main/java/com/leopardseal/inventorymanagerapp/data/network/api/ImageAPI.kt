@@ -1,4 +1,4 @@
-package com.leopardseal.inventorymanagerapp.data.network.API
+package com.leopardseal.inventorymanagerapp.data.network.api
 
 import okhttp3.RequestBody
 import retrofit2.Response

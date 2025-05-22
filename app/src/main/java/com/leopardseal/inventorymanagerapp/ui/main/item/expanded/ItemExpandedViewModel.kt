@@ -7,6 +7,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.leopardseal.inventorymanagerapp.data.network.Resource
+import com.leopardseal.inventorymanagerapp.data.repositories.ImageRepository
 import com.leopardseal.inventorymanagerapp.data.repositories.ItemRepository
 import com.leopardseal.inventorymanagerapp.data.responses.Items
 import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
@@ -15,9 +16,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -76,12 +75,18 @@ class ItemExpandedViewModel @Inject constructor(
     val uploadResult: StateFlow<Resource<Unit>>
         get() = _uploadResult
 
-    fun uploadImage(sasUrl: String, imageUri: Uri, context: Context) {
-        _updateResponse.value = Resource.Init
+    fun uploadImage(sasUrl: String, imageFile: File) {
+        resetUpdateResponse()
         _uploadResult.value = Resource.Loading
         viewModelScope.launch {
-            _uploadResult.value = imageRepository.uploadImage(sasUrl, imageUri, context)
+            _uploadResult.value = imageRepository.uploadImage(sasUrl, imageFile)
         }
+    }
+    fun resetUploadFlag(){
+        _uploadResult.value = Resource.Init
+    }
+    fun resetUpdateResponse(){
+        _updateResponse.value = Resource.Init
     }
 
 }

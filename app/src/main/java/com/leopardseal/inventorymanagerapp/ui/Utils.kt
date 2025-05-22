@@ -1,7 +1,12 @@
 package com.leopardseal.inventorymanagerapp.ui
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.view.View
+import java.io.File
+import java.io.FileOutputStream
 
 fun<A : Activity> Activity.startNewActivity(activity: Class<A>){
     Intent(this, activity).also{
@@ -10,10 +15,13 @@ fun<A : Activity> Activity.startNewActivity(activity: Class<A>){
     }
 }
 
-fun saveImageTemporarily(context: Context, bitmap: Bitmap): File {
-    val file = File(context.cacheDir, "temp_image_${System.currentTimeMillis()}.jpg")
-    file.outputStream().use { out ->
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
-    }
-    return file
+//delete after login migration to compose
+fun View.visible(isVisible: Boolean) {
+    visibility = if (isVisible) View.VISIBLE else View.GONE
+}
+
+//delete after login migration to compose
+fun View.enabled(enabled: Boolean){
+    isEnabled = enabled
+    alpha = if(enabled) 1f else 0.5f
 }

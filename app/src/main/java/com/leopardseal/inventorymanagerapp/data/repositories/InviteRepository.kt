@@ -1,6 +1,6 @@
 package com.leopardseal.inventorymanagerapp.data.repositories
 
-import com.leopardseal.inventorymanagerapp.data.network.API.InviteAPI
+import com.leopardseal.inventorymanagerapp.data.network.api.InviteAPI
 
 import javax.inject.Inject
 

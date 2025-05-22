@@ -1,4 +1,4 @@
-package com.leopardseal.inventorymanagerapp.ui.main.barcode
+package com.leopardseal.inventorymanagerapp.ui.main.camera
 
 import androidx.annotation.OptIn
 import androidx.camera.core.CameraSelector

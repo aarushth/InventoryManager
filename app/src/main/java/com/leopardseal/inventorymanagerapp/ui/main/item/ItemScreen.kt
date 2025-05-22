@@ -22,8 +22,11 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,13 +46,15 @@ import com.leopardseal.inventorymanagerapp.data.network.Resource
 
 import com.leopardseal.inventorymanagerapp.data.responses.Items
 
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
+import com.leopardseal.inventorymanagerapp.ui.main.PullToRefreshLazyGrid
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemScreen(
         itemState : Resource<List<Items?>>,
@@ -57,38 +62,32 @@ fun ItemScreen(
         onItemClick: (itemId:Long) -> Unit,
         onUnauthorized: () -> Unit
         ) {
+
+
     val context = LocalContext.current
-    val isRefreshing by remember { mutableStateOf(false) }
+    var isRefreshing by remember{mutableStateOf(false)}
+    val onRefreshInternal = {
+        isRefreshing = true
+        onRefresh()
+    }
 
     when (itemState) {
         is Resource.Success -> {
-            val items = (itemState as Resource.Success<List<Items>>).value
-            Column(modifier = Modifier.fillMaxSize()) {
-                Text(
-                    text = if (items.isEmpty()) "It looks like this org doesn't have any items. Click + to add an item" else "Items:",
-                    fontSize = 30.sp,
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .align(Alignment.CenterHorizontally)
+            val items = itemState.value
+            isRefreshing = false
+                PullToRefreshLazyGrid(
+                    items = items,
+                    content = { it ->
+                        if (it != null) {
+                            ItemCard(
+                                item = it,
+                                onClick = { it.id?.let { it1 -> onItemClick(it1) } })
+                        }
+                    },
+                    isRefreshing = isRefreshing,
+                    onRefresh = onRefreshInternal,
                 )
 
-                SwipeRefresh(
-                    state = rememberSwipeRefreshState(isRefreshing),
-                    onRefresh = { onRefresh() },
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(2),
-                        contentPadding = PaddingValues(8.dp)
-                    ) {
-                        items(items) { item ->
-                            item?.let {
-                                ItemCard(item = it, onClick = { it.id?.let { it1 -> onItemClick(it1) } })
-                            }
-                        }
-                    }
-                }
-            }
         }
         is Resource.Failure -> {
             if((itemState as Resource.Failure).isNetworkError) {
@@ -99,9 +98,7 @@ fun ItemScreen(
                 Toast.makeText(context,"an error occured, please try again later", Toast.LENGTH_LONG).show()
             }
         }
-        else -> {
-            CircularProgressIndicator()
-        }
+        else -> {}
     }
 
 }

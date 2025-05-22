@@ -1,4 +1,4 @@
-package com.leopardseal.inventorymanagerapp.data.network.API
+package com.leopardseal.inventorymanagerapp.data.network.api
 
 import com.leopardseal.inventorymanagerapp.data.responses.Boxes
 import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
@@ -24,7 +24,7 @@ interface BoxAPI {
     ) : Response<Boxes>
 
     @POST("update_box/{img_changed}")
-    suspend fun updateItem(
+    suspend fun updateBox(
         @Body boxes: Boxes,
         @Path("img_changed") imgChanged : Boolean
     ) : Response<SaveResponse>

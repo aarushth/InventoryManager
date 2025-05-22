@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.repositories.BoxRepository
+import com.leopardseal.inventorymanagerapp.data.repositories.ImageRepository
 import com.leopardseal.inventorymanagerapp.data.responses.Boxes
 import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
 
@@ -18,6 +19,7 @@ import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -38,7 +40,6 @@ class BoxExpandedViewModel @Inject constructor(
 
     init {
         _box.value = repository.getCachedBoxById(boxId)
-        // Then refresh from server
         if(boxId >= 0 ) {
             viewModelScope.launch {
 
@@ -50,12 +51,6 @@ class BoxExpandedViewModel @Inject constructor(
             }
         }
 
-    }
-    fun updateBoxQuantity(newQuantity: Long) = viewModelScope.launch {
-        val newBox = _box.value!!.copy(quantity = newQuantity)
-
-        _updateResponse.value = repository.updateBox(newBox, false) as Resource<SaveResponse>
-        _box.value = newBox
     }
     fun saveOrUpdateBox(updatedBox: Boxes, imageChanged : Boolean) = viewModelScope.launch {
         _updateResponse.value = Resource.Loading
@@ -76,12 +71,18 @@ class BoxExpandedViewModel @Inject constructor(
     val uploadResult: StateFlow<Resource<Unit>>
         get() = _uploadResult
 
-    fun uploadImage(sasUrl: String, imageUri: Uri, context: Context) {
-        _updateResponse.value = Resource.Init
+    fun uploadImage(sasUrl: String, imageFile: File) {
+        resetUpdateResponse()
         _uploadResult.value = Resource.Loading
         viewModelScope.launch {
-            _uploadResult.value = imageRepository.uploadImage(sasUrl, imageUri, context)
+            _uploadResult.value = imageRepository.uploadImage(sasUrl, imageFile)
         }
+    }
+    fun resetUploadFlag(){
+        _uploadResult.value = Resource.Init
+    }
+    fun resetUpdateResponse(){
+        _updateResponse.value = Resource.Init
     }
 
 }
