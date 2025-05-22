@@ -39,13 +39,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-
-
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-
-
 import com.leopardseal.inventorymanagerapp.data.responses.Items
-
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
@@ -59,27 +54,33 @@ import com.leopardseal.inventorymanagerapp.ui.main.PullToRefreshLazyGrid
 fun ItemScreen(
         itemState : Resource<List<Items?>>,
         isRefreshing : Boolean,
+        isCardSizeTogglable : Boolean,
         onRefresh: () -> Unit,
         onItemClick: (itemId:Long) -> Unit,
         onUnauthorized: () -> Unit
         ) {
 
-
     val context = LocalContext.current
+    var isSmallCard by remember{mutableStateOf(false)}
+
     when (itemState) {
         is Resource.Success -> {
             val items = itemState.value
             Column(modifier = Modifier.fillMaxSize()) {
-                Text(
-                    text = if (items.isEmpty()) "It looks like this org doesn't have any items. Click + to add an item" else "Items:",
-                    fontSize = 30.sp,
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .align(Alignment.CenterHorizontally)
-                )
+                Row(horizontalArrangement = SpaceBetween){
+                        Text(
+                            text = if (items.isEmpty()) "No items found. Click + to add an item" else "Items:",
+                            fontSize = 20.sp,
+                            modifier = Modifier.padding(10.dp)
+                        )
+                    if(isCardSizeTogglable){
+                        IconButton(onClick = {isSmallCard = !isSmallCard}) {
+                            Icon(Icons.Default.Refresh, contentDescription = "Generate barcode")
+                        }
+                    }
+                }   
+                
                 val refreshState = rememberPullToRefreshState()
-
-
                 PullToRefreshBox(
                     state = refreshState,
                     isRefreshing = isRefreshing,
@@ -91,7 +92,11 @@ fun ItemScreen(
                     ) {
                         items(items) { item ->
                             item?.let {
-                                ItemCard(item = it, onClick = { it.id?.let { it1 -> onItemClick(it1) } })
+                                if(isSmallCard){
+                                    ItemListCard(item = it, onClick = { it.id?.let { it1 -> onItemClick(it1) } })
+                                }else{
+                                    ItemCard(item = it, onClick = { it.id?.let { it1 -> onItemClick(it1) } })
+                                }
                             }
                         }
                     }
@@ -118,7 +123,7 @@ fun ItemCard(item: Items, onClick: () -> Unit) {
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(6.dp),
         modifier = Modifier
-            .padding(8.dp)
+            .padding(5.dp)
             .fillMaxWidth()
             .clickable { onClick() },
         colors = CardDefaults.cardColors(
@@ -149,8 +154,34 @@ fun ItemCard(item: Items, onClick: () -> Unit) {
                     Text(text = item.barcode!!, fontSize = 12.sp, color = Color.Gray)
                 }
                 Text(text = "${item.quantity}", fontSize = 18.sp)
-
             }
+        }
+    }
+}
+
+fun ItemListCard(item: Items, onClick: () ->){
+    Row(modifier = Modifier.fillMaxWidth()
+    .clickable{ onClick() },
+    horizontalArrangement = Arrangement.SpaceBetween
+    ){
+        Row(modifier = Modifier.fillMaxWidth()){
+            AsyncImage(
+                model = item.imageUrl + "?t=${System.currentTimeMillis()}",
+                contentDescription = item.name,
+                placeholder = painterResource(R.drawable.default_img),
+                error = painterResource(R.drawable.default_img),
+                modifier = Modifier
+                    .width(20.dp)
+                    .height(20.dp),
+                contentScale = ContentScale.Crop
+            )
+            Column{
+                Text(text = item.name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text(text = item.barcode!!, fontSize = 12.sp, color = Color.Gray)
+            }
+        }
+        Row(modifier = Modifier.fillMaxWidth()){
+            Text(text = "${item.quantity}", fontSize = 18.sp)
         }
     }
 }

@@ -267,7 +267,8 @@ class MainActivity : AppCompatActivity() {
                 viewModel.getItems()
                 ItemScreen(
                     itemState = itemState,
-                    isRefreshing = isRefreshing
+                    isRefreshing = isRefreshing,
+                    isCardSizeTogglable = true,
                     onRefresh = { viewModel.getItems() },
                     onItemClick = { itemId -> navController.navigate("itemExpanded/${itemId}") },
                     onUnauthorized = { login() })
