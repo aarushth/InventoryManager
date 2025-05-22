@@ -85,10 +85,7 @@ fun BoxScreen(
                 PullToRefreshBox(
                     state = refreshState,
                     isRefreshing = isRefreshing,
-                    onRefresh = {
-                        onRefresh()
-
-                    }
+                    onRefresh = {onRefresh()}
                 ) {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(2),
@@ -101,13 +98,7 @@ fun BoxScreen(
                         }
                     }
                 }
-//                SwipeRefresh(
-//                    state = rememberSwipeRefreshState(isRefreshing),
-//                    onRefresh = { onRefresh() },
-//                    modifier = Modifier.fillMaxSize()
-//                ) {
-//
-//                }
+
             }
         }
 
@@ -120,9 +111,7 @@ fun BoxScreen(
                 Toast.makeText(context,"an error occured, please try again later", Toast.LENGTH_LONG).show()
             }
         }
-        else -> {
-            CircularProgressIndicator()
-        }
+        else -> {}
     }
 
 }

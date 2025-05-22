@@ -52,19 +52,19 @@ import coil.request.ImageRequest
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.data.responses.Boxes
+import com.leopardseal.inventorymanagerapp.data.responses.Locations
 import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
 
 
 @Composable
-fun BoxExpandedScreen(
-    box : Boxes?,
+fun LocationExpandedScreen(
+    location : Locations?,
     isRefreshing : Boolean,
     onRefresh : () -> Unit,
-    onEdit : (boxId : Long) -> Unit,
+    onEdit : (locationId : Long) -> Unit,
 ) {
 
-    if (box == null) {
+    if (location == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
@@ -85,7 +85,7 @@ fun BoxExpandedScreen(
                 // Image + Edit button overlay
                 Box(modifier = Modifier.fillMaxWidth()) {
                     val painter = rememberAsyncImagePainter(
-                        ImageRequest.Builder(LocalContext.current).data(data =box!!.imageUrl + "?t=${System.currentTimeMillis()}")
+                        ImageRequest.Builder(LocalContext.current).data(data =location!!.imageUrl + "?t=${System.currentTimeMillis()}")
                             .apply(block = fun ImageRequest.Builder.() {
                                 placeholder(R.drawable.default_img)
                                 error(R.drawable.default_img)
@@ -93,7 +93,7 @@ fun BoxExpandedScreen(
                     )
                     Image(
                         painter = painter,
-                        contentDescription = box!!.name,
+                        contentDescription = location!!.name,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(347.dp)
@@ -102,7 +102,7 @@ fun BoxExpandedScreen(
                     )
 
                     IconButton(
-                        onClick = { box!!.id?.let { onEdit(it) } },
+                        onClick = { location!!.id?.let { onEdit(it) } },
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(12.dp)
@@ -111,7 +111,7 @@ fun BoxExpandedScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Edit,
-                            contentDescription = "Edit Box Name",
+                            contentDescription = "Edit Location Name",
                             tint = Color.Black
                         )
                     }
@@ -120,39 +120,27 @@ fun BoxExpandedScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Name, Barcode, Quantity controls
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = box!!.name,
-                            color = Color.Black,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                        Text(
-                            text = box!!.barcode!!,
-                            color = Color.Gray,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = box!!.size!!,
-                            color = Color.Black,
-                            modifier = Modifier.padding(top = 4.dp)
-                        ) 
-                    }
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Location", fontWeight = FontWeight.Bold)
-                        Text("This is a location", modifier = Modifier.padding(vertical = 8.dp))
-                    }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = location!!.name,
+                        color = Color.Black,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                    Text(
+                        text = location!!.barcode!!,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )   
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // Description
+                Text(
+                    text = item!!.description!!,
+                    color = Color.DarkGray,
+                    modifier = Modifier.padding(vertical = 10.dp)
+                )
 
                 //boxes in here
                 LazyColumn(){}

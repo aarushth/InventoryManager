@@ -38,8 +38,17 @@ class BoxExpandedViewModel @Inject constructor(
     val updateResponse: StateFlow<Resource<SaveResponse>>
         get() = _updateResponse
 
+    private val _isRefreshing = MutableStateFlow<Boolean>(false)
+    val isRefreshing: StateFlow<Boolean>
+        get() = _isRefreshing
+
     init {
         _box.value = repository.getCachedBoxById(boxId)
+        getBox()
+    }
+
+    fun getBox(){
+        _isRefreshing = true
         if(boxId >= 0 ) {
             viewModelScope.launch {
 
@@ -50,8 +59,9 @@ class BoxExpandedViewModel @Inject constructor(
 
             }
         }
-
+        _isRefreshing = false
     }
+    
     fun saveOrUpdateBox(updatedBox: Boxes, imageChanged : Boolean) = viewModelScope.launch {
         _updateResponse.value = Resource.Loading
 

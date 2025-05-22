@@ -42,18 +42,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
-import com.leopardseal.inventorymanagerapp.R
 
 @Composable
 fun LocationScreen(
     locationState : Resource<List<Locations?>>,
+    isRefreshing : Boolean,
     onRefresh: () -> Unit,
     onLocationClick: (locationId:Long) -> Unit,
     onUnauthorized: () -> Unit
 ) {
     val context = LocalContext.current
-    val isRefreshing by remember { mutableStateOf(false) }
-
+   
     when (locationState) {
         is Resource.Success -> {
             val locations = (locationState as Resource.Success<List<Locations>>).value
@@ -66,17 +65,20 @@ fun LocationScreen(
                         .align(Alignment.CenterHorizontally)
                 )
 
-                SwipeRefresh(
-                    state = rememberSwipeRefreshState(isRefreshing),
-                    onRefresh = { onRefresh() },
-                    modifier = Modifier.fillMaxSize()
+                val refreshState = rememberPullToRefreshState()
+
+
+                PullToRefreshBox(
+                    state = refreshState,
+                    isRefreshing = isRefreshing,
+                    onRefresh = {onRefresh()}
                 ) {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(2),
                         contentPadding = PaddingValues(8.dp)
                     ) {
                         items(locations) { location ->
-                            location?.let {
+                            locatiion?.let {
                                 LocationCard(location = it, onClick = { it.id?.let { it1 -> onLocationClick(it1) } })
                             }
                         }
@@ -93,9 +95,7 @@ fun LocationScreen(
                 Toast.makeText(context,"an error occured, please try again later", Toast.LENGTH_LONG).show()
             }
         }
-        else -> {
-            CircularProgressIndicator()
-        }
+        else -> {}
     }
 
 }

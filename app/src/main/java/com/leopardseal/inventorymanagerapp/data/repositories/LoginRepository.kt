@@ -17,8 +17,8 @@ class LoginRepository @Inject constructor(
 //    suspend fun saveUserId(userId: Long){
 //        preferences.saveUserId(userId)
 //    }
-    suspend fun savePictureUrl(pictureUrl: String){
-        preferences.savePictureUrl(pictureUrl)
+    suspend fun saveUserImg(userImg: String){
+        preferences.savePictureUrl(userImg)
     }
     suspend fun saveToken(token: String){
         preferences.saveAuthToken(token)

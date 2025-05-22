@@ -29,14 +29,17 @@ class UserPreferences @Inject constructor(
     val orgId : Flow<Long?>
         get() = appContext.dataStore.data.map { it[ORG_ID] }
 
-    val pictureUrl : Flow<String?>
-        get() = appContext.dataStore.data.map { it[PICTURE_URL] }
+    val userImg : Flow<String?>
+        get() = appContext.dataStore.data.map { it[USER_IMG] }
 
     val orgImg : Flow<String?>
         get() = appContext.dataStore.data.map { it[ORG_IMG] }
 
     val orgName : Flow<String?>
         get() = appContext.dataStore.data.map { it[ORG_NAME] }
+
+    val userEmail : Flow<String?>
+        get() = appContext.dataStore.data.map { it[USER_EMAIL] }
 
 
 
@@ -61,11 +64,14 @@ class UserPreferences @Inject constructor(
             it[ORG_NAME] = orgName
         }
     }
-
-
-    suspend fun savePictureUrl(pictureUrl: String){
+    suspend fun saveUserImg(userImg: String){
         appContext.dataStore.edit {
-            it[PICTURE_URL] = pictureUrl
+            it[USER_IMG] = userImg
+        }
+    }
+    suspend fun saveUserEmail(userEmail: String){
+        appContext.dataStore.edit {
+            it[USER_EMAIL] = userEmail
         }
     }
 
@@ -74,6 +80,7 @@ class UserPreferences @Inject constructor(
         private val ORG_ID = longPreferencesKey("orgId")
         private val ORG_NAME = stringPreferencesKey("orgName")
         private val ORG_IMG = stringPreferencesKey("orgImg")
-        private val PICTURE_URL = stringPreferencesKey("pictureUrl")
+        private val USER_IMG = stringPreferencesKey("userImg")
+        private val USER_EMAIL = stringPreferencesKey("userEmail")
     }
 }

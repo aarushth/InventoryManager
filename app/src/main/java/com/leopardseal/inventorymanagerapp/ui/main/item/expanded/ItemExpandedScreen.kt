@@ -60,6 +60,8 @@ import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
 fun ItemExpandedScreen(
     item : Items?,
     updateResponse : Resource<SaveResponse>,
+    isRefreshing : Boolean,
+    onRefresh : () -> Unit,
     onEdit : (itemId : Long) -> Unit,
     onUpdate : (currentQuantity : Long) -> Unit,
     onUnauthorized : () -> Unit
@@ -103,7 +105,10 @@ fun ItemExpandedScreen(
         }
         return
     }else{
-        Box(modifier = Modifier.fillMaxSize()) {
+        PullToRefreshBox(
+                    state = refreshState,
+                    isRefreshing = isRefreshing,
+                    onRefresh = {onRefresh()} ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()

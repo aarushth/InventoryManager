@@ -61,26 +61,26 @@ class LoginFragment : Fragment() {
         binding = FragmentLoginBinding.bind(view)
         navController = view.findNavController()
         binding.progressBar.visible(false)
-//        getActionBar()?.setTitle("Login");
         viewModel.loginResponse.observe(viewLifecycleOwner, Observer {
             binding.progressBar.visible(false)
             when (it) {
 
                 is Resource.Success<LoginResponse> -> {
-//                    viewModel.saveUserId(it.value.id)
                     if(it.value.user.picture != null) {
-                        viewModel.savePictureUrl(it.value.user.picture!!)
+                        viewModel.saveUserImg(it.value.user.picture!!)
+                    }
+                    if(it.value.user.email != null) {
+                        viewModel.saveUserEmail(it.value.user.email!!)
                     }
                     viewModel.saveToken(it.value.token)
                     
                 }
-
+//hi maksym
                 is Resource.Failure -> {
                     if(it.isNetworkError) {
                         binding.googleSignInBtn.enabled(true)
                         Toast.makeText(requireContext(),"please check your internet and try again",Toast.LENGTH_LONG).show()
                     }else if(it.errorCode == HttpStatus.SC_UNAUTHORIZED){
-//                        Toast.makeText(requireContext(),"user not found in system",Toast.LENGTH_LONG).show()
                         navController.navigate(R.id.login_fail)
                     }else{
                         binding.googleSignInBtn.enabled(true)

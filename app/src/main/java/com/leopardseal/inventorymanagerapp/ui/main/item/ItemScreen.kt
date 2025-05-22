@@ -58,6 +58,7 @@ import com.leopardseal.inventorymanagerapp.ui.main.PullToRefreshLazyGrid
 @Composable
 fun ItemScreen(
         itemState : Resource<List<Items?>>,
+        isRefreshing : Boolean,
         onRefresh: () -> Unit,
         onItemClick: (itemId:Long) -> Unit,
         onUnauthorized: () -> Unit
@@ -65,28 +66,36 @@ fun ItemScreen(
 
 
     val context = LocalContext.current
-    var isRefreshing by remember{mutableStateOf(false)}
-    val onRefreshInternal = {
-        isRefreshing = true
-        onRefresh()
-    }
-
     when (itemState) {
         is Resource.Success -> {
             val items = itemState.value
-            isRefreshing = false
-                PullToRefreshLazyGrid(
-                    items = items,
-                    content = { it ->
-                        if (it != null) {
-                            ItemCard(
-                                item = it,
-                                onClick = { it.id?.let { it1 -> onItemClick(it1) } })
-                        }
-                    },
-                    isRefreshing = isRefreshing,
-                    onRefresh = onRefreshInternal,
+            Column(modifier = Modifier.fillMaxSize()) {
+                Text(
+                    text = if (items.isEmpty()) "It looks like this org doesn't have any items. Click + to add an item" else "Items:",
+                    fontSize = 30.sp,
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .align(Alignment.CenterHorizontally)
                 )
+                val refreshState = rememberPullToRefreshState()
+
+
+                PullToRefreshBox(
+                    state = refreshState,
+                    isRefreshing = isRefreshing,
+                    onRefresh = {onRefresh()}
+                ) {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        contentPadding = PaddingValues(8.dp)
+                    ) {
+                        items(items) { item ->
+                            item?.let {
+                                ItemCard(item = it, onClick = { it.id?.let { it1 -> onItemClick(it1) } })
+                            }
+                        }
+                    }
+                }
 
         }
         is Resource.Failure -> {

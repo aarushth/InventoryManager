@@ -22,13 +22,18 @@ class ItemViewModel @Inject constructor(
     val itemResponse: StateFlow<Resource<List<Items>>>
         get() = _itemResponse
 
+    private val _isRefreshing = MutableStateFlow<Boolean>(false)
+    val isRefreshing: StateFlow<Boolean>
+        get() = _isRefreshing
+
     fun getItems() = viewModelScope.launch {
-        val response = repository.getItems() as Resource<List<Items>>
-        _itemResponse.value = response
+        _isRefreshing = true
+        _itemResponse.value = repository.getItems() as Resource<List<Items>>
 
         if (response is Resource.Success) {
             repository.setCachedItems(response.value)
         }
+        _isRefreshing = false
     }
 
 }

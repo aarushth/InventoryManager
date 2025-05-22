@@ -30,9 +30,9 @@ class BoxViewModel @Inject constructor(
         _boxResponse.value = response
 
         if (response is Resource.Success) {
-            _isRefreshing.value = false
             repository.setCachedBoxes(response.value)
         }
+        _isRefreshing.value = false
     }
 
 }

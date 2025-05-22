@@ -57,7 +57,7 @@ import com.leopardseal.inventorymanagerapp.R
 
 
 @Composable
-fun NavigationDrawerContent(navController: NavController, closeDrawer: () -> Unit) {
+fun NavigationDrawerContent(navController: NavController, userImg : String, userEmail : String, closeDrawer: () -> Unit) {
     Column(modifier = Modifier.fillMaxHeight()) {
         // Header
         Box(
@@ -69,15 +69,19 @@ fun NavigationDrawerContent(navController: NavController, closeDrawer: () -> Uni
             contentAlignment = Alignment.BottomStart
         ) {
             Column {
-                Image(
-                    painterResource(R.drawable.default_img),
+                AsyncImage(
+                    model = userImg,
                     contentDescription = null,
+                    placeholder = painterResource(R.drawable.default_img),
+                    error = painterResource(R.drawable.default_img),
+                    fallback = painterResource(R.drawable.default_img),
                     modifier = Modifier
                         .width(100.dp)
                         .height(100.dp)
+                        .clip(CircleShape)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Account", color = Color.White, fontWeight = FontWeight.Bold)
+                Text(userEmail, color = Color.White, fontWeight = FontWeight.Bold)
             }
         }
 
