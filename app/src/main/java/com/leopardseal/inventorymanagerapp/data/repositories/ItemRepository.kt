@@ -16,6 +16,9 @@ class ItemRepository @Inject constructor(
     suspend fun getItems() = safeApiCall {
         api.getItems(preferences.orgId.first()!!)
     }
+    suspend fun getItemsByBoxId(boxId : Long) = safeApiCall {
+        api.getItemsByBoxId(preferences.orgId.first()!!, boxId)
+    }
     private var cachedItems: List<Items> = listOf()
 
     fun setCachedItems(items: List<Items>) {

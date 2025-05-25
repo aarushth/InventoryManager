@@ -1,20 +1,22 @@
 package com.leopardseal.inventorymanagerapp.ui.main.item.expanded
 
-
-import android.content.Context
-import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.leopardseal.inventorymanagerapp.data.network.Resource
+import com.leopardseal.inventorymanagerapp.data.repositories.BoxRepository
 import com.leopardseal.inventorymanagerapp.data.repositories.ImageRepository
 import com.leopardseal.inventorymanagerapp.data.repositories.ItemRepository
+import com.leopardseal.inventorymanagerapp.data.repositories.LocationRepository
+import com.leopardseal.inventorymanagerapp.data.responses.Boxes
 import com.leopardseal.inventorymanagerapp.data.responses.Items
+import com.leopardseal.inventorymanagerapp.data.responses.Locations
 import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
@@ -22,14 +24,26 @@ import javax.inject.Inject
 @HiltViewModel
 class ItemExpandedViewModel @Inject constructor(
     private val repository: ItemRepository,
+    private val boxRepository: BoxRepository,
+    private val locationRepository: LocationRepository,
     private val imageRepository : ImageRepository,
-    savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val itemId: Long = savedStateHandle["item_id"] ?: -1L
+    private val boxIdFlow = savedStateHandle.getStateFlow<Long?>("box_id", null)
+    private var lastLocationId: Long? = null
 
     private val _item = MutableStateFlow<Items?>(repository.getCachedItemById(itemId))
     val item: StateFlow<Items?>
         get() = _item
+
+    private val _box = MutableStateFlow<Boxes?>(null)
+    val box: StateFlow<Boxes?>
+        get() = _box
+
+    private val _location = MutableStateFlow<Locations?>(null)
+    val location: StateFlow<Locations?>
+        get() = _location
 
     private val _updateResponse = MutableStateFlow<Resource<SaveResponse>>(Resource.Init)
     val updateResponse: StateFlow<Resource<SaveResponse>>
@@ -39,28 +53,103 @@ class ItemExpandedViewModel @Inject constructor(
     val isRefreshing: StateFlow<Boolean>
         get() = _isRefreshing
 
+    fun setBoxIdIfNotPresent(id: Long?) {
+            savedStateHandle["box_id"] = id
+    }
     init {
         _item.value = repository.getCachedItemById(itemId)
         getItem()
+
+        if (savedStateHandle.get<Long>("box_id") == null) {
+            val itemBoxId = _item.value?.boxId
+            if (itemBoxId != null) {
+                savedStateHandle["box_id"] = itemBoxId
+            }
+        }
+        viewModelScope.launch {
+            boxIdFlow.collect { boxId ->
+                getBox(boxId)
+            }
+        }
+        viewModelScope.launch {
+            _box.filterNotNull().collect { newBox ->
+                val newLocationId = newBox.locationId
+                if (newLocationId != null && newLocationId != lastLocationId) {
+                    lastLocationId = newLocationId
+                    getLocation(newLocationId)
+                }
+            }
+        }
     }
-    fun getItem(){
-        _isRefreshing = true
-        if(itemId >= 0 ) {
+    fun setBoxId(id: Long) {
+        savedStateHandle["box_id"] = id
+    }
+    fun getItem() {
+        _item.value = null
+        _isRefreshing.value = true
+        if (itemId >= 0) {
             viewModelScope.launch {
                 val response = repository.fetchItemById(itemId)
                 if (response is Resource.Success) {
                     _item.value = response.value
-                }
 
+                    val newBoxId = response.value.boxId
+                    if (newBoxId != null) {
+                        savedStateHandle["box_id"] = newBoxId
+
+                        // fetch box and location every time
+                        val boxResponse = boxRepository.fetchBoxById(newBoxId)
+                        if (boxResponse is Resource.Success) {
+                            _box.value = boxResponse.value
+                            val locationId = boxResponse.value.locationId
+                            if (locationId != null) {
+                                getLocation(locationId)
+                            }
+                        }
+                    }
+                }
+                _isRefreshing.value = false
+            }
+        } else {
+            _isRefreshing.value = false
+        }
+    }
+    private fun getBox(boxId : Long?){
+        if(boxId != null) {
+            _isRefreshing.value = true
+            viewModelScope.launch {
+                val response = boxRepository.fetchBoxById(boxId)
+                if (response is Resource.Success) {
+                    _box.value = response.value
+                    if (box.value!!.locationId != null) {
+                        getLocation(box.value!!.locationId!!)
+                    }
+                }
+                _isRefreshing.value = false
             }
         }
-        _isRefreshing = false
     }
-    fun updateItemQuantity(newQuantity: Long) = viewModelScope.launch {
-        val newItem = _item.value!!.copy(quantity = newQuantity)
+    private fun getLocation(locationId : Long){
+        _isRefreshing.value = true
+        if(locationId >= 0) {
+            viewModelScope.launch {
+                val response = locationRepository.fetchLocationById(locationId)
+                if (response is Resource.Success) {
+                    _location.value = response.value
+                }
+                _isRefreshing.value = false
+            }
+        }else{
+            _isRefreshing.value = false
+        }
+    }
 
-        _updateResponse.value = repository.updateItem(newItem, false) as Resource<SaveResponse>
+    fun updateItemQuantity(newQuantity: Long) = viewModelScope.launch {
+        val newItem = _item.value!!.copy(quantity = newQuantity, boxId = boxIdFlow.value)
+
+        _updateResponse.value = repository.updateItem(newItem, false)
         _item.value = newItem
+        savedStateHandle["box_id"] = newItem.boxId
     }
     fun saveOrUpdateItem(updatedItem: Items, imageChanged : Boolean) = viewModelScope.launch {
         _updateResponse.value = Resource.Loading

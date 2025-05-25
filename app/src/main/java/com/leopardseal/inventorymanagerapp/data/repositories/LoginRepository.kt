@@ -14,11 +14,11 @@ class LoginRepository @Inject constructor(
         api.login(authToken)
     }
 
-//    suspend fun saveUserId(userId: Long){
-//        preferences.saveUserId(userId)
-//    }
+    suspend fun saveUserEmail(userEmail: String){
+        preferences.saveUserEmail(userEmail)
+    }
     suspend fun saveUserImg(userImg: String){
-        preferences.savePictureUrl(userImg)
+        preferences.saveUserImg(userImg)
     }
     suspend fun saveToken(token: String){
         preferences.saveAuthToken(token)

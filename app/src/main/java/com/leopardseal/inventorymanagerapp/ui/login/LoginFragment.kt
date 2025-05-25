@@ -66,12 +66,10 @@ class LoginFragment : Fragment() {
             when (it) {
 
                 is Resource.Success<LoginResponse> -> {
-                    if(it.value.user.picture != null) {
-                        viewModel.saveUserImg(it.value.user.picture!!)
+                    if(it.value.user.imgUrl != null) {
+                        viewModel.saveUserImg(it.value.user.imgUrl!!)
                     }
-                    if(it.value.user.email != null) {
-                        viewModel.saveUserEmail(it.value.user.email!!)
-                    }
+                    viewModel.saveUserEmail(it.value.user.email)
                     viewModel.saveToken(it.value.token)
                     
                 }

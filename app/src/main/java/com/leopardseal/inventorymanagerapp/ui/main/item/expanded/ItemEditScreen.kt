@@ -36,61 +36,70 @@ import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
 import java.io.File
 import java.util.*
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.painterResource
+import androidx.hilt.navigation.compose.hiltViewModel
 
-import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import coil.compose.AsyncImage
+import com.leopardseal.inventorymanagerapp.ui.barcodeIcon
+import com.leopardseal.inventorymanagerapp.ui.cameraIcon
+import com.leopardseal.inventorymanagerapp.ui.main.item.expanded.ItemExpandedViewModel
 
 
 @Composable
 fun ItemEditScreen(
-    item: Items?, // null = new item
-    updateResponse: Resource<SaveResponse>,
-    uploadImgResponse: Resource<Unit>,
-    currentBackStackEntry: NavBackStackEntry?,
-    onImageCapture: ()->Unit,
+    viewModel : ItemExpandedViewModel = hiltViewModel(),
+    navController: NavController,
     orgId : Long,
-    onSave: (Items, Boolean) -> Unit,
-    onSaveComplete: (imageUri : File?) -> Unit,
-    onUnauthorized: () -> Unit,
-    onImageSaved: () -> Unit,
-    onScanBarcodeClick: () -> Unit
+    onUnauthorized: () -> Unit
 ) {
+    val item by viewModel.item.collectAsState()
+    val updateResponse by viewModel.updateResponse.collectAsState()
+    val uploadImgResponse by viewModel.uploadResult.collectAsState()
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val context = LocalContext.current
 
     val savedStateHandle : SavedStateHandle? = currentBackStackEntry?.savedStateHandle
 
-    // Input state with initial values depending on whether item is null or not
-    var name by rememberSaveable { mutableStateOf(savedStateHandle?.get<String>("name") ?: item?.name.orEmpty()) }
-    var description by rememberSaveable { mutableStateOf(savedStateHandle?.get<String>("description") ?: item?.description.orEmpty()) }
-    var quantity by rememberSaveable { mutableStateOf(savedStateHandle?.get<String>("quantity") ?: (item?.quantity?:0).toString().orEmpty()) }
-    var alertQuantity by rememberSaveable { mutableStateOf(savedStateHandle?.get<String>("alertQuantity") ?: item?.alert?.toString().orEmpty()) }
-    var barcode by rememberSaveable { mutableStateOf(savedStateHandle?.get<String>("barcode") ?: item?.barcode.orEmpty()) }
-    var imageUri by rememberSaveable { mutableStateOf<Uri?>(savedStateHandle?.get<Uri>("imageUri")) }
-    var imageFile by rememberSaveable  { mutableStateOf<File?>(savedStateHandle?.get<File>("imageFile")) }
+    var name by rememberSaveable { mutableStateOf("") }
+    var description by rememberSaveable { mutableStateOf("") }
+    var quantity by rememberSaveable { mutableStateOf("0") }
+    var alertQuantity by rememberSaveable {mutableStateOf("0") }
+    var barcode by rememberSaveable { mutableStateOf("") }
+    var imageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
+    var imageFile by rememberSaveable  { mutableStateOf<File?>(null) }
+
+    val initialized = rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(Unit){
+        if(!initialized.value){
+            viewModel.getItem()
+        }
+    }
+    LaunchedEffect(item) {
+        if (item!= null && !initialized.value) {
+            name = item!!.name.orEmpty()
+            description = item!!.description.orEmpty()
+            barcode = item!!.barcode.orEmpty()
+            quantity = item!!.quantity.toString()
+            alertQuantity = item!!.alert.toString()
+            initialized.value = true
+        }
+    }
 
     val isQuantityValid = quantity.isNotBlank() && quantity.all { it.isDigit() }
     val isNameValid = name.isNotBlank()
 
     val isSaveEnabled = if (item == null) {
-        // New item: enable only if required fields are valid
         isNameValid && isQuantityValid
     } else {
-        // Existing item: enable only if any field has changed
-        name != item.name ||
-                description != item.description ||
-                quantity != item.quantity.toString() ||
-                alertQuantity != item.alert.toString() ||
-                barcode != item.barcode.orEmpty() ||
+        name != item!!.name ||
+                description != item!!.description ||
+                quantity != item!!.quantity.toString() ||
+                alertQuantity != item!!.alert.toString() ||
+                barcode != item!!.barcode.orEmpty() ||
                 imageFile != null
     }
-
-    LaunchedEffect(name) { savedStateHandle?.set("name", name) }
-    LaunchedEffect(description) { savedStateHandle?.set("description", description) }
-    LaunchedEffect(quantity) { savedStateHandle?.set("quantity", quantity) }
-    LaunchedEffect(alertQuantity) { savedStateHandle?.set("alertQuantity", alertQuantity) }
-    LaunchedEffect(barcode) { savedStateHandle?.set("barcode", barcode)}
-    LaunchedEffect(imageUri) { savedStateHandle?.set("imageUri", imageUri) }
-    LaunchedEffect(imageFile) { savedStateHandle?.set("imageFile", imageFile) }
-
     if(savedStateHandle != null){
         val barcodeFlow = savedStateHandle.getStateFlow("barcode", "")
         val scannedBarcode by barcodeFlow.collectAsState()
@@ -122,7 +131,14 @@ fun ItemEditScreen(
         is Resource.Success<SaveResponse> -> {
             Toast.makeText(context, "Item saved", Toast.LENGTH_LONG).show()
             item!!.id?.let {
-                onSaveComplete(imageFile)
+                if((updateResponse as Resource.Success).value.imageUrl == null){
+                    viewModel.resetUpdateResponse()
+                    navController.navigate("itemExpanded/${item!!.id}") {
+                        popUpTo("locationExpanded/${item!!.id}") { inclusive = true }
+                    }
+                }else{
+                    viewModel.uploadImage((updateResponse as Resource.Success).value.imageUrl!!,imageFile!!)
+                }
                 savedStateHandle?.set("barcode", "")
             }
         }
@@ -145,13 +161,16 @@ fun ItemEditScreen(
     when (uploadImgResponse) {
         is Resource.Success<Unit> -> {
             Toast.makeText(context, "Image saved", Toast.LENGTH_LONG).show()
-            onImageSaved()
+            viewModel.resetUploadFlag()
+            navController.navigate("itemExpanded/${item!!.id}") {
+                popUpTo("locationExpanded/${item!!.id}") { inclusive = true }
+            }
 
         }
         is Resource.Failure -> {
-            if (uploadImgResponse.isNetworkError) {
+            if ((uploadImgResponse as Resource.Failure).isNetworkError) {
                 Toast.makeText(context, "Please check your internet and try again", Toast.LENGTH_LONG).show()
-            } else if (uploadImgResponse.errorCode == HttpStatus.SC_UNAUTHORIZED) {
+            } else if ((uploadImgResponse as Resource.Failure).errorCode == HttpStatus.SC_UNAUTHORIZED) {
                 onUnauthorized()
             } else {
                 Toast.makeText(context, "An error occurred, please try again later", Toast.LENGTH_LONG).show()
@@ -185,22 +204,12 @@ fun ItemEditScreen(
                             .clip(RoundedCornerShape(8.dp))
                     )
                 } else {
-                    val painter = rememberAsyncImagePainter(
-                        ImageRequest.Builder(LocalContext.current).data(
-                            data = if (item != null) {
-                                item.imageUrl + "?t=${System.currentTimeMillis()}"
-                            } else {
-                                R.drawable.default_img
-                            }
-                        )
-                            .apply(block = fun ImageRequest.Builder.() {
-                                placeholder(R.drawable.default_img)
-                                error(R.drawable.default_img)
-                            }).build()
-                    )
-                    Image(
-                        painter = painter,
-                        contentDescription = name,
+                    AsyncImage(
+                        model = item?.imageUrl,
+                        contentDescription = item?.name,
+                        placeholder = painterResource(R.drawable.default_img),
+                        error = painterResource(R.drawable.default_img),
+                        fallback = painterResource(R.drawable.default_img),
                         modifier = Modifier
                             .width(150.dp)
                             .height(150.dp)
@@ -211,8 +220,8 @@ fun ItemEditScreen(
 
                 Spacer(Modifier.width(16.dp))
 
-                Button(onClick = { onImageCapture() }) {
-                    Icon(Icons.Default.Phone, contentDescription = "Take Photo")
+                Button(onClick = { navController.navigate("camera") }) {
+                    Icon(cameraIcon, contentDescription = "Take Photo")
                     Spacer(Modifier.width(8.dp))
                     Text("Take Image")
                 }
@@ -264,8 +273,8 @@ fun ItemEditScreen(
                 )
                 Spacer(Modifier.width(16.dp))
 
-                Button(onClick = { onScanBarcodeClick() }) {
-                    Icon(Icons.Default.Phone, contentDescription = "Scan Barcode")
+                Button(onClick = { navController.navigate("barcode") }) {
+                    Icon(barcodeIcon, contentDescription = "Scan Barcode")
                     Spacer(Modifier.width(5.dp))
                     Text(
                         "Scan Barcode",
@@ -296,7 +305,7 @@ fun ItemEditScreen(
                         alert = alertQuantity.toLongOrNull() ?: 0,
                         imageUrl = null
                     )
-                    onSave(newItem, (imageFile != null))
+                    viewModel.saveOrUpdateItem(newItem, (imageFile != null))
                 },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)

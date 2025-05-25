@@ -23,6 +23,14 @@ interface ItemAPI {
         @Path("item_id") itemId : Long
     ) : Response<Items>
 
+    @GET("get_items_by_box_id/{org_id}/{box_id}")
+    suspend fun getItemsByBoxId(
+        @Path("org_id") orgId : Long,
+        @Path("box_id") boxId : Long
+    ) : Response<List<Items>>
+
+
+
     @POST("update_item/{img_changed}")
     suspend fun updateItem(
         @Body items: Items,

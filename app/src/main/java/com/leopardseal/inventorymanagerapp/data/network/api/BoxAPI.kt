@@ -18,10 +18,18 @@ interface BoxAPI {
         @Path("org_id") orgId : Long
     ) : Response<List<Boxes>>
 
+
+
     @GET("get_box/{box_id}")
     suspend fun getBoxById(
         @Path("box_id") boxId : Long
     ) : Response<Boxes>
+
+    @GET("get_boxes_by_location_id/{org_id}/{location_id}")
+    suspend fun getBoxesByLocationId(
+        @Path("org_id") orgId : Long,
+        @Path("location_id") locationId : Long
+    ) : Response<List<Boxes>>
 
     @POST("update_box/{img_changed}")
     suspend fun updateBox(

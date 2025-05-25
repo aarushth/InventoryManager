@@ -6,83 +6,115 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
-import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.responses.Boxes
 import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
+import com.leopardseal.inventorymanagerapp.ui.barcodeIcon
+import com.leopardseal.inventorymanagerapp.ui.cameraIcon
+import com.leopardseal.inventorymanagerapp.ui.main.box.expanded.BoxExpandedViewModel
 import java.io.File
-import java.util.*
-import kotlinx.coroutines.flow.collect
-
+import java.util.UUID
 
 
 @Composable
 fun BoxEditScreen(
-    box: Boxes?, // null = new box
-    updateResponse: Resource<SaveResponse>,
-    uploadImgResponse: Resource<Unit>,
-    currentBackStackEntry: NavBackStackEntry?,
+    viewModel: BoxExpandedViewModel = hiltViewModel(),
+    navController: NavController,
     orgId : Long,
-    onImageCapture: () -> Unit,
-    onSave: (Boxes, Boolean) -> Unit,
-    onSaveComplete: (imageFile : File?) -> Unit,
-    onUnauthorized: () -> Unit,
-    onImageSaved: () -> Unit,
-    onScanBarcodeClick: () -> Unit
+    onUnauthorized: () -> Unit
 ) {
+    val box by viewModel.box.collectAsState()
+    val updateResponse by viewModel.updateResponse.collectAsState()
+    val uploadImgResponse by viewModel.uploadResult.collectAsState()
+
     val context = LocalContext.current
+
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val savedStateHandle : SavedStateHandle? = currentBackStackEntry?.savedStateHandle
 
-    var name by rememberSaveable { mutableStateOf(savedStateHandle?.get<String>("name") ?: box?.name.orEmpty()) }
-    var size by rememberSaveable { mutableStateOf(savedStateHandle?.get<String>("size") ?: box?.size?:"Large") }
-    var barcode by rememberSaveable { mutableStateOf(savedStateHandle?.get<String>("barcode") ?: box?.barcode.orEmpty()) }
-    var imageUri by rememberSaveable { mutableStateOf<Uri?>(savedStateHandle?.get<Uri>("imageUri")) }
-    var imageFile by rememberSaveable  { mutableStateOf<File?>(savedStateHandle?.get<File>("imageFile")) }
+    var name by rememberSaveable { mutableStateOf("") }
+    var size by rememberSaveable { mutableStateOf("Large") }
+    var barcode by rememberSaveable { mutableStateOf("") }
+    var imageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
+    var imageFile by rememberSaveable  { mutableStateOf<File?>(null) }
 
+    val initialized = rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(Unit){
+        if(!initialized.value){
+            viewModel.getBox()
+        }
+    }
+    LaunchedEffect(box) {
+        if (box != null && !initialized.value) {
+            name = box!!.name.orEmpty()
+            size = box!!.size.orEmpty()
+            barcode = box!!.barcode.orEmpty()
+            initialized.value = true
+        }
+    }
     val isNameValid = name.isNotBlank()
 
     val isSaveEnabled = if (box == null) {
         isNameValid
     } else {
-        name != box.name ||
-                size != box.size ||
-                barcode != box.barcode.orEmpty() ||
+        name != box!!.name ||
+                size != box!!.size ||
+                barcode != box!!.barcode.orEmpty() ||
                 imageFile != null
     }
-    LaunchedEffect(name) { savedStateHandle?.set("name", name) }
-    LaunchedEffect(size) { savedStateHandle?.set("description", size) }
-    LaunchedEffect(barcode) { savedStateHandle?.set("barcode", barcode)}
-    LaunchedEffect(imageUri) { savedStateHandle?.set("imageUri", imageUri) }
-    LaunchedEffect(imageFile) { savedStateHandle?.set("imageFile", imageFile) }
 
     if(savedStateHandle != null){
         val barcodeFlow = savedStateHandle.getStateFlow("barcode", "")
@@ -113,12 +145,23 @@ fun BoxEditScreen(
     when (updateResponse) {
         is Resource.Success<SaveResponse> -> {
             Toast.makeText(context, "Box saved", Toast.LENGTH_LONG).show()
-            box!!.id?.let { onSaveComplete(imageFile) }
+            if((updateResponse as Resource.Success).value.imageUrl == null){
+                viewModel.resetUpdateResponse()
+                navController.navigate("boxExpanded/${box!!.id}") {
+                    popUpTo("boxExpanded/${box!!.id}") { inclusive = true }
+                }
+            }else{
+                viewModel.uploadImage(
+                    (updateResponse as Resource.Success).value.imageUrl!!,
+                    imageFile!!
+                )
+            }
+
         }
         is Resource.Failure -> {
-            if (updateResponse.isNetworkError) {
+            if ((updateResponse as Resource.Failure).isNetworkError) {
                 Toast.makeText(context, "Please check your internet and try again", Toast.LENGTH_LONG).show()
-            } else if (updateResponse.errorCode == HttpStatus.SC_UNAUTHORIZED) {
+            } else if ((updateResponse as Resource.Failure).errorCode == HttpStatus.SC_UNAUTHORIZED) {
                 onUnauthorized()
             } else {
                 Toast.makeText(context, "An error occurred, please try again later", Toast.LENGTH_LONG).show()
@@ -134,12 +177,15 @@ fun BoxEditScreen(
     when (uploadImgResponse) {
         is Resource.Success<Unit> -> {
             Toast.makeText(context, "Image saved", Toast.LENGTH_LONG).show()
-            onImageSaved()
+            viewModel.resetUploadFlag()
+            navController.navigate("boxExpanded/${box!!.id}") {
+                popUpTo("boxExpanded/${box!!.id}") { inclusive = true }
+            }
         }
         is Resource.Failure -> {
-            if (uploadImgResponse.isNetworkError) {
+            if ((uploadImgResponse as Resource.Failure).isNetworkError) {
                 Toast.makeText(context, "Please check your internet and try again", Toast.LENGTH_LONG).show()
-            } else if (uploadImgResponse.errorCode == HttpStatus.SC_UNAUTHORIZED) {
+            } else if ((uploadImgResponse as Resource.Failure).errorCode == HttpStatus.SC_UNAUTHORIZED) {
                 onUnauthorized()
             } else {
                 Toast.makeText(context, "An error occurred, please try again later", Toast.LENGTH_LONG).show()
@@ -174,22 +220,12 @@ fun BoxEditScreen(
                             .clip(RoundedCornerShape(8.dp))
                     )
                 } else {
-                    val painter = rememberAsyncImagePainter(
-                        ImageRequest.Builder(LocalContext.current).data(
-                            data = if (box != null) {
-                                box!!.imageUrl + "?t=${System.currentTimeMillis()}"
-                            } else {
-                                R.drawable.default_img
-                            }
-                        )
-                            .apply(block = fun ImageRequest.Builder.() {
-                                placeholder(R.drawable.default_img)
-                                error(R.drawable.default_img)
-                            }).build()
-                    )
-                    Image(
-                        painter = painter,
-                        contentDescription = name,
+                    AsyncImage(
+                        model = box?.imageUrl,
+                        contentDescription = box?.name,
+                        placeholder = painterResource(R.drawable.default_img),
+                        error = painterResource(R.drawable.default_img),
+                        fallback = painterResource(R.drawable.default_img),
                         modifier = Modifier
                             .width(150.dp)
                             .height(150.dp)
@@ -200,8 +236,8 @@ fun BoxEditScreen(
 
                 Spacer(Modifier.width(16.dp))
 
-                Button(onClick = { onImageCapture() }) {
-                    Icon(Icons.Default.Phone, contentDescription = "Take Photo")
+                Button(onClick = { navController.navigate("camera") }) {
+                    Icon(cameraIcon, contentDescription = "Take Photo")
                     Spacer(Modifier.width(8.dp))
                     Text("Take Image")
                 }
@@ -237,8 +273,8 @@ fun BoxEditScreen(
                 )
                 Spacer(Modifier.width(16.dp))
 
-                Button(onClick = { onScanBarcodeClick() }) {
-                    Icon(Icons.Default.Phone, contentDescription = "Scan Barcode")
+                Button(onClick = { navController.navigate("barcode")  }) {
+                    Icon(barcodeIcon, contentDescription = "Scan Barcode")
                     Spacer(Modifier.width(5.dp))
                     Text(
                         "Scan Barcode",
@@ -266,7 +302,7 @@ fun BoxEditScreen(
                         locationId = null,
                         size = size
                     )
-                    onSave(newBox, (imageFile != null))
+                    viewModel.saveOrUpdateBox(newBox, (imageFile != null))
                 },
                 modifier = Modifier.fillMaxWidth()
                     .align(Alignment.BottomCenter)

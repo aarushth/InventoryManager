@@ -1,20 +1,19 @@
 package com.leopardseal.inventorymanagerapp.ui.main.item.expanded
 
-import android.content.Context
 import android.widget.Toast
-import androidx.compose.foundation.Image
-
+import androidx.compose.foundation.layout.Arrangement.SpaceBetween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -22,18 +21,23 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
-
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,38 +46,64 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberAsyncImagePainter
-
-import coil.request.ImageRequest
-
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.SavedStateHandle
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import coil.compose.AsyncImage
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.data.responses.Items
-import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
+import com.leopardseal.inventorymanagerapp.data.responses.Boxes
+import com.leopardseal.inventorymanagerapp.data.responses.Locations
+import com.leopardseal.inventorymanagerapp.ui.main.box.BoxListCard
+import com.leopardseal.inventorymanagerapp.ui.main.location.LocationListCard
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemExpandedScreen(
-    item : Items?,
-    updateResponse : Resource<SaveResponse>,
-    isRefreshing : Boolean,
-    onRefresh : () -> Unit,
-    onEdit : (itemId : Long) -> Unit,
-    onUpdate : (currentQuantity : Long) -> Unit,
-    onUnauthorized : () -> Unit
+    viewModel: ItemExpandedViewModel = hiltViewModel(),
+    navController: NavController,
+    onUnauthorized : () -> Unit,
 ) {
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val savedStateHandle : SavedStateHandle? = currentBackStackEntry?.savedStateHandle
     val context = LocalContext.current
 
-    var currentQuantity by remember { mutableStateOf(0L) }
-    var originalQuantity by remember { mutableStateOf(0L) }
+    val item by viewModel.item.collectAsState()
+    val box by viewModel.box.collectAsState()
+    val location by viewModel.location.collectAsState()
+    val updateResponse by viewModel.updateResponse.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+
+    LaunchedEffect(item) {
+        viewModel.setBoxIdIfNotPresent(item?.boxId)
+    }
+
+    val selectedBoxId = currentBackStackEntry?.savedStateHandle?.get<Long>("box_id")
+
+    LaunchedEffect(selectedBoxId) {
+        if (selectedBoxId != null && selectedBoxId != -1L) {
+            viewModel.setBoxId(selectedBoxId)
+        }
+    }
+
+
+    var currentQuantity by rememberSaveable { mutableLongStateOf(savedStateHandle?.get<Long>("currentQuantity") ?: (item?.quantity?: 0L)) }
+    var originalQuantity by rememberSaveable { mutableLongStateOf(savedStateHandle?.get<Long>("originalQuantity") ?: (item?.quantity?: 0L)) }
+
+    LaunchedEffect(currentQuantity) { savedStateHandle?.set("currentQuantity", currentQuantity) }
+    LaunchedEffect(originalQuantity) { savedStateHandle?.set("originalQuantity", originalQuantity) }
+
     var saveEnable by remember { mutableStateOf(true) }
+
     when (updateResponse) {
         is Resource.Success -> {
-            Toast.makeText(context, "Quantity updated to $currentQuantity", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "Changes Saved", Toast.LENGTH_LONG).show()
             originalQuantity = currentQuantity
             saveEnable = true
         }
@@ -93,22 +123,12 @@ fun ItemExpandedScreen(
         }
         else -> {}
     }
-    LaunchedEffect(item) {
-        if (item != null) {
-            originalQuantity = item!!.quantity
-            currentQuantity = item!!.quantity
-        }
-    }
-    if (item == null) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
-        }
-        return
-    }else{
+    val refreshState = rememberPullToRefreshState()
+    if(item!= null) {
         PullToRefreshBox(
-                    state = refreshState,
-                    isRefreshing = isRefreshing,
-                    onRefresh = {onRefresh()} ) {
+            state = refreshState,
+            isRefreshing = isRefreshing,
+            onRefresh = { viewModel.getItem() }) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -116,27 +136,21 @@ fun ItemExpandedScreen(
                     .verticalScroll(rememberScrollState())
 
             ) {
-                // Image + Edit button overlay
                 Box(modifier = Modifier.fillMaxWidth()) {
-                    val painter = rememberAsyncImagePainter(
-                        ImageRequest.Builder(LocalContext.current).data(data =item!!.imageUrl + "?t=${System.currentTimeMillis()}")
-                            .apply(block = fun ImageRequest.Builder.() {
-                                placeholder(R.drawable.default_img)
-                                error(R.drawable.default_img)
-                            }).build()
-                    )
-                    Image(
-                        painter = painter,
+                    AsyncImage(
+                        model = item!!.imageUrl,
                         contentDescription = item!!.name,
+                        placeholder = painterResource(R.drawable.default_img),
+                        error = painterResource(R.drawable.default_img),
+                        fallback = painterResource(R.drawable.default_img),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(347.dp)
+                            .height(350.dp)
                             .clip(RoundedCornerShape(16.dp)),
                         contentScale = ContentScale.Crop
                     )
-
                     IconButton(
-                        onClick = { item!!.id?.let { onEdit(it) } },
+                        onClick = { item!!.id?.let { navController.navigate("itemEdit/${item!!.id}") } },
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(12.dp)
@@ -161,6 +175,7 @@ fun ItemExpandedScreen(
                     Column(modifier = Modifier.weight(0.6f)) {
                         Text(
                             text = item!!.name,
+                            fontSize = 20.sp,
                             color = Color.Black,
                             modifier = Modifier.padding(top = 4.dp)
                         )
@@ -200,8 +215,8 @@ fun ItemExpandedScreen(
                         }
                         Text(
                             text = when {
-                                item.quantity <= 0L -> "Out of stock"
-                                item.quantity <= item.alert -> "Low stock"
+                                item!!.quantity <= 0L -> "Out of stock"
+                                item!!.quantity <= item!!.alert -> "Low stock"
                                 else -> "In stock"
                             }
                         )
@@ -216,31 +231,25 @@ fun ItemExpandedScreen(
                     color = Color.DarkGray,
                     modifier = Modifier.padding(vertical = 10.dp)
                 )
-
-                // Box and Location info
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Box", fontWeight = FontWeight.Bold)
-                        Text(
-                            item!!.boxId?.toString() ?: "This is a box",
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Location", fontWeight = FontWeight.Bold)
-                        Text("This is a location", modifier = Modifier.padding(vertical = 8.dp))
-                    }
+                //box
+                BoxChangeCard(box = box,
+                    onBoxClick = { navController.navigate("boxExpanded/${box!!.id!!}") },
+                    onChangeBox = {navController.navigate("boxSelectSingle/${if(box!=null){box!!.id}else{-1L}}")}
+                )
+                //location
+                if(box != null) {
+                    LocationCard(null, onLocationClick = {navController.navigate("locationExpanded/${location!!.id}")})
                 }
 
                 Spacer(modifier = Modifier.height(40.dp))
 
             }
-            if (currentQuantity != originalQuantity && saveEnable) {
+            if ((currentQuantity != originalQuantity || item!!.boxId != box?.id) && saveEnable) {
                 Button(
                     onClick = {
                         saveEnable = false
-                        onUpdate(currentQuantity)
-                              },
+                        viewModel.updateItemQuantity(currentQuantity)
+                    },
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp)
@@ -249,6 +258,59 @@ fun ItemExpandedScreen(
                     Text("Save")
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun BoxChangeCard(box:Boxes?, onBoxClick: () -> Unit, onChangeBox: () -> Unit){
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min),
+        horizontalArrangement = SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (box != null) {
+            Card(shape = RoundedCornerShape(8.dp),
+                elevation = CardDefaults.cardElevation(2.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp)
+                    .wrapContentSize()
+            ) {
+                BoxListCard(box, onClick = { onBoxClick() })
+            }
+        }
+        Button(onClick = { onChangeBox() },shape = RoundedCornerShape(8.dp), modifier = Modifier
+            .padding(5.dp)
+            .fillMaxHeight()
+            .weight(0.6f)) {
+            Text(if (box == null) {"Add To Box"} else {"Change Box"}, textAlign = TextAlign.Center)
+        }
+    }
+}
+@Composable
+fun LocationCard(location:Locations?, onLocationClick: () -> Unit){
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min),
+        horizontalArrangement = SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (location != null) {
+            Card(shape = RoundedCornerShape(8.dp),
+                elevation = CardDefaults.cardElevation(2.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(5.dp)
+                    .wrapContentSize()
+            ) {
+                LocationListCard(location, onClick = { onLocationClick() })
+            }
+        }else{
+            Text("box has no location set")
         }
     }
 }

@@ -1,85 +1,112 @@
 package com.leopardseal.inventorymanagerapp.ui.main.location
 
-import android.widget.Toast
-import androidx.compose.foundation.clickable
 
+import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Arrangement.SpaceBetween
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-
-
-import com.leopardseal.inventorymanagerapp.data.network.Resource
-
-
-import com.leopardseal.inventorymanagerapp.data.responses.Locations
-
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
+import com.leopardseal.inventorymanagerapp.R
+import com.leopardseal.inventorymanagerapp.data.network.Resource
+import com.leopardseal.inventorymanagerapp.data.responses.Locations
+import com.leopardseal.inventorymanagerapp.ui.largeCardIcon
+import com.leopardseal.inventorymanagerapp.ui.smallCardIcon
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocationScreen(
-    locationState : Resource<List<Locations?>>,
-    isRefreshing : Boolean,
-    onRefresh: () -> Unit,
+    viewModel: LocationViewModel = hiltViewModel(),
+    navController: NavController,
+    locationSelected : Long = -1L,
+    isAddable : Boolean = true,
     onLocationClick: (locationId:Long) -> Unit,
     onUnauthorized: () -> Unit
 ) {
+    val locationState by viewModel.locationResponse.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+
     val context = LocalContext.current
-   
+    var isSmallCard by remember{ mutableStateOf(true) }
+
     when (locationState) {
         is Resource.Success -> {
             val locations = (locationState as Resource.Success<List<Locations>>).value
             Column(modifier = Modifier.fillMaxSize()) {
-                Text(
-                    text = if (locations.isEmpty()) "It looks like this org doesn't have any locations. Click + to add an location" else "Locations:",
-                    fontSize = 30.sp,
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .align(Alignment.CenterHorizontally)
+                val icon = if (isSmallCard) largeCardIcon else smallCardIcon
+                LocationHeaderRow(hasLocations = locations.isNotEmpty(),
+                    isCardSizeToggleable = true,
+                    isAddable = isAddable,
+                    icon = icon,
+                    toggleCardSize = {isSmallCard = !isSmallCard},
+                    onAddClick = { navController.navigate("locationEdit/${-1L}")}
                 )
-
                 val refreshState = rememberPullToRefreshState()
-
 
                 PullToRefreshBox(
                     state = refreshState,
                     isRefreshing = isRefreshing,
-                    onRefresh = {onRefresh()}
+                    onRefresh = {viewModel.getLocations()}
                 ) {
                     LazyVerticalGrid(
-                        columns = GridCells.Fixed(2),
+                        columns = GridCells.Fixed(if (isSmallCard) {1} else {2}),
                         contentPadding = PaddingValues(8.dp)
                     ) {
                         items(locations) { location ->
-                            locatiion?.let {
-                                LocationCard(location = it, onClick = { it.id?.let { it1 -> onLocationClick(it1) } })
+                            if(isSmallCard){
+                                LocationListCard(location = location, onClick = { location.id?.let { onLocationClick(it) } }, location.id!! == locationSelected)
+                            }else {
+                                LocationCard(location = location, onClick = { location.id?.let { onLocationClick(it) } }, location.id!! == locationSelected)
                             }
                         }
                     }
@@ -101,7 +128,7 @@ fun LocationScreen(
 }
 
 @Composable
-fun LocationCard(location: Locations, onClick: () -> Unit) {
+fun LocationCard(location: Locations, onClick: () -> Unit, selected: Boolean = false) {
     Card(
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(6.dp),
@@ -109,23 +136,103 @@ fun LocationCard(location: Locations, onClick: () -> Unit) {
             .padding(8.dp)
             .fillMaxWidth()
             .clickable { onClick() },
+        colors = CardDefaults.cardColors(
+            containerColor = if(selected){Color.Cyan} else {Color.LightGray}
+        )
     ) {
         Column(modifier = Modifier.padding(15.dp)) {
             AsyncImage(
-                model = location.imageUrl + "?t=${System.currentTimeMillis()}",
+                model = location.imageUrl,
                 contentDescription = location.name,
                 placeholder = painterResource(R.drawable.default_img),
                 error = painterResource(R.drawable.default_img),
+                fallback = painterResource(R.drawable.default_img),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(150.dp),
+                    .height(150.dp)
+                    .clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop
             )
 
             Spacer(modifier = Modifier.height(8.dp))
+            Row (horizontalArrangement = SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically){
+                Column {
+                    Text(text = location.name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(text = location.barcode!!, fontSize = 12.sp, color = Color.Gray)
+                }
+                Icon(Icons.Default.LocationOn, contentDescription = "Location Icon", modifier = Modifier.padding(end = 8.dp))
+            }
+        }
+    }
+}
 
-            Text(text = location.name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Text(text = location.barcode!!, fontSize = 12.sp, color = Color.Gray)
+@Composable
+fun LocationListCard(location: Locations, onClick: () -> Unit, selected: Boolean = false){
+    Column(modifier = Modifier.background(if(selected){Color.Cyan} else {Color.White})){
+        Row(
+            modifier = Modifier.fillMaxWidth()
+                .padding(5.dp)
+                .clickable { onClick() },
+
+            horizontalArrangement = SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+
+            ) {
+            Column {
+                Row {
+                    AsyncImage(
+                        model = location.imageUrl,
+                        contentDescription = location.name,
+                        placeholder = painterResource(R.drawable.default_img),
+                        error = painterResource(R.drawable.default_img),
+                        fallback = painterResource(R.drawable.default_img),
+                        modifier = Modifier
+                            .width(50.dp)
+                            .height(50.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
+                        Text(text = location.name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Text(text = location.barcode!!, fontSize = 12.sp, color = Color.Gray, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.LocationOn, contentDescription = "Location Icon", modifier = Modifier.padding(end = 8.dp))
+            }
+        }
+        HorizontalDivider(color = Color.LightGray, thickness = 0.5.dp)
+    }
+}
+
+@Composable
+fun LocationHeaderRow(hasLocations : Boolean, isCardSizeToggleable: Boolean, isAddable: Boolean, icon : ImageVector?, toggleCardSize: () -> Unit, onAddClick : () -> Unit){
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = SpaceBetween) {
+        Text(
+            text = if (!hasLocations) "No locations found. Click + to add a locations" else "Locations:",
+            fontSize = 20.sp,
+            modifier = Modifier.padding(10.dp).weight(1f),
+            maxLines = 2
+        )
+        Row(
+            modifier = Modifier.wrapContentSize(),
+            horizontalArrangement = Arrangement.End
+        )  {
+            if (isCardSizeToggleable) {
+                IconButton(onClick = toggleCardSize) {
+                    if (icon != null) {
+                        Icon(icon, contentDescription = "Toggle Card Size")
+                    }
+                }
+            }
+            if(isAddable) {
+                IconButton(onClick = onAddClick) {
+                    Icon(Icons.Default.Add, contentDescription = "Add new Box")
+                }
+            }
         }
     }
 }

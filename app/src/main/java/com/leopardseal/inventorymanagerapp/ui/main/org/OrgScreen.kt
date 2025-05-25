@@ -1,6 +1,5 @@
 package com.leopardseal.inventorymanagerapp.ui.main.org
 
-import android.content.Context
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -29,42 +28,36 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
-
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-
-
 import com.leopardseal.inventorymanagerapp.data.responses.Orgs
-
 
 
 @Composable
 fun OrgScreen(
-    orgsResource: Resource<List<Orgs>>,
-    orgSaved: Boolean,
-    onOrgSelected: (org : Orgs) -> Unit,
-    onOrgSaved: () -> Unit,
+    viewModel: OrgViewModel = hiltViewModel(),
+    navController: NavController,
     onUnauthorized: () -> Unit
 ) {
-
+    val orgsResource by viewModel.orgResponse.collectAsState()
+    val orgSaved by viewModel.orgSaved.collectAsState()
     val context = LocalContext.current
     // Handle saved org navigation
     LaunchedEffect(orgSaved) {
         if (orgSaved) {
-            onOrgSaved()
+            viewModel.resetOrgSavedFlag()
+            navController.navigate("item")
         }
     }
 
@@ -98,7 +91,7 @@ fun OrgScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(orgs) { org ->
-                    OrgCard(org = org, onClick = { onOrgSelected(org) })
+                    OrgCard(org = org, onClick = { viewModel.saveOrg(org) })
                 }
             }
         }
@@ -116,17 +109,14 @@ fun OrgCard(org: Orgs, onClick: () -> Unit) {
     ) {
         Row(modifier = Modifier.padding(12.dp)) {
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(org.imageUrl)
-                    .placeholder(R.drawable.default_img)
-                    .error(R.drawable.default_img)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = "Org Image",
+                model = org.imageUrl,
+                contentDescription = org.name,
+                placeholder = painterResource(R.drawable.default_img),
+                error = painterResource(R.drawable.default_img),
+                fallback = painterResource(R.drawable.default_img),
                 modifier = Modifier
-                    .width(60.dp)
-                    .height(60.dp)
-                    .clip(RoundedCornerShape(12.dp)),
+                    .fillMaxWidth()
+                    .height(150.dp),
                 contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.width(16.dp))

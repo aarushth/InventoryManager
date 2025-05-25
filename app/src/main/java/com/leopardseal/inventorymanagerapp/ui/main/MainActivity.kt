@@ -4,13 +4,9 @@ import BoxEditScreen
 import ItemEditScreen
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
-
 import androidx.activity.compose.setContent
-
 import androidx.appcompat.app.AppCompatActivity
-
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -43,47 +39,37 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
-
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-
 import coil.compose.AsyncImage
-
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.UserPreferences
-import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.ui.login.LoginActivity
-import com.leopardseal.inventorymanagerapp.ui.main.camera.BarcodeScannerWithPermissionScreen
 import com.leopardseal.inventorymanagerapp.ui.main.box.BoxScreen
-import com.leopardseal.inventorymanagerapp.ui.main.box.BoxViewModel
-import com.leopardseal.inventorymanagerapp.ui.main.box.expanded.BoxExpandedViewModel
+import com.leopardseal.inventorymanagerapp.ui.main.box.expanded.BoxExpandedScreen
+import com.leopardseal.inventorymanagerapp.ui.main.box.select.BoxSelectScreen
+import com.leopardseal.inventorymanagerapp.ui.main.camera.BarcodeScannerWithPermissionScreen
 import com.leopardseal.inventorymanagerapp.ui.main.camera.CameraScreen
-import com.leopardseal.inventorymanagerapp.ui.main.expanded.BoxExpandedScreen
 import com.leopardseal.inventorymanagerapp.ui.main.invite.InviteScreen
-import com.leopardseal.inventorymanagerapp.ui.main.invite.InviteViewModel
 import com.leopardseal.inventorymanagerapp.ui.main.item.ItemScreen
-import com.leopardseal.inventorymanagerapp.ui.main.item.ItemViewModel
 import com.leopardseal.inventorymanagerapp.ui.main.item.expanded.ItemExpandedScreen
-import com.leopardseal.inventorymanagerapp.ui.main.item.expanded.ItemExpandedViewModel
-
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
-
+import com.leopardseal.inventorymanagerapp.ui.main.item.select.ItemSelectScreen
+import com.leopardseal.inventorymanagerapp.ui.main.location.LocationScreen
+import com.leopardseal.inventorymanagerapp.ui.main.location.expanded.LocationEditScreen
+import com.leopardseal.inventorymanagerapp.ui.main.location.expanded.LocationExpandedScreen
 import com.leopardseal.inventorymanagerapp.ui.main.org.OrgScreen
-import com.leopardseal.inventorymanagerapp.ui.main.org.OrgViewModel
 import com.leopardseal.inventorymanagerapp.ui.startNewActivity
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.withIndex
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 @AndroidEntryPoint
@@ -122,11 +108,12 @@ class MainActivity : AppCompatActivity() {
         val userImg by userPreferences.userImg.collectAsState(initial = "")
         val userEmail by userPreferences.userEmail.collectAsState(initial = "")
 
-        val screenTitle = when (currentRoute) {
-            "org" -> "Chose An Organization"
-            "invite" -> "You Have Been Invited"
-            "camera" -> "Take a picture"
-            "barcode" -> "Scan Barcode"
+        val screenTitle = when {
+            currentRoute == "org" -> "Chose An Organization"
+            currentRoute == "invite" -> "You Have Been Invited"
+            currentRoute == "camera" -> "Take a picture"
+            currentRoute == "barcode" -> "Scan Barcode"
+            currentRoute.startsWith("itemSelect")-> "Select Items"
             else -> orgName
         }
         
@@ -139,11 +126,14 @@ class MainActivity : AppCompatActivity() {
                         .fillMaxHeight()
                         .width(screenWidth * 0.5f) // Open halfway
                 ) {
+
                     NavigationDrawerContent(
                         navController,
                         userImg,
+                        userEmail,
                         closeDrawer = { scope.launch { drawerState.close() } })
                 }
+
             },
             drawerState = drawerState,
             gesturesEnabled = drawerGesturesEnabled
@@ -200,12 +190,12 @@ class MainActivity : AppCompatActivity() {
                         .fillMaxSize()
                         .padding(innerPadding)
                 ) {
-                    MyNavHost(navController)
+                    MyNavHost(navController, scope)
                     if(fabEnabled) {
                         ExpandingFab(
-                            onAddItem = { navController.navigate("itemEdit/${-1L}") },
-                            onAddBox = { navController.navigate("boxEdit/${-1L}") },
-                            onAddLocation = { /* Navigate to location */ },
+//                            onAddItem = { navController.navigate("itemEdit/${-1L}") },
+//                            onAddBox = { navController.navigate("boxEdit/${-1L}") },
+//                            onAddLocation = { navController.navigate("locationEdit/${-1L}")},
                             onBarcode = {navController.navigate("barcode")}
                         )
                     }
@@ -221,77 +211,42 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("UnrememberedGetBackStackEntry")
     @Composable
-    fun MyNavHost(navController: NavHostController){
+    fun MyNavHost(navController: NavHostController, coroutineScope: CoroutineScope){
         NavHost(
             navController = navController,
-            startDestination = "invite", // or any starting destination
+            startDestination = "invite"
         ) {
             composable(route = "invite") {
-                val viewModel: InviteViewModel = hiltViewModel()
-                val invitesResource by viewModel.inviteResponse.collectAsState()
-                val inviteAccepted by viewModel.acceptResponse.collectAsState()
-                viewModel.getInvites()
                 InviteScreen(
-                    invitesResource = invitesResource,
-                    inviteAccepted = inviteAccepted,
-                    onAccept = { invite -> viewModel.acceptInvite(invite) },
-                    onAccepted = {
-                        viewModel.resetAcceptResponse()
-                        viewModel.getInvites()
-                    },
                     onSkip = {
-                        navController.navigate("item")
+                        coroutineScope.launch {
+                            val orgId = userPreferences.orgId.first()
+                            if (orgId == null) {
+                                navController.navigate("org")
+                            } else {
+                                navController.navigate("item")
+                            }
+                        }
                     },
                     onUnauthorized = { login() })
             }
-
             composable("org") {
-                val viewModel: OrgViewModel = hiltViewModel()
-                val orgsResource by viewModel.orgResponse.collectAsState()
-                val orgSaved by viewModel.orgSaved.collectAsState()
-                viewModel.getOrgs()
                 OrgScreen(
-                    orgsResource = orgsResource,
-                    orgSaved = orgSaved,
-                    onOrgSelected = { org -> viewModel.saveOrg(org) },
-                    onOrgSaved = {
-                        viewModel.resetOrgSavedFlag()
-                        navController.navigate("item")
-                    },
+                    navController = navController,
                     onUnauthorized = { login() })
             }
             composable("item") {
-                val viewModel: ItemViewModel = hiltViewModel()
-                val itemState by viewModel.itemResponse.collectAsState()
-                val isRefreshing by viewModel.isRefreshing.collectAsState()
-                viewModel.getItems()
                 ItemScreen(
-                    itemState = itemState,
-                    isRefreshing = isRefreshing,
-                    isCardSizeTogglable = true,
-                    onRefresh = { viewModel.getItems() },
-                    onItemClick = { itemId -> navController.navigate("itemExpanded/${itemId}") },
-                    onUnauthorized = { login() })
+                    navController = navController,
+                    onUnauthorized = { login() }
+                )
             }
             composable(
                 route = "itemExpanded/{item_id}",
                 arguments = listOf(navArgument("item_id") { type = NavType.LongType })
             ) {
-                val viewModel: ItemExpandedViewModel = hiltViewModel()
-                val item by viewModel.item.collectAsState()
-                val updateResponse by viewModel.updateResponse.collectAsState()
-                val isRefreshing by viewModel.isRefreshing.collectAsState()
                 ItemExpandedScreen(
-                    item = item,
-                    updateResponse = updateResponse,
-                    isRefreshing = isRefreshing,
-                    onRefresh = {viewModel.getItem()} 
-                    onEdit = { itemId -> navController.navigate("itemEdit/${itemId}") },
-                    onUpdate = { currentQuantity ->
-                        viewModel.updateItemQuantity(
-                            currentQuantity
-                        )
-                    },
+                    navController = navController,
                     onUnauthorized = { login() },
                 )
             }
@@ -299,167 +254,109 @@ class MainActivity : AppCompatActivity() {
                 route = "itemEdit/{item_id}",
                 arguments = listOf(navArgument("item_id") { type = NavType.LongType })
             ) {
-                val viewModel: ItemExpandedViewModel = hiltViewModel()
-                val item by viewModel.item.collectAsState()
-                val updateResponse by viewModel.updateResponse.collectAsState()
-                val uploadImgResponse by viewModel.uploadResult.collectAsState()
-                val currentBackStackEntry by navController.currentBackStackEntryAsState()
                 ItemEditScreen(
-                    item = item,
-                    updateResponse = updateResponse,
-                    uploadImgResponse = uploadImgResponse,
-                    currentBackStackEntry = currentBackStackEntry,
+                    navController = navController,
                     orgId = runBlocking { userPreferences.orgId.first()?:-1L },
-                    onImageCapture = {navController.navigate("camera")},
-                    onUnauthorized = { login() },
-                    onSave = { updatedItem, imageChanged ->
-                        viewModel.saveOrUpdateItem(updatedItem, imageChanged)
-                    },
-                    onSaveComplete = {imageFile ->
-                        if((updateResponse as Resource.Success).value.imageUrl == null){
-                            viewModel.resetUpdateResponse()
-                            navController.navigate("itemExpanded/${(updateResponse as Resource.Success).value.id}")
-                        }else{
-
-                            viewModel.uploadImage(
-                                (updateResponse as Resource.Success).value.imageUrl!!,
-                                imageFile!!
-                            )
-                        }
-                    },
-                    onImageSaved = {
-                        viewModel.resetUploadFlag()
-                        navController.navigate("itemExpanded/${item!!.id}") },
-                    onScanBarcodeClick = { navController.navigate("barcode") }
+                    onUnauthorized = { login() }
                 )
             }
+            composable(
+                route = "itemSelect/{box_id}",
+                arguments = listOf(navArgument("box_id"){type = NavType.LongType})
+            ){
+                ItemSelectScreen(onConfirmSelection = {
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("refresh", true)
+                        navController.popBackStack()})
+            }
             composable("box") {
-                val viewModel: BoxViewModel = hiltViewModel()
-                val boxState by viewModel.boxResponse.collectAsState()
-                val isRefreshing by viewModel.isRefreshing.collectAsState()
-                viewModel.getBoxes()
-                
                 BoxScreen(
-                    boxState = boxState,
-                    isRefreshing = isRefreshing,
-                    onRefresh = { viewModel.getBoxes() },
+                    navController = navController,
                     onBoxClick = { boxId -> navController.navigate("boxExpanded/${boxId}") },
                     onUnauthorized = { login() })
+            }
+            composable(
+                route = "boxSelectSingle/{box_id}",
+                arguments = listOf(navArgument("box_id") { type = NavType.LongType })
+            ) {backStackEntry ->
+                val boxSelectedId : Long = backStackEntry.arguments?.getLong("box_id")?:-1L
+                BoxScreen(
+                    navController = navController,
+                    boxSelected = boxSelectedId,
+                    isAddable = false,
+                    onBoxClick = { boxId ->
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("box_id", boxId)
+                        navController.popBackStack() },
+                    onUnauthorized = { login() })
+            }
+            composable(
+                route = "boxSelect/{location_id}",
+                arguments = listOf(navArgument("location_id"){type = NavType.LongType})
+            ){
+                BoxSelectScreen(onConfirmSelection = {
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("refresh", true)
+                    navController.popBackStack()})
             }
             composable(
                 route = "boxExpanded/{box_id}",
                 arguments = listOf(navArgument("box_id") { type = NavType.LongType })
             ) {
-                val viewModel: BoxExpandedViewModel = hiltViewModel()
-                val box by viewModel.box.collectAsState()
-                val isRefreshing by viewModel.isRefreshing.collectAsState()
-
                 BoxExpandedScreen(
-                    box = box,
-                    isRefreshing = isRefreshing,
-                    onRefresh = {viewModel.getBox()}
-                    onEdit = { boxId -> navController.navigate("boxEdit/${boxId}") },
-                )
+                    navController = navController,
+                    onUnauthorized = { login() })
             }
             composable(
                 route = "boxEdit/{box_id}",
                 arguments = listOf(navArgument("box_id") { type = NavType.LongType })
             ) {
-                val viewModel: BoxExpandedViewModel = hiltViewModel()
-                val box by viewModel.box.collectAsState()
-                val updateResponse by viewModel.updateResponse.collectAsState()
-                val uploadImgResponse by viewModel.uploadResult.collectAsState()
-                val currentBackStackEntry by navController.currentBackStackEntryAsState()
                 BoxEditScreen(
-                    box = box,
-                    updateResponse = updateResponse,
-                    uploadImgResponse = uploadImgResponse,
-                    currentBackStackEntry = currentBackStackEntry,
+                    navController = navController,
                     orgId = runBlocking { userPreferences.orgId.first()?:-1L },
-                    onImageCapture = {navController.navigate("camera")},
-                    onUnauthorized = { login() },
-                    onSave = { updatedBox, uploadChanged ->
-                        viewModel.saveOrUpdateBox(updatedBox, uploadChanged)
-                    },
-                    onSaveComplete = {imageFile ->
-                        if((updateResponse as Resource.Success).value.imageUrl == null){
-                            viewModel.resetUpdateResponse()
-                            navController.navigate("boxExpanded/${(updateResponse as Resource.Success).value.id}")
-                        }else{
-                            viewModel.uploadImage(
-                                (updateResponse as Resource.Success).value.imageUrl!!,
-                                imageFile!!
-                            )
-                        }
-                    },
-                    onImageSaved = {
-                        viewModel.resetUploadFlag()
-                        navController.navigate("boxExpanded/${box!!.id}") },
-                    onScanBarcodeClick = { navController.navigate("barcode") }
+                    onUnauthorized = { login() }
                 )
             }
             composable("location") {
-                val viewModel: LocationViewModel = hiltViewModel()
-                val locationState by viewModel.locationResponse.collectAsState()
-                val isRefreshing by viewModel.isRefreshing.collectAsState()
-                viewModel.getLocations()
-                
                 LocationScreen(
-                    locationState = locationState,
-                    isRefreshing = isRefreshing,
-                    onRefresh = { viewModel.getLocations() },
+                    navController = navController,
                     onLocationClick = { locationId -> navController.navigate("locationExpanded/${locationId}") },
+                    onUnauthorized = { login() }
+                )
+            }
+            composable(
+                route = "locationSelectSingle/{location_id}",
+                arguments = listOf(navArgument("location_id") { type = NavType.LongType })
+            ) {backStackEntry ->
+                val locationSelectedId : Long = backStackEntry.arguments?.getLong("location_id")?:-1L
+                LocationScreen(
+                    navController = navController,
+                    locationSelected = locationSelectedId,
+                    isAddable = false,
+                    onLocationClick = { locationId ->
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("location_id", locationId)
+                        navController.popBackStack() },
                     onUnauthorized = { login() })
             }
             composable(
                 route = "locationExpanded/{location_id}",
                 arguments = listOf(navArgument("location_id") { type = NavType.LongType })
             ) {
-                val viewModel: LocationExpandedViewModel = hiltViewModel()
-                val location by viewModel.location.collectAsState()
-                val isRefreshing by viewModel.isRefreshing.collectAsState()
-                LocationExpandedScreen(
-                    location = location,
-                    isRefreshing = isRefreshing,
-                    onRefresh = {viewModel.getLocation()}
-                    onEdit = { locationId -> navController.navigate("locationEdit/${locationId}") },
-                )
+                LocationExpandedScreen(navController = navController,)
             }
             composable(
                 route = "locationEdit/{location_id}",
                 arguments = listOf(navArgument("location_id") { type = NavType.LongType })
             ) {
-                val viewModel: LocationExpandedViewModel = hiltViewModel()
-                val location by viewModel.location.collectAsState()
-                val updateResponse by viewModel.updateResponse.collectAsState()
-                val uploadImgResponse by viewModel.uploadResult.collectAsState()
-                val currentBackStackEntry by navController.currentBackStackEntryAsState()
                 LocationEditScreen(
-                    location = location,
-                    updateResponse = updateResponse,
-                    uploadImgResponse = uploadImgResponse,
-                    currentBackStackEntry = currentBackStackEntry,
+                    navController = navController,
                     orgId = runBlocking { userPreferences.orgId.first()?:-1L },
-                    onImageCapture = {navController.navigate("camera")},
-                    onUnauthorized = { login() },
-                    onSave = { updatedLocation, uploadChanged ->
-                        viewModel.saveOrUpdateLocation(updatedLocation, uploadChanged)
-                    },
-                    onSaveComplete = {imageFile ->
-                        if((updateResponse as Resource.Success).value.imageUrl == null){
-                            viewModel.resetUpdateResponse()
-                            navController.navigate("locationExpanded/${(updateResponse as Resource.Success).value.id}")
-                        }else{
-                            viewModel.uploadImage(
-                                (updateResponse as Resource.Success).value.imageUrl!!,
-                                imageFile!!
-                            )
-                        }
-                    },
-                    onImageSaved = {
-                        viewModel.resetUploadFlag()
-                        navController.navigate("locationExpanded/${location!!.id}") },
-                    onScanBarcodeClick = { navController.navigate("barcode") }
+                    onUnauthorized = { login() }
                 )
             }
             composable("barcode") {
@@ -480,10 +377,6 @@ class MainActivity : AppCompatActivity() {
             composable("camera") {
 
                 CameraScreen(onImageCaptured = {file, uri ->
-                    // Return result via savedStateHandle
-                    Log.d("CameraReturn", "Returned from camera")
-                    Log.d("CameraReturn", "Image file exists: ${file.exists()} - ${file.absolutePath}")
-                    Log.d("CameraReturn", "URI: $uri")
                     navController.previousBackStackEntry
                         ?.savedStateHandle
                         ?.set("imageUri",  uri)
@@ -491,6 +384,7 @@ class MainActivity : AppCompatActivity() {
                     navController.previousBackStackEntry
                         ?.savedStateHandle
                         ?.set("imageFile",  file)
+
                     navController.popBackStack()
                 })
             }

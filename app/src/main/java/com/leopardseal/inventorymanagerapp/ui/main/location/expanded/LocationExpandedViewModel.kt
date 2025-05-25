@@ -7,8 +7,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.leopardseal.inventorymanagerapp.data.network.Resource
+import com.leopardseal.inventorymanagerapp.data.repositories.BoxRepository
 import com.leopardseal.inventorymanagerapp.data.repositories.ImageRepository
 import com.leopardseal.inventorymanagerapp.data.repositories.LocationRepository
+import com.leopardseal.inventorymanagerapp.data.responses.Boxes
+import com.leopardseal.inventorymanagerapp.data.responses.Items
 import com.leopardseal.inventorymanagerapp.data.responses.Locations
 import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
 
@@ -22,6 +25,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LocationExpandedViewModel @Inject constructor(
     private val repository: LocationRepository,
+    private val boxRepository: BoxRepository,
     private val imageRepository : ImageRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -39,24 +43,37 @@ class LocationExpandedViewModel @Inject constructor(
     val isRefreshing: StateFlow<Boolean>
         get() = _isRefreshing
 
+    private val _boxResource = MutableStateFlow<Resource<List<Boxes>>>(Resource.Init)
+    val boxResource: StateFlow<Resource<List<Boxes>>>
+        get() = _boxResource
+
     init {
         _location.value = repository.getCachedLocationById(locationId)
         getLocation()
     }
     
     fun getLocation(){
-        _isRefreshing = true
+        _location.value = null
+        _isRefreshing.value = true
         if(locationId >= 0 ) {
             viewModelScope.launch {
                 val response = repository.fetchLocationById(locationId)
                 if (response is Resource.Success) {
                     _location.value = response.value
                 }
+                getBoxes()
+                _isRefreshing.value = false
             }
+        }else {
+            _isRefreshing.value = false
         }
-        _isRefreshing = false
     }
 
+    fun getBoxes(){
+        viewModelScope.launch {
+            _boxResource.value = boxRepository.getBoxesByLocationId(locationId)
+        }
+    }
     fun saveOrUpdateLocation(updatedLocation: Locations, imageChanged : Boolean) = viewModelScope.launch {
         _updateResponse.value = Resource.Loading
 

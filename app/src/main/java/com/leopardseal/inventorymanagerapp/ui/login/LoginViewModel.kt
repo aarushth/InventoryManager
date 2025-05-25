@@ -45,6 +45,9 @@ class LoginViewModel @Inject constructor(
     fun saveUserImg(userImg: String) = viewModelScope.launch{
         repository.saveUserImg(userImg)
     }
+    fun saveUserEmail(userEmail: String) = viewModelScope.launch{
+        repository.saveUserEmail(userEmail)
+    }
 
     fun login(authToken : String) = viewModelScope.launch {
         _loginResponse.value = repository.login(authToken) as Resource<LoginResponse>

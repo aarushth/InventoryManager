@@ -25,6 +25,9 @@ class OrgViewModel @Inject constructor(
     private val _orgSaved = MutableStateFlow<Boolean>(false)
     val orgSaved: StateFlow<Boolean> = _orgSaved
 
+    init {
+        getOrgs()
+    }
     fun resetOrgSavedFlag() {
         _orgSaved.value = false
     }

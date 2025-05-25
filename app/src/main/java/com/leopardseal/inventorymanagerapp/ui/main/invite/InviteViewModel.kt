@@ -23,15 +23,17 @@ class InviteViewModel @Inject constructor(
     get() = _inviteResponse
 
     fun getInvites() = viewModelScope.launch {
-        _inviteResponse.value = repository.getInvites() as Resource<List<Orgs>>
+        _inviteResponse.value = repository.getInvites()
     }
-
+    init {
+        getInvites()
+    }
     private val _acceptResponse = MutableStateFlow<Resource<Unit>>(Resource.Init)
     val acceptResponse: StateFlow<Resource<Unit>>
         get() = _acceptResponse
 
     fun acceptInvite(invite : Orgs) = viewModelScope.launch {
-        _acceptResponse.value = repository.acceptInvite(invite.id, invite.role) as Resource<Unit>
+        _acceptResponse.value = repository.acceptInvite(invite.id, invite.role)
     }
 
     fun resetAcceptResponse() = viewModelScope.launch {

@@ -17,6 +17,9 @@ class BoxRepository @Inject constructor(
     suspend fun getBoxes() = safeApiCall {
         api.getBoxes(preferences.orgId.first()!!)
     }
+    suspend fun getBoxesByLocationId(locationId : Long) = safeApiCall {
+        api.getBoxesByLocationId(preferences.orgId.first()!!, locationId)
+    }
     private var cachedBoxes: List<Boxes> = listOf()
 
     fun setCachedBoxes(boxes: List<Boxes>) {

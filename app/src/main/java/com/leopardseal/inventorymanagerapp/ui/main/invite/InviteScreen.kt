@@ -30,9 +30,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -46,19 +48,19 @@ import com.leopardseal.inventorymanagerapp.data.responses.Orgs
 
 @Composable
 fun InviteScreen(
-    invitesResource: Resource<List<Orgs>>,
-    inviteAccepted: Resource<Unit>,
-    onAccept: (invite : Orgs) -> Unit,
-    onAccepted: () ->Unit,
+    viewModel: InviteViewModel = hiltViewModel(),
     onSkip: () -> Unit,
     onUnauthorized: () -> Unit
 ) {
+    val invitesResource by viewModel.inviteResponse.collectAsState()
+    val inviteAccepted by viewModel.acceptResponse.collectAsState()
     val context = LocalContext.current
     LaunchedEffect(inviteAccepted){
         when(inviteAccepted){
             is Resource.Success -> {
                 Toast.makeText(context, "invite accepted!", Toast.LENGTH_SHORT).show()
-                onAccepted()
+                viewModel.resetAcceptResponse()
+                viewModel.getInvites()
             }
             is Resource.Failure -> {
                 if((inviteAccepted as Resource.Failure).isNetworkError) {
@@ -74,6 +76,7 @@ fun InviteScreen(
     }
     LaunchedEffect(invitesResource){
         if(invitesResource is Resource.Success<List<Orgs>> && (invitesResource as Resource.Success<List<Orgs>>).value.isEmpty()){
+            Toast.makeText(context, "no invites found", Toast.LENGTH_SHORT).show()
             onSkip()
         }
     }
@@ -91,7 +94,7 @@ fun InviteScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items((invitesResource as Resource.Success<List<Orgs>>).value) { invite ->
-                    InviteCard(invite = invite, onAccept = { onAccept(invite) })
+                    InviteCard(invite = invite, onAccept = { viewModel.acceptInvite(invite) })
                 }
             }
             Button(
@@ -119,17 +122,14 @@ fun InviteCard(invite: Orgs, onAccept: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(invite.imageUrl) // Make sure Invite has imageUrl
-                    .placeholder(R.drawable.default_img)
-                    .error(R.drawable.default_img)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = "Invite Org Image",
+                model = invite.imageUrl,
+                contentDescription = invite.name,
+                placeholder = painterResource(R.drawable.default_img),
+                error = painterResource(R.drawable.default_img),
+                fallback = painterResource(R.drawable.default_img),
                 modifier = Modifier
-                    .width(60.dp)
-                    .height(60.dp)
-                    .clip(RoundedCornerShape(12.dp)),
+                    .fillMaxWidth()
+                    .height(150.dp),
                 contentScale = ContentScale.Crop
             )
 

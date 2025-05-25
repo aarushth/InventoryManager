@@ -23,7 +23,9 @@ class BoxViewModel @Inject constructor(
     private val _isRefreshing = MutableStateFlow<Boolean>(false)
     val isRefreshing: StateFlow<Boolean>
         get() = _isRefreshing
-
+    init {
+        getBoxes()
+    }
     fun getBoxes() = viewModelScope.launch {
         _isRefreshing.value = true
         val response = repository.getBoxes() as Resource<List<Boxes>>

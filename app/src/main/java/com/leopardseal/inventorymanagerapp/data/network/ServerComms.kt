@@ -19,7 +19,7 @@ class ServerComms @Inject constructor(){
 //        private const val BASE_URL = "https://inventory-manager-backend-a2or.onrender.com"
 
 //        use this when testing on local server, change to pc ip
-        private const val BASE_URL = "http://192.168.68.67:8080"
+        private const val BASE_URL = "http://192.168.68.68:8080"
     }
 
 

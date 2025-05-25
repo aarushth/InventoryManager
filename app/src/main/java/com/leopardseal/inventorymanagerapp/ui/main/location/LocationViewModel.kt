@@ -26,14 +26,18 @@ class LocationViewModel @Inject constructor(
     val isRefreshing: StateFlow<Boolean>
         get() = _isRefreshing
 
+    init {
+        getLocations()
+    }
     fun getLocations() = viewModelScope.launch {
-        _isRefreshing = true
-        _locationResponse.value = repository.getLocations() as Resource<List<Locations>>
+        _isRefreshing.value = true
+        val response = repository.getLocations()
+        _locationResponse.value = response
 
         if (response is Resource.Success) {
             repository.setCachedLocations(response.value)
         }
-        _isRefreshing = false
+        _isRefreshing.value = false
     }
 
 }

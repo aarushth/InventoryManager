@@ -1,7 +1,8 @@
 # NECESSARY
 - ~~add boxes~~
 - ~~add locations~~
-- show small box/location cards
+- ~~show small box cards~~
+- ~~show small location cards~~
 - search
 - tags
 - filters
@@ -10,7 +11,7 @@
 # LATER
 - fix login system
 - add logout
-- new login goes to orgs page to choose
+- ~~new login goes to orgs page to choose~~
 - no orgs goes to invites to accept
 - migrate login page to compose
 - admin manage orgs/invite people
@@ -24,6 +25,6 @@
 - settings page 
 - light/dark mode toggle and custom color theme
 - dont load images toggle for low network
-- small/big card toggle on home screen
+- ~~small/big card toggle on home screen~~
 - migrate login to firebase
 - no orgs/no invites goes to register/create org page

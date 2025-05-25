@@ -1,11 +1,5 @@
 package com.leopardseal.inventorymanagerapp.ui.main
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,12 +12,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,45 +26,46 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-
 import androidx.navigation.compose.currentBackStackEntryAsState
-
+import coil.compose.AsyncImage
 import com.leopardseal.inventorymanagerapp.R
-
-
-
+import com.leopardseal.inventorymanagerapp.ui.barcodeIcon
+import com.leopardseal.inventorymanagerapp.ui.boxIcon
+import com.leopardseal.inventorymanagerapp.ui.itemIcon
+import com.leopardseal.inventorymanagerapp.ui.orgIcon
 
 @Composable
-fun NavigationDrawerContent(navController: NavController, userImg : String, userEmail : String, closeDrawer: () -> Unit) {
+fun NavigationDrawerContent(navController: NavController, userImg : String?, userEmail : String?, closeDrawer: () -> Unit) {
     Column(modifier = Modifier.fillMaxHeight()) {
         // Header
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(170.dp)
+                .height(200.dp)
                 .background(MaterialTheme.colorScheme.primary)
                 .padding(16.dp),
-            contentAlignment = Alignment.BottomStart
+            contentAlignment = Alignment.BottomCenter
         ) {
-            Column {
+//            Spacer(modifier = Modifier.height(50.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Bottom
+            ) {
                 AsyncImage(
                     model = userImg,
-                    contentDescription = null,
+                    contentDescription = "user profile image",
                     placeholder = painterResource(R.drawable.default_img),
                     error = painterResource(R.drawable.default_img),
                     fallback = painterResource(R.drawable.default_img),
@@ -81,22 +75,29 @@ fun NavigationDrawerContent(navController: NavController, userImg : String, user
                         .clip(CircleShape)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(userEmail, color = Color.White, fontWeight = FontWeight.Bold)
+                Text(userEmail?:"", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
         }
 
         // Menu
         NavigationDrawerItem(
+            icon = { Icon(orgIcon, contentDescription = "Organizations") },
             label = { Text("Organizations") },
             selected = false,
             onClick = {
                 navController.navigate("org")
                 closeDrawer()
-            })
-        NavigationDrawerItem(label = { Text("Invites") }, selected = false, onClick = {
-            navController.navigate("invite")
-            closeDrawer()
-        })
+            }
+        )
+        NavigationDrawerItem(
+            icon = { Icon(Icons.Default.Email, contentDescription = "Invites") },
+            label = { Text("Invites") },
+            selected = false,
+            onClick = {
+                navController.navigate("invite")
+                closeDrawer()
+            }
+        )
     }
 }
 
@@ -108,19 +109,19 @@ fun BottomNavBar(navController: NavController) {
         NavigationBarItem(
             selected = currentDestination == "item",
             onClick = { navController.navigate("item") },
-            icon = { Icon(Icons.Default.Home, contentDescription = "Items") },
+            icon = { Icon(itemIcon, contentDescription = "Items") },
             label = { Text("Items") }
         )
         NavigationBarItem(
             selected = currentDestination == "box",
             onClick = { navController.navigate("box") },
-            icon = { Icon(Icons.Default.Email, contentDescription = "Boxes") },
+            icon = { Icon(boxIcon, contentDescription = "Boxes") },
             label = { Text("Boxes") }
         )
         NavigationBarItem(
             selected = currentDestination == "location",
             onClick = { navController.navigate("location") },
-            icon = { Icon(Icons.Default.Email, contentDescription = "Locations") },
+            icon = { Icon(Icons.Default.LocationOn, contentDescription = "Locations") },
             label = { Text("Locations") }
         )
     }
@@ -128,13 +129,9 @@ fun BottomNavBar(navController: NavController) {
 
 @Composable
 fun ExpandingFab(
-    onAddItem: () -> Unit,
-    onAddBox: () -> Unit,
-    onAddLocation: () -> Unit,
     onBarcode: () -> Unit
 ) {
-    // Track expansion state
-    var expanded by remember { mutableStateOf(false) }
+//    var expanded by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -142,54 +139,54 @@ fun ExpandingFab(
         contentAlignment = Alignment.BottomEnd,
 
         ) {
-        Column(
-            horizontalAlignment = Alignment.End,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(bottom = 80.dp) // Provide space above main FAB
-        ) {
-            // Action 1
-            AnimatedVisibility(
-                visible = expanded,
-                enter = fadeIn() + slideInVertically { it },
-                exit = fadeOut() + slideOutVertically { it }
-            ) {
-                MiniFabWithLabel(Icons.Default.Home, "Add new Item", onClick = {onAddItem()})
-            }
-
-            // Action 2
-            AnimatedVisibility(
-                visible = expanded,
-                enter = fadeIn() + slideInVertically { it },
-                exit = fadeOut() + slideOutVertically { it }
-            ) {
-                MiniFabWithLabel(Icons.Default.Home, "Add new Box", onClick = {onAddBox()})
-            }
-
-            // Action 3
-            AnimatedVisibility(
-                visible = expanded,
-                enter = fadeIn() + slideInVertically { it },
-                exit = fadeOut() + slideOutVertically { it }
-            ) {
-                MiniFabWithLabel(Icons.Default.Home, "Add new Location", onClick = {onAddLocation()})
-            }
-            AnimatedVisibility(
-                visible = expanded,
-                enter = fadeIn() + slideInVertically { it },
-                exit = fadeOut() + slideOutVertically { it }
-            ) {
-                MiniFabWithLabel(Icons.Default.Home, "ScanBarcode", onClick = {onBarcode()})
-            }
-        }
+//        Column(
+//            horizontalAlignment = Alignment.End,
+//            verticalArrangement = Arrangement.spacedBy(16.dp),
+//            modifier = Modifier.padding(bottom = 80.dp) // Provide space above main FAB
+//        ) {
+//            // Action 1
+//            AnimatedVisibility(
+//                visible = expanded,
+//                enter = fadeIn() + slideInVertically { it },
+//                exit = fadeOut() + slideOutVertically { it }
+//            ) {
+//                MiniFabWithLabel(itemIcon, "Add new Item", onClick = {onAddItem()})
+//            }
+//
+//            // Action 2
+//            AnimatedVisibility(
+//                visible = expanded,
+//                enter = fadeIn() + slideInVertically { it },
+//                exit = fadeOut() + slideOutVertically { it }
+//            ) {
+//                MiniFabWithLabel(boxIcon, "Add new Box", onClick = {onAddBox()})
+//            }
+//
+//            // Action 3
+//            AnimatedVisibility(
+//                visible = expanded,
+//                enter = fadeIn() + slideInVertically { it },
+//                exit = fadeOut() + slideOutVertically { it }
+//            ) {
+//                MiniFabWithLabel(Icons.Default.LocationOn, "Add new Location", onClick = {onAddLocation()})
+//            }
+//            AnimatedVisibility(
+//                visible = expanded,
+//                enter = fadeIn() + slideInVertically { it },
+//                exit = fadeOut() + slideOutVertically { it }
+//            ) {
+//                MiniFabWithLabel(barcodeIcon, "ScanBarcode", onClick = {onBarcode()})
+//            }
+//        }
 
         // Main FAB at bottom right
         FloatingActionButton(
-            onClick = { expanded = !expanded },
+            onClick = onBarcode,
             containerColor = MaterialTheme.colorScheme.primary
         ) {
             Icon(
-                imageVector = if (expanded) Icons.Default.Close else Icons.Default.Menu,
-                contentDescription = "Toggle Actions"
+                imageVector = barcodeIcon,
+                contentDescription = "Scan Barcode"
             )
         }
     }

@@ -1,30 +1,51 @@
+package com.leopardseal.inventorymanagerapp.ui.main.location.expanded
 
 import android.net.Uri
 import android.widget.Toast
-
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
-
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
@@ -32,56 +53,59 @@ import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.responses.Locations
 import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
-
+import com.leopardseal.inventorymanagerapp.ui.barcodeIcon
+import com.leopardseal.inventorymanagerapp.ui.cameraIcon
 import java.io.File
-import java.util.*
-import androidx.compose.runtime.getValue
-
-import androidx.navigation.NavBackStackEntry
+import java.util.UUID
 
 
 @Composable
 fun LocationEditScreen(
-    location: Locations?, // null = new location
-    updateResponse: Resource<SaveResponse>,
-    uploadImgResponse: Resource<Unit>,
-    currentBackStackEntry: NavBackStackEntry?,
-    onImageCapture: ()->Unit,
+    viewModel: LocationExpandedViewModel = hiltViewModel(),
+    navController: NavController,
     orgId : Long,
-    onSave: (Locations, Boolean) -> Unit,
-    onSaveComplete: (imageUri : File?) -> Unit,
-    onUnauthorized: () -> Unit,
-    onImageSaved: () -> Unit,
-    onScanBarcodeClick: () -> Unit
+    onUnauthorized: () -> Unit
 ) {
+    val location by viewModel.location.collectAsState()
+    val updateResponse by viewModel.updateResponse.collectAsState()
+    val uploadImgResponse by viewModel.uploadResult.collectAsState()
+
     val context = LocalContext.current
 
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val savedStateHandle : SavedStateHandle? = currentBackStackEntry?.savedStateHandle
 
-    // Input state with initial values depending on whether location is null or not
-    var name by rememberSaveable { mutableStateOf(savedStateHandle?.get<String>("name") ?: location?.name.orEmpty()) }
-    var description by rememberSaveable { mutableStateOf(savedStateHandle?.get<String>("description") ?: location?.description.orEmpty()) }
-    var barcode by rememberSaveable { mutableStateOf(savedStateHandle?.get<String>("barcode") ?: location?.barcode.orEmpty()) }
-    var imageUri by rememberSaveable { mutableStateOf<Uri?>(savedStateHandle?.get<Uri>("imageUri")) }
-    var imageFile by rememberSaveable  { mutableStateOf<File?>(savedStateHandle?.get<File>("imageFile")) }
+    var name by rememberSaveable { mutableStateOf("") }
+    var description by rememberSaveable { mutableStateOf("") }
+    var barcode by rememberSaveable { mutableStateOf("") }
+    var imageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
+    var imageFile by rememberSaveable { mutableStateOf<File?>(null) }
 
+    val initialized = rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(Unit){
+        if(!initialized.value){
+            viewModel.getLocation()
+        }
+    }
+    LaunchedEffect(location) {
+        if (location != null && !initialized.value) {
+            name = location!!.name.orEmpty()
+            description = location!!.description.orEmpty()
+            barcode = location!!.barcode.orEmpty()
+            initialized.value = true
+        }
+    }
     val isNameValid = name.isNotBlank()
 
     val isSaveEnabled = if (location == null) {
         isNameValid 
     } else {
-        name != location.name ||
-                description != location.description ||
-                barcode != location.barcode.orEmpty() ||
+        name != location!!.name ||
+                description != location!!.description ||
+                barcode != location!!.barcode.orEmpty() ||
                 imageFile != null
     }
-
-    LaunchedEffect(name) { savedStateHandle?.set("name", name) }
-    LaunchedEffect(description) { savedStateHandle?.set("description", description) }
-    LaunchedEffect(barcode) { savedStateHandle?.set("barcode", barcode)}
-    LaunchedEffect(imageUri) { savedStateHandle?.set("imageUri", imageUri) }
-    LaunchedEffect(imageFile) { savedStateHandle?.set("imageFile", imageFile) }
-
     if(savedStateHandle != null){
         val barcodeFlow = savedStateHandle.getStateFlow("barcode", "")
         val scannedBarcode by barcodeFlow.collectAsState()
@@ -112,10 +136,19 @@ fun LocationEditScreen(
     when (updateResponse) {
         is Resource.Success<SaveResponse> -> {
             Toast.makeText(context, "Location saved", Toast.LENGTH_LONG).show()
-            location!!.id?.let {
-                onSaveComplete(imageFile)
-                savedStateHandle?.set("barcode", "")
+            if((updateResponse as Resource.Success).value.imageUrl == null){
+                viewModel.resetUpdateResponse()
+                navController.navigate("locationExpanded/${location!!.id}") {
+                    popUpTo("locationExpanded/${location!!.id}") { inclusive = true }
+                }
+            }else{
+                viewModel.uploadImage(
+                    (updateResponse as Resource.Success).value.imageUrl!!,
+                    imageFile!!
+                )
             }
+            savedStateHandle?.set("barcode", "")
+
         }
         is Resource.Failure -> {
             if ((updateResponse as Resource.Failure).isNetworkError) {
@@ -136,13 +169,16 @@ fun LocationEditScreen(
     when (uploadImgResponse) {
         is Resource.Success<Unit> -> {
             Toast.makeText(context, "Image saved", Toast.LENGTH_LONG).show()
-            onImageSaved()
+            viewModel.resetUploadFlag()
+            navController.navigate("locationExpanded/${location!!.id}") {
+                popUpTo("locationExpanded/${location!!.id}") { inclusive = true }
+            }
 
         }
         is Resource.Failure -> {
-            if (uploadImgResponse.isNetworkError) {
+            if ((uploadImgResponse as Resource.Failure).isNetworkError) {
                 Toast.makeText(context, "Please check your internet and try again", Toast.LENGTH_LONG).show()
-            } else if (uploadImgResponse.errorCode == HttpStatus.SC_UNAUTHORIZED) {
+            } else if ((uploadImgResponse as Resource.Failure).errorCode == HttpStatus.SC_UNAUTHORIZED) {
                 onUnauthorized()
             } else {
                 Toast.makeText(context, "An error occurred, please try again later", Toast.LENGTH_LONG).show()
@@ -176,22 +212,12 @@ fun LocationEditScreen(
                             .clip(RoundedCornerShape(8.dp))
                     )
                 } else {
-                    val painter = rememberAsyncImagePainter(
-                        ImageRequest.Builder(LocalContext.current).data(
-                            data = if (location != null) {
-                                location.imageUrl + "?t=${System.currentTimeMillis()}"
-                            } else {
-                                R.drawable.default_img
-                            }
-                        )
-                            .apply(block = fun ImageRequest.Builder.() {
-                                placeholder(R.drawable.default_img)
-                                error(R.drawable.default_img)
-                            }).build()
-                    )
-                    Image(
-                        painter = painter,
-                        contentDescription = name,
+                    AsyncImage(
+                        model = location?.imageUrl,
+                        contentDescription = location?.name,
+                        placeholder = painterResource(R.drawable.default_img),
+                        error = painterResource(R.drawable.default_img),
+                        fallback = painterResource(R.drawable.default_img),
                         modifier = Modifier
                             .width(150.dp)
                             .height(150.dp)
@@ -202,8 +228,8 @@ fun LocationEditScreen(
 
                 Spacer(Modifier.width(16.dp))
 
-                Button(onClick = { onImageCapture() }) {
-                    Icon(Icons.Default.Phone, contentDescription = "Take Photo")
+                Button(onClick = { navController.navigate("camera") }) {
+                    Icon(cameraIcon, contentDescription = "Take Photo")
                     Spacer(Modifier.width(8.dp))
                     Text("Take Image")
                 }
@@ -239,8 +265,8 @@ fun LocationEditScreen(
                 )
                 Spacer(Modifier.width(16.dp))
 
-                Button(onClick = { onScanBarcodeClick() }) {
-                    Icon(Icons.Default.Phone, contentDescription = "Scan Barcode")
+                Button(onClick = { navController.navigate("barcode") }) {
+                    Icon(barcodeIcon, contentDescription = "Scan Barcode")
                     Spacer(Modifier.width(5.dp))
                     Text(
                         "Scan Barcode",
@@ -264,10 +290,10 @@ fun LocationEditScreen(
                         orgId = orgId, 
                         barcode = barcode.trim(),
                         description = description.trim(),
-                        boxId = null,
                         imageUrl = null
                     )
-                    onSave(newLocation, (imageFile != null))
+                    viewModel.saveOrUpdateLocation(newLocation, (imageFile != null))
+
                 },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)

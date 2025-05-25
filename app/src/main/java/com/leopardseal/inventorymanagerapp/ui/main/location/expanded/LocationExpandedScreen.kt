@@ -1,126 +1,116 @@
-package com.leopardseal.inventorymanagerapp.ui.main.expanded
-
-import android.content.Context
-import android.widget.Toast
-import androidx.compose.foundation.Image
+package com.leopardseal.inventorymanagerapp.ui.main.location.expanded
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Button
-
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberAsyncImagePainter
-
-import coil.request.ImageRequest
-
-import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import coil.compose.AsyncImage
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.data.responses.Locations
-import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
+import com.leopardseal.inventorymanagerapp.data.responses.Boxes
+import com.leopardseal.inventorymanagerapp.ui.main.box.BoxHeaderRow
+import com.leopardseal.inventorymanagerapp.ui.main.box.BoxListCard
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocationExpandedScreen(
-    location : Locations?,
-    isRefreshing : Boolean,
-    onRefresh : () -> Unit,
-    onEdit : (locationId : Long) -> Unit,
+    viewModel: LocationExpandedViewModel = hiltViewModel(),
+    navController: NavController
 ) {
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
 
-    if (location == null) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+    val location by viewModel.location.collectAsState()
+    val boxState by viewModel.boxResource.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+
+    LaunchedEffect(savedStateHandle) {
+        val refresh = savedStateHandle?.getLiveData<Boolean>("refresh")
+        refresh?.observeForever { shouldRefresh ->
+            if (shouldRefresh == true) {
+                viewModel.getLocation()
+                savedStateHandle["refresh"] = false
+            }
         }
-        return
-    }else{
+    }
+
+    if(location != null){
+        val refreshState = rememberPullToRefreshState()
         PullToRefreshBox(
-                    state = refreshState,
-                    isRefreshing = isRefreshing,
-                    onRefresh = {onRefresh()}
-                ) {
-            Column(
+            state = refreshState,
+            isRefreshing = isRefreshing,
+            onRefresh = {viewModel.getLocation()}
+        ) {
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
-                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                contentPadding = PaddingValues(bottom = 16.dp)
 
             ) {
-                // Image + Edit button overlay
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    val painter = rememberAsyncImagePainter(
-                        ImageRequest.Builder(LocalContext.current).data(data =location!!.imageUrl + "?t=${System.currentTimeMillis()}")
-                            .apply(block = fun ImageRequest.Builder.() {
-                                placeholder(R.drawable.default_img)
-                                error(R.drawable.default_img)
-                            }).build()
-                    )
-                    Image(
-                        painter = painter,
-                        contentDescription = location!!.name,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(347.dp)
-                            .clip(RoundedCornerShape(16.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-
-                    IconButton(
-                        onClick = { location!!.id?.let { onEdit(it) } },
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(12.dp)
-                            .height(36.dp)
-                            .width(36.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Edit Location Name",
-                            tint = Color.Black
+                item {
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        AsyncImage(
+                            model = location!!.imageUrl,
+                            contentDescription = location!!.name,
+                            placeholder = painterResource(R.drawable.default_img),
+                            error = painterResource(R.drawable.default_img),
+                            fallback = painterResource(R.drawable.default_img),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(350.dp)
+                                .clip(RoundedCornerShape(16.dp)),
+                            contentScale = ContentScale.Crop
                         )
+
+                        IconButton(
+                            onClick = { location!!.id?.let { navController.navigate("locationEdit/${location!!.id}") } },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(12.dp)
+                                .height(36.dp)
+                                .width(36.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Edit Location Name",
+                                tint = Color.Black
+                            )
+                        }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                // Name, Barcode, Quantity controls
-                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = location!!.name,
                         color = Color.Black,
@@ -130,20 +120,36 @@ fun LocationExpandedScreen(
                         text = location!!.barcode!!,
                         color = Color.Gray,
                         modifier = Modifier.padding(top = 4.dp)
-                    )   
+                    )
+
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Description
+                    Text(
+                        text = location!!.description!!,
+                        color = Color.DarkGray,
+                        modifier = Modifier.padding(vertical = 10.dp)
+                    )
                 }
+                item{
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Description
-                Text(
-                    text = item!!.description!!,
-                    color = Color.DarkGray,
-                    modifier = Modifier.padding(vertical = 10.dp)
-                )
-
-                //boxes in here
-                LazyColumn(){}
+                    BoxHeaderRow(hasBoxes = (boxState as? Resource.Success)?.value?.isNotEmpty() ?: false,
+                        isCardSizeToggleable = false,
+                        isAddable = true,
+                        toggleCardSize = {},
+                        icon = null,
+                        onAddClick = { navController.navigate("boxSelect/${location!!.id}") }
+                    )
+                }
+                if (boxState is Resource.Success) {
+                    val boxes = (boxState as Resource.Success<List<Boxes>>).value
+                    items(boxes) { box ->
+                        BoxListCard(
+                            box = box,
+                            onClick = { box.id?.let { navController.navigate("boxExpanded/${box.id}") } })
+                    }
+                }
             }
         }
     }
