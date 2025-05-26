@@ -9,11 +9,11 @@
 - scan to search
 
 # LATER
-- fix login system
-- add logout
+- ~~fix login system~~
+- ~~add logout~~
 - ~~new login goes to orgs page to choose~~
 - no orgs goes to invites to accept
-- migrate login page to compose
+- ~~migrate login page to compose~~
 - admin manage orgs/invite people
 - ~~user image in side bar~~
 - scan many to add to box

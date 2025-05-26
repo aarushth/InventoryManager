@@ -21,6 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
@@ -50,6 +51,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
@@ -236,10 +238,17 @@ fun BoxEditScreen(
 
                 Spacer(Modifier.width(16.dp))
 
-                Button(onClick = { navController.navigate("camera") }) {
-                    Icon(cameraIcon, contentDescription = "Take Photo")
-                    Spacer(Modifier.width(8.dp))
-                    Text("Take Image")
+                Column {
+                    Button(onClick = { navController.navigate("camera") }) {
+                        Icon(cameraIcon, contentDescription = "Take Photo")
+                        Spacer(Modifier.width(8.dp))
+                        Text("Take Image")
+                    }
+                    Button(onClick = { navController.navigate("photoPicker") }) {
+                        Icon(Icons.Default.AddCircle, contentDescription = "Upload Photo From Device")
+                        Spacer(Modifier.width(5.dp))
+                        Text(text = "Upload From Device", fontSize = 10.sp, textAlign = TextAlign.Center)
+                    }
                 }
 
             }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
@@ -37,6 +38,7 @@ import java.io.File
 import java.util.*
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 
 import androidx.navigation.NavController
@@ -201,7 +203,7 @@ fun ItemEditScreen(
                         contentDescription = "Captured Image",
                         modifier = Modifier
                             .size(150.dp)
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(RoundedCornerShape(16.dp))
                     )
                 } else {
                     AsyncImage(
@@ -219,11 +221,17 @@ fun ItemEditScreen(
                 }
 
                 Spacer(Modifier.width(16.dp))
-
-                Button(onClick = { navController.navigate("camera") }) {
-                    Icon(cameraIcon, contentDescription = "Take Photo")
-                    Spacer(Modifier.width(8.dp))
-                    Text("Take Image")
+                Column {
+                    Button(onClick = { navController.navigate("camera") }) {
+                        Icon(cameraIcon, contentDescription = "Take Photo")
+                        Spacer(Modifier.width(8.dp))
+                        Text("Take Image")
+                    }
+                    Button(onClick = { navController.navigate("photoPicker") }) {
+                        Icon(Icons.Default.AddCircle, contentDescription = "Upload Photo From Device")
+                        Spacer(Modifier.width(5.dp))
+                        Text(text = "Upload From Device", fontSize = 10.sp, textAlign = TextAlign.Center)
+                    }
                 }
 
             }

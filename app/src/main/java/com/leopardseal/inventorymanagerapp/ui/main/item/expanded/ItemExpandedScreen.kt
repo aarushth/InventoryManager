@@ -61,6 +61,7 @@ import com.leopardseal.inventorymanagerapp.data.responses.Boxes
 import com.leopardseal.inventorymanagerapp.data.responses.Locations
 import com.leopardseal.inventorymanagerapp.ui.main.box.BoxListCard
 import com.leopardseal.inventorymanagerapp.ui.main.location.LocationListCard
+import com.leopardseal.inventorymanagerapp.ui.subtractIcon
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -196,10 +197,7 @@ fun ItemExpandedScreen(
                             IconButton(onClick = {
                                 if (currentQuantity > 0) currentQuantity--
                             }) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.baseline_subtract_24),
-                                    contentDescription = "Decrease quantity"
-                                )
+                                Icon(subtractIcon, contentDescription = "Decrease quantity")
                             }
                             Text(
                                 text = currentQuantity.toString(),
@@ -238,7 +236,7 @@ fun ItemExpandedScreen(
                 )
                 //location
                 if(box != null) {
-                    LocationCard(null, onLocationClick = {navController.navigate("locationExpanded/${location!!.id}")})
+                    LocationCard(location, onLocationClick = {navController.navigate("locationExpanded/${location!!.id}")})
                 }
 
                 Spacer(modifier = Modifier.height(40.dp))
@@ -290,6 +288,7 @@ fun BoxChangeCard(box:Boxes?, onBoxClick: () -> Unit, onChangeBox: () -> Unit){
         }
     }
 }
+
 @Composable
 fun LocationCard(location:Locations?, onLocationClick: () -> Unit){
     Row(

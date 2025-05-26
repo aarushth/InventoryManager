@@ -42,12 +42,10 @@ class ImageRepository @Inject constructor(
         )
         if(response.isSuccessful){
             Log.d("Upload", "success")
+//            val destinationUrl = url.substringBefore("?")
+            imageLoader.diskCache?.clear()
+            imageLoader.memoryCache?.clear()
             imageFile.delete()
-
-            val destinationUrl = url.substringBefore("?")
-            imageLoader.memoryCache?.remove(MemoryCache.Key(destinationUrl))
-            imageLoader.diskCache?.remove(destinationUrl)
-
         }
         response
     }

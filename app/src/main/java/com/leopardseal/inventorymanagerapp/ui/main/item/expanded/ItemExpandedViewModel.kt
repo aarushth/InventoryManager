@@ -122,16 +122,18 @@ class ItemExpandedViewModel @Inject constructor(
                 if (response is Resource.Success) {
                     _box.value = response.value
                     if (box.value!!.locationId != null) {
+                        _isRefreshing.value = false
                         getLocation(box.value!!.locationId!!)
                     }
+                }else {
+                    _isRefreshing.value = false
                 }
-                _isRefreshing.value = false
             }
         }
     }
     private fun getLocation(locationId : Long){
-        _isRefreshing.value = true
-        if(locationId >= 0) {
+        if(locationId >= 0 && !_isRefreshing.value) {
+            _isRefreshing.value = true
             viewModelScope.launch {
                 val response = locationRepository.fetchLocationById(locationId)
                 if (response is Resource.Success) {

@@ -21,7 +21,9 @@ class UserPreferences @Inject constructor(
 ) {
     private val appContext = context.applicationContext
 
-
+    suspend fun clear() {
+        appContext.dataStore.edit { it.clear() }
+    }
 
     val authToken : Flow<String?>
         get() = appContext.dataStore.data.map { it[KEY_AUTH] }

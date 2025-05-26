@@ -3,6 +3,7 @@ package com.leopardseal.inventorymanagerapp.ui.main
 import BoxEditScreen
 import ItemEditScreen
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
@@ -41,6 +42,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -57,6 +59,7 @@ import com.leopardseal.inventorymanagerapp.ui.main.box.expanded.BoxExpandedScree
 import com.leopardseal.inventorymanagerapp.ui.main.box.select.BoxSelectScreen
 import com.leopardseal.inventorymanagerapp.ui.main.camera.BarcodeScannerWithPermissionScreen
 import com.leopardseal.inventorymanagerapp.ui.main.camera.CameraScreen
+import com.leopardseal.inventorymanagerapp.ui.main.camera.PhotoPickerScreen
 import com.leopardseal.inventorymanagerapp.ui.main.invite.InviteScreen
 import com.leopardseal.inventorymanagerapp.ui.main.item.ItemScreen
 import com.leopardseal.inventorymanagerapp.ui.main.item.expanded.ItemExpandedScreen
@@ -65,12 +68,12 @@ import com.leopardseal.inventorymanagerapp.ui.main.location.LocationScreen
 import com.leopardseal.inventorymanagerapp.ui.main.location.expanded.LocationEditScreen
 import com.leopardseal.inventorymanagerapp.ui.main.location.expanded.LocationExpandedScreen
 import com.leopardseal.inventorymanagerapp.ui.main.org.OrgScreen
-import com.leopardseal.inventorymanagerapp.ui.startNewActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -79,15 +82,28 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        userPreferences =  UserPreferences(this)
+        userPreferences = UserPreferences(this)
         setContent {
             MainScreen()
         }
     }
     fun login(){
-        startNewActivity(LoginActivity::class.java)
+        Intent(this, LoginActivity::class.java).also{
+            it.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(it)
+        }
     }
+    fun logoutAndRedirectToLogin() {
+        lifecycleScope.launch {
+            userPreferences.clear()
 
+            // Navigate to LoginActivity and clear back stack
+            val intent = Intent(this@MainActivity, LoginActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            startActivity(intent)
+        }
+    }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -109,11 +125,14 @@ class MainActivity : AppCompatActivity() {
         val userEmail by userPreferences.userEmail.collectAsState(initial = "")
 
         val screenTitle = when {
-            currentRoute == "org" -> "Chose An Organization"
+            currentRoute == "org" -> "Choose An Organization"
             currentRoute == "invite" -> "You Have Been Invited"
             currentRoute == "camera" -> "Take a picture"
             currentRoute == "barcode" -> "Scan Barcode"
             currentRoute.startsWith("itemSelect")-> "Select Items"
+            currentRoute.startsWith("boxSelectSingle")-> "Select A Box"
+            currentRoute.startsWith("boxSelect")-> "Select Boxes"
+            currentRoute.startsWith("locationSelect")-> "Select A Location"
             else -> orgName
         }
         
@@ -131,7 +150,9 @@ class MainActivity : AppCompatActivity() {
                         navController,
                         userImg,
                         userEmail,
-                        closeDrawer = { scope.launch { drawerState.close() } })
+                        closeDrawer = { scope.launch { drawerState.close() } },
+                        logout = {logoutAndRedirectToLogin()}
+                    )
                 }
 
             },
@@ -193,9 +214,6 @@ class MainActivity : AppCompatActivity() {
                     MyNavHost(navController, scope)
                     if(fabEnabled) {
                         ExpandingFab(
-//                            onAddItem = { navController.navigate("itemEdit/${-1L}") },
-//                            onAddBox = { navController.navigate("boxEdit/${-1L}") },
-//                            onAddLocation = { navController.navigate("locationEdit/${-1L}")},
                             onBarcode = {navController.navigate("barcode")}
                         )
                     }
@@ -375,18 +393,24 @@ class MainActivity : AppCompatActivity() {
                 )
             }
             composable("camera") {
+                CameraScreen(
+                    navController = navController
+                )
+            }
+            composable("photoPicker") {
+                PhotoPickerScreen(
+                    onImageSelected =  { uri, file ->
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("imageUri",  uri)
 
-                CameraScreen(onImageCaptured = {file, uri ->
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("imageUri",  uri)
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("imageFile",  file)
 
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("imageFile",  file)
-
-                    navController.popBackStack()
-                })
+                        navController.popBackStack()
+                        },
+                    onPickerCancelled = {navController.popBackStack()})
             }
 
         }

@@ -15,16 +15,21 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,10 +38,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.ui.barcodeIcon
@@ -45,7 +52,7 @@ import com.leopardseal.inventorymanagerapp.ui.itemIcon
 import com.leopardseal.inventorymanagerapp.ui.orgIcon
 
 @Composable
-fun NavigationDrawerContent(navController: NavController, userImg : String?, userEmail : String?, closeDrawer: () -> Unit) {
+fun NavigationDrawerContent(navController: NavController, userImg : String?, userEmail : String? , closeDrawer: () -> Unit, logout: () -> Unit) {
     Column(modifier = Modifier.fillMaxHeight()) {
         // Header
         Box(
@@ -98,6 +105,18 @@ fun NavigationDrawerContent(navController: NavController, userImg : String?, use
                 closeDrawer()
             }
         )
+        Spacer(modifier = Modifier.weight(0.5f))
+        HorizontalDivider(color = Color.LightGray, thickness = 0.5.dp)
+        NavigationDrawerItem(
+            icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout", tint = Color.Red) },
+            label = { Text("Logout", color = Color.Red) },
+            selected = false,
+            onClick = {
+                closeDrawer()
+                logout()
+            }
+        )
+        Spacer(modifier = Modifier.weight(0.2f))
     }
 }
 
