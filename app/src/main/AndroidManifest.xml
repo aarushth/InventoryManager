@@ -40,7 +40,6 @@
         <activity
             android:name=".ui.login.LoginActivity"
             android:exported="true"
-            android:label="LoginActivity"
             android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

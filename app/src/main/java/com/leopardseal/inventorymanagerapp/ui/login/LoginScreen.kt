@@ -1,7 +1,7 @@
 package com.leopardseal.inventorymanagerapp.ui.login
 
-import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
@@ -23,38 +23,27 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.credentials.CredentialManager
-import androidx.credentials.CustomCredential
-import androidx.credentials.GetCredentialRequest
-import androidx.credentials.exceptions.GetCredentialException
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.ui.main.MainActivity
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.leopardseal.inventorymanagerapp.data.network.Resource
+import com.leopardseal.inventorymanagerapp.ui.main.MainActivity
 
 
 @Composable
 fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = hiltViewModel()) {
     val context = LocalContext.current
-    val loginResponse by viewModel.loginResponse.observeAsState()
+    val loginResponse by viewModel.loginResponse.collectAsState()
     val tokenSaved by viewModel.tokenSaved.collectAsState()
 
     LaunchedEffect(tokenSaved) {
@@ -70,7 +59,10 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = hi
     val email = viewModel.getEmail()
 
     LaunchedEffect(email) {
-        if(loginResponse !is Resource.Loading && loginResponse !is Resource.Success){
+        Log.e("Login", "email  $email")
+        Log.e("Login", "response $loginResponse")
+        if(loginResponse is Resource.Init){
+            Log.e("Login", "response $loginResponse")
             viewModel.triggerLogin(context, !email.isNullOrEmpty())
         }
     }
@@ -80,12 +72,14 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = hi
                 when {
                     result.isNetworkError -> {
                         Toast.makeText(context, "Please check your internet and try again", Toast.LENGTH_LONG).show()
+                        viewModel.resetLoginResponse()
                     }
                     result.errorCode == HttpStatus.SC_UNAUTHORIZED -> {
                         navController.navigate("fail")
                     }
                     else -> {
                         Toast.makeText(context, "An error occurred, please try again later", Toast.LENGTH_LONG).show()
+                        viewModel.resetLoginResponse()
                     }
                 }
             }

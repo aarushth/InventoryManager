@@ -98,7 +98,7 @@ fun BoxScreen(
                     isAddable = isAddable,
                     icon = icon,
                     toggleCardSize = {isSmallCard = !isSmallCard},
-                    onAddClick = {navController.navigate("locationEdit/${-1L}")})
+                    onAddClick = {navController.navigate("boxEdit/${-1L}")})
 
                 val refreshState = rememberPullToRefreshState()
                 PullToRefreshBox(

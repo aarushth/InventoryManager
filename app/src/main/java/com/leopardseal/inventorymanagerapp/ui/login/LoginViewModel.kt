@@ -35,8 +35,8 @@ class LoginViewModel @Inject constructor(
     private val userPreferences: UserPreferences
 ) : ViewModel(){
 
-    private val _loginResponse : MutableLiveData<Resource<LoginResponse>> = MutableLiveData()
-    val loginResponse: LiveData<Resource<LoginResponse>>
+    private val _loginResponse = MutableStateFlow<Resource<LoginResponse>>(Resource.Init)
+    val loginResponse: StateFlow<Resource<LoginResponse>>
         get() = _loginResponse
 
 
@@ -49,6 +49,9 @@ class LoginViewModel @Inject constructor(
     }
     fun resetTokenSavedFlag() {
         _tokenSaved.value = false
+    }
+    fun resetLoginResponse(){
+        _loginResponse.value = Resource.Init
     }
 
     private fun login(authToken : String) = viewModelScope.launch {
@@ -73,6 +76,7 @@ class LoginViewModel @Inject constructor(
         }
     }
     fun triggerLogin(context: Context, autoSelect : Boolean) {
+        Log.e("Login", "autoSelect $autoSelect")
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(false)
             .setAutoSelectEnabled(autoSelect)
@@ -86,13 +90,19 @@ class LoginViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
+
                 val result = credentialManager.getCredential(context, request)
+
                 if (result.credential is CustomCredential &&result.credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
                     val token = GoogleIdTokenCredential.createFrom(result.credential.data).idToken
+                    Log.e("Login", "success $token")
                     login(token)
                 }
             } catch (e: GetCredentialException) {
                 Log.e("Login", "Login failed", e)
+                _loginResponse.value = Resource.Failure(
+                    isNetworkError = e is IOException,
+                    errorCode = (e as? HttpException)?.code())
             }
         }
     }
