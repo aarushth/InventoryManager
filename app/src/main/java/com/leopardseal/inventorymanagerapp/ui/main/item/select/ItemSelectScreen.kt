@@ -44,10 +44,10 @@ fun ItemSelectScreen(
 
             ItemHeaderRow(hasItems = items.isNotEmpty(),
                 isCardSizeToggleable = false,
-                isAddable = false,
+                isAddable = true,
                 icon = null,
                 toggleCardSize = {},
-                onAddClick = {})
+                onAddClick = {navController.navigate("itemEdit/${-1L}/${false}")})
 
             val refreshState = rememberPullToRefreshState()
             PullToRefreshBox(

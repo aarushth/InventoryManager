@@ -53,4 +53,14 @@ object AppModule{
         return serverComms.buildImageApi(ImageAPI::class.java)
     }
 
+    @Provides
+    fun provideSettingApi(userPreferences : UserPreferences, serverComms: ServerComms) : SettingAPI {
+        return serverComms.buildApi(SettingAPI::class.java, userPreferences)
+    }
+
+    @Provides
+    fun provideSearchApi(userPreferences : UserPreferences, serverComms: ServerComms) : SearchAPI {
+        return serverComms.buildApi(SearchAPI::class.java, userPreferences)
+    }
+
 }

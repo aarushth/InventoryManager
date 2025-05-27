@@ -19,6 +19,17 @@ class ItemSelectViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    val shouldRefresh by savedStateHandle
+        ?.getLiveData<Boolean>("refresh")
+        ?.observeAsState(initial = false) ?: mutableStateOf(false)
+
+    LaunchedEffect(shouldRefresh) {
+        if (shouldRefresh) {
+            viewModel.refreshWithoutResettingSelection()
+            savedStateHandle?.set("refresh", false)
+        }
+    }
+
     private val boxId: Long = savedStateHandle["box_id"] ?: -1L
 
     private val _items = MutableStateFlow<Resource<List<Items>>>(Resource.Loading)
@@ -72,6 +83,14 @@ class ItemSelectViewModel @Inject constructor(
         val ids1 = list1.mapNotNull { it.id }.toSet()
         val ids2 = list2.mapNotNull { it.id }.toSet()
         return ids1 == ids2
+    }
+    fun refresh(){
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            _items.value = Resource.Loading
+            _items.value = repository.getItems()
+            _isRefreshing.value = false
+        }
     }
     fun isSelected(item: Items): Boolean {
         return _selectedItems.contains(item)

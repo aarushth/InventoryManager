@@ -79,7 +79,7 @@ import javax.inject.Inject
 class MainActivity : AppCompatActivity() {
 
     private lateinit var userPreferences: UserPreferences
-
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         userPreferences = UserPreferences(this)
@@ -118,6 +118,9 @@ class MainActivity : AppCompatActivity() {
         val drawerGesturesEnabled = currentRoute !in listOf("org", "invite", "barcode")
         val fabEnabled = currentRoute in listOf("item", "box", "location")
 
+        val searchViewModel: SearchViewModel = hiltViewModel()
+        val searchQuery by searchViewModel.searchQuery.collectAsState()
+
 
         val orgName by userPreferences.orgName.collectAsState(initial = "")
         val orgImg by userPreferences.orgImg.collectAsState(initial = "")
@@ -136,6 +139,7 @@ class MainActivity : AppCompatActivity() {
             else -> orgName
         }
         
+        val isSearchScreen = currentRoute == "search"
 
         val screenWidth = LocalConfiguration.current.screenWidthDp.dp
         ModalNavigationDrawer(
@@ -163,25 +167,32 @@ class MainActivity : AppCompatActivity() {
                 topBar = {
                     TopAppBar(
                         title = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                //orgImage
-                                if (drawerGesturesEnabled) {
-                                    AsyncImage(
-                                        model = orgImg,
-                                        contentDescription = null,
-                                        placeholder = painterResource(R.drawable.default_img),
-                                        error = painterResource(R.drawable.default_img),
-                                        fallback = painterResource(R.drawable.default_img),
-                                        modifier = Modifier
-                                            .width(40.dp)
-                                            .height(40.dp)
-                                            .clip(CircleShape)
-                                    )
+                            if (isSearchScreen) {
+                                TextField(
+                                    value = searchQuery,
+                                    onValueChange = { viewModel.onSearchChange(it) },
+                                    placeholder = { Text("Search...") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    singleLine = true
+                                )
+                            } else {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    if (drawerGesturesEnabled) {
+                                        AsyncImage(
+                                            model = orgImg,
+                                            contentDescription = null,
+                                            placeholder = painterResource(R.drawable.default_img),
+                                            error = painterResource(R.drawable.default_img),
+                                            fallback = painterResource(R.drawable.default_img),
+                                            modifier = Modifier
+                                                .width(40.dp)
+                                                .height(40.dp)
+                                                .clip(CircleShape)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(text = screenTitle?:"")
                                 }
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(text = screenTitle?:"")
-
-
                             }
                         },
                         navigationIcon = {
@@ -194,7 +205,7 @@ class MainActivity : AppCompatActivity() {
                             }
                         },
                         actions = {
-                            IconButton(onClick = { /* search click */ }) {
+                            IconButton(onClick = { navController.navigate("search") }) {
                                 Icon(Icons.Default.Search, contentDescription = "Search")
                             }
                         }
@@ -269,12 +280,30 @@ class MainActivity : AppCompatActivity() {
                 )
             }
             composable(
-                route = "itemEdit/{item_id}",
-                arguments = listOf(navArgument("item_id") { type = NavType.LongType })
-            ) {
+                route = "itemEdit/{item_id}/{go_to_expanded}",
+                arguments = listOf(
+                    navArgument("item_id") { type = NavType.LongType },
+                    navArgument("go_to_expanded") { type = NavType.BoolType }
+                )
+            ) { 
+                val goToExpanded = backStackEntry.arguments?.getBoolean("go_to_expanded") ?: false
                 ItemEditScreen(
                     navController = navController,
-                    orgId = runBlocking { userPreferences.orgId.first()?:-1L },
+                    orgId = runBlocking { 
+                        userPreferences.orgId.first()?:-1L 
+                    },
+                    onComplete = {
+                        if(goToExpanded){
+                            navController.navigate("itemExpanded/${item!!.id}") {
+                                popUpTo("locationExpanded/${item!!.id}") { inclusive = true }
+                            }
+                        }else{
+                            navController.previousBackStackEntry
+                                ?.savedStateHandle
+                                ?.set("refresh", true)
+                            navController.popBackStack()
+                        }
+                    }
                     onUnauthorized = { login() }
                 )
             }
@@ -412,7 +441,14 @@ class MainActivity : AppCompatActivity() {
                         },
                     onPickerCancelled = {navController.popBackStack()})
             }
-
+            composable("settings"){
+                SettingScreen(
+                    onUnauthorized = login()
+                )
+            }
+            composable("search"){
+                SearchScreen()
+            }
         }
     }
 }

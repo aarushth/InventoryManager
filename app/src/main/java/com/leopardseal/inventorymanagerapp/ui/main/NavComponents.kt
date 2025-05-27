@@ -92,8 +92,8 @@ fun NavigationDrawerContent(navController: NavController, userImg : String?, use
             label = { Text("Organizations") },
             selected = false,
             onClick = {
-                navController.navigate("org")
                 closeDrawer()
+                navController.navigate("org")
             }
         )
         NavigationDrawerItem(
@@ -101,12 +101,22 @@ fun NavigationDrawerContent(navController: NavController, userImg : String?, use
             label = { Text("Invites") },
             selected = false,
             onClick = {
-                navController.navigate("invite")
                 closeDrawer()
+                navController.navigate("invite")
+                
             }
         )
         Spacer(modifier = Modifier.weight(0.5f))
         HorizontalDivider(color = Color.LightGray, thickness = 0.5.dp)
+        NavigationDrawerItem(
+            icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
+            label = { Text("Settings") },
+            selected = false,
+            onClick = {
+                closeDrawer()
+                navController.navigate("settings")
+            }
+        )
         NavigationDrawerItem(
             icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout", tint = Color.Red) },
             label = { Text("Logout", color = Color.Red) },

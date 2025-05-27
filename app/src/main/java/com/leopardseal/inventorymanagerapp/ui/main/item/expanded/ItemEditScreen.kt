@@ -54,6 +54,7 @@ fun ItemEditScreen(
     viewModel : ItemExpandedViewModel = hiltViewModel(),
     navController: NavController,
     orgId : Long,
+    onComplete : () -> Unit,
     onUnauthorized: () -> Unit
 ) {
     val item by viewModel.item.collectAsState()
@@ -135,9 +136,7 @@ fun ItemEditScreen(
             item!!.id?.let {
                 if((updateResponse as Resource.Success).value.imageUrl == null){
                     viewModel.resetUpdateResponse()
-                    navController.navigate("itemExpanded/${item!!.id}") {
-                        popUpTo("locationExpanded/${item!!.id}") { inclusive = true }
-                    }
+                    onComplete()
                 }else{
                     viewModel.uploadImage((updateResponse as Resource.Success).value.imageUrl!!,imageFile!!)
                 }
@@ -164,9 +163,7 @@ fun ItemEditScreen(
         is Resource.Success<Unit> -> {
             Toast.makeText(context, "Image saved", Toast.LENGTH_LONG).show()
             viewModel.resetUploadFlag()
-            navController.navigate("itemExpanded/${item!!.id}") {
-                popUpTo("locationExpanded/${item!!.id}") { inclusive = true }
-            }
+            onComplete()
 
         }
         is Resource.Failure -> {
