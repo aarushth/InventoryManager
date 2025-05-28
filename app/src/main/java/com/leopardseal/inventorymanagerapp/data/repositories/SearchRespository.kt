@@ -17,4 +17,8 @@ class SearchRepository @Inject constructor(
         api.search(preferences.orgId.first()!!, query)
     }
 
+    suspend fun searchBarcode(barcode : String) = safeApiCall{
+        api.search(preferences.orgId.first()!!, barcode)
+    }
+
 }

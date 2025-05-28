@@ -94,7 +94,7 @@ fun LocationExpandedScreen(
                         )
 
                         IconButton(
-                            onClick = { location!!.id?.let { navController.navigate("locationEdit/${location!!.id}") } },
+                            onClick = { location!!.id?.let { navController.navigate("locationEdit/${location!!.id}/${true}") } },
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
                                 .padding(12.dp)
@@ -139,7 +139,7 @@ fun LocationExpandedScreen(
                         isAddable = true,
                         toggleCardSize = {},
                         icon = null,
-                        onAddClick = { navController.navigate("boxSelect/${location!!.id}") }
+                        onAddClick = { navController.navigate("boxMultiSelect/${location!!.id}") }
                     )
                 }
                 if (boxState is Resource.Success) {

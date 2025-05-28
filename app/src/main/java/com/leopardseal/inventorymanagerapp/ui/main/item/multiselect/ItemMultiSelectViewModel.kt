@@ -1,4 +1,4 @@
-package com.leopardseal.inventorymanagerapp.ui.main.item.select
+package com.leopardseal.inventorymanagerapp.ui.main.item.multiselect
 
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
@@ -18,14 +18,13 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ItemSelectViewModel @Inject constructor(
+class ItemMultiSelectViewModel @Inject constructor(
     private val repository: ItemRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
 
     val boxId: Long = savedStateHandle["box_id"] ?: -1L
-//    private val refresh : StateFlow<Boolean> = savedStateHandle.getStateFlow("refresh", false)
 
     private val _items = MutableStateFlow<Resource<List<Items>>>(Resource.Loading)
     val items: StateFlow<Resource<List<Items>>>

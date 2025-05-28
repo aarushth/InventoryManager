@@ -1,4 +1,4 @@
-package com.leopardseal.inventorymanagerapp.ui.main.box
+package com.leopardseal.inventorymanagerapp.ui.main.box.singleselect
 
 
 import android.graphics.drawable.Icon
@@ -72,9 +72,10 @@ import com.leopardseal.inventorymanagerapp.ui.smallCardIcon
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BoxScreen(
+fun BoxSingleSelectScreen(
     viewModel: BoxViewModel = hiltViewModel(),
     navController: NavController,
+    boxSelected : Long = -1L,
     onUnauthorized: () -> Unit,
     ) {
     val boxState by viewModel.boxResponse.collectAsState()
@@ -82,6 +83,9 @@ fun BoxScreen(
 
     val context = LocalContext.current
     var isSmallCard by rememberSaveable{mutableStateOf(true)}
+    LaunchedEffect(Unit){
+        viewModel.getBoxes()
+    }
     when (boxState) {
         is Resource.Success -> {
             val boxes = (boxState as Resource.Success<List<Boxes>>).value.filterNotNull()
@@ -94,7 +98,7 @@ fun BoxScreen(
                     isAddable = true,
                     icon = icon,
                     toggleCardSize = {isSmallCard = !isSmallCard},
-                    onAddClick = {navController.navigate("boxEdit/${-1L}/${true}")})
+                    onAddClick = {navController.navigate("boxEdit/${-1L}/${false}")})
 
                 val refreshState = rememberPullToRefreshState()
                 PullToRefreshBox(
@@ -108,9 +112,30 @@ fun BoxScreen(
                     ) {
                         items(boxes) { box ->
                             if(isSmallCard){
-                                BoxListCard(box = box, onClick = { box.id?.let { navController.navigate("boxExpanded/${it}")} })
+                                BoxListCard(
+                                    box = box, 
+                                    onClick = { 
+                                        box.id?.let {  
+                                            navController.previousBackStackEntry
+                                                ?.savedStateHandle
+                                                ?.set("box_id", ItemScreen)
+                                            navController.popBackStack()
+                                        } 
+                                    }, 
+                                    selected = box.id!! == boxSelected
+                                )
                             }else {
-                                BoxCard(box = box, onClick = { box.id?.let { navController.navigate("boxExpanded/${it}") } })
+                                BoxCard(
+                                    box = box, 
+                                    onClick = { 
+                                            box.id?.let {  
+                                            navController.previousBackStackEntry
+                                                ?.savedStateHandle
+                                                ?.set("box_id", ItemScreen)
+                                            navController.popBackStack()
+                                        }  
+                                    }, 
+                                    selected = box.id!! == boxSelected
                             }
                         }
                     }
@@ -131,122 +156,4 @@ fun BoxScreen(
         else -> {}
     }
 
-}
-
-@Composable
-fun BoxHeaderRow(hasBoxes : Boolean = true, isCardSizeToggleable: Boolean = true, isAddable : Boolean = true, icon: ImageVector? = null, toggleCardSize : () -> Unit = {}, onAddClick : () -> Unit = {}){
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = SpaceBetween) {
-        Text(
-            text = if (!hasBoxes) "No boxes found. Click + to add a box" else "Boxes:",
-            fontSize = 20.sp,
-            modifier = Modifier.padding(10.dp).weight(1f),
-            maxLines = 2
-        )
-        Row(
-            modifier = Modifier.wrapContentSize(),
-            horizontalArrangement = Arrangement.End
-        )  {
-            if (isCardSizeToggleable) {
-                IconButton(onClick = toggleCardSize) {
-                    if (icon != null) {
-                        Icon(icon, contentDescription = "Toggle Card Size")
-                    }
-                }
-            }
-            if(isAddable) {
-                IconButton(onClick = onAddClick) {
-                    Icon(Icons.Default.Add, contentDescription = "Add new Box")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun BoxCard(box: Boxes, onClick: () -> Unit, selected: Boolean = false) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(6.dp),
-        modifier = Modifier
-            .padding(8.dp)
-            .fillMaxWidth()
-            .clickable { onClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = if(selected){Color.Cyan} else {Color.LightGray}
-        )
-    ) {
-        Column(modifier = Modifier.padding(15.dp)) {
-            AsyncImage(
-                model = box.imageUrl,
-                contentDescription = box.name,
-                placeholder = painterResource(R.drawable.default_img),
-                error = painterResource(R.drawable.default_img),
-                fallback = painterResource(R.drawable.default_img),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(horizontalArrangement = SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = box.name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Text(text = box.barcode!!, fontSize = 12.sp, color = Color.Gray)
-                }
-                Icon(boxIcon, contentDescription = "Box Icon", modifier = Modifier.padding(end = 8.dp))
-
-            }
-        }
-    }
-}
-
-@Composable
-fun BoxListCard(box: Boxes, onClick: () -> Unit, selectable : Boolean = false, selected: Boolean = false){
-    Column(modifier = Modifier.background(if(selected && !selectable){Color.Cyan} else {Color.White})){
-        Row(
-            modifier = Modifier.fillMaxWidth()
-                .padding(5.dp)
-                .clickable { onClick() },
-
-            horizontalArrangement = SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-
-            ) {
-
-            Row {
-                if(selectable){
-                    Checkbox(
-                        checked = selected,
-                        onCheckedChange = { onClick() }
-                    )
-                }
-                AsyncImage(
-                    model = box.imageUrl,
-                    contentDescription = box.name,
-                    placeholder = painterResource(R.drawable.default_img),
-                    error = painterResource(R.drawable.default_img),
-                    fallback = painterResource(R.drawable.default_img),
-                    modifier = Modifier
-                        .width(50.dp)
-                        .height(50.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Crop
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Column {
-                    Text(text = box.name, fontSize = 18.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(text = box.size?:"", fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(text = box.barcode!!, fontSize = 12.sp, color = Color.Gray, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-            }
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(boxIcon, contentDescription = "Box Icon", modifier = Modifier.padding(end = 8.dp))
-            }
-        }
-        HorizontalDivider(color = Color.LightGray, thickness = 0.5.dp)
-    }
 }

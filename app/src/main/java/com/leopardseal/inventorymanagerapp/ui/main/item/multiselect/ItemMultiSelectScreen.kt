@@ -1,4 +1,4 @@
-package com.leopardseal.inventorymanagerapp.ui.main.item.select
+package com.leopardseal.inventorymanagerapp.ui.main.item.multiselect
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -33,8 +33,8 @@ import com.leopardseal.inventorymanagerapp.ui.main.item.ItemListCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ItemSelectScreen(
-    viewModel: ItemSelectViewModel = hiltViewModel(),
+fun ItemMultiSelectScreen(
+    viewModel: ItemMultiSelectViewModel = hiltViewModel(),
     navController: NavController,
     onConfirmSelection: (List<Items>) -> Unit
 ){

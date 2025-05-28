@@ -135,7 +135,7 @@ fun BoxExpandedScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
+                    .padding(8.dp),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
                 item {
@@ -155,7 +155,7 @@ fun BoxExpandedScreen(
                         )
 
                         IconButton(
-                            onClick = { box!!.id?.let { navController.navigate("boxEdit/${box!!.id}") } },
+                            onClick = { box!!.id?.let { navController.navigate("boxEdit/${box!!.id}/${true}") } },
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
                                 .padding(12.dp)
@@ -199,13 +199,7 @@ fun BoxExpandedScreen(
                         onLocationClick = { navController.navigate("locationExpanded/${location!!.id!!}") },
                         onChangeLocation = {
                             navController.navigate(
-                                "locationSelectSingle/${
-                                    if (location != null) {
-                                        location!!.id
-                                    } else {
-                                        -1L
-                                    }
-                                }"
+                                "locationSingleSelect/${location?.id?:-1L}"
                             )
                         }
                     )
@@ -221,7 +215,7 @@ fun BoxExpandedScreen(
                         isAddable = true,
                         icon = null,
                         toggleCardSize = {},
-                        onAddClick = { navController.navigate("itemSelect/${box!!.id}") }
+                        onAddClick = { navController.navigate("itemMultiSelect/${box!!.id}") }
                     )
                 }
                 if (itemState is Resource.Success) {

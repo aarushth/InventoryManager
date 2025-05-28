@@ -16,4 +16,10 @@ interface SearchAPI {
         @Path("query") query : String
     ) : Response<SearchResponse>
 
+    @GET("search_barcode/{org_id}/{barcode}")
+    suspend fun searchBarcode(
+        @Path("org_id") orgId : Long,
+        @Path("barcode") barcode : String
+    ) : Response<SearchResponse>
+
 }

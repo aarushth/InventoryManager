@@ -23,18 +23,7 @@ class SearchViewModel @Inject constructor(
     val searchResponse : StateFlow<Resource<SearchResponse>>
         get() = _searchResponse
 
-    
-
-    private fun search(){
-        viewModelScope.launch {
-            _searchResponse.value = repository.search(debouncedQuery.value)
-        }
-    }
-
-    
-    fun onSearchChange(query: String) {
-        _searchQuery.value = query
-    }
+    private val _isBarcodeSearch = MutableStateFlow(false)
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> 
@@ -44,6 +33,28 @@ class SearchViewModel @Inject constructor(
     val debouncedQuery: StateFlow<String> 
         get() = _debouncedQuery
 
+    private fun search(){
+        viewModelScope.launch {
+            _searchResponse.value = repository.search(debouncedQuery.value)
+        }
+    }
+    private fun searchBarcode(){
+        viewModelScope.launch {
+            _searchResponse.value = repository.searchBarcode(debouncedQuery.value)
+        }
+    }
+
+    fun onSearchChange(query: String) {
+        _searchQuery.value = query
+        _isBarcodeSearch.value = false
+    }
+    fun setBarcodeQuery(barcode: String){
+        _searchQuery.value = barcode
+        _isBarcodeSearch.value = true
+    }
+
+    
+
     init {
         viewModelScope.launch {
             _searchQuery
@@ -51,7 +62,11 @@ class SearchViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .collectLatest { query ->
                     _debouncedQuery.value = query
-                    search()
+                   if (_isBarcodeSearch.value) {
+                        searchBarcode(query)
+                    } else {
+                        search(query)
+                    }
                 }
         }
     }

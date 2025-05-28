@@ -1,4 +1,4 @@
-package com.leopardseal.inventorymanagerapp.ui.main.box.select
+package com.leopardseal.inventorymanagerapp.ui.main.box.multiselect
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.SavedStateHandle
@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class BoxSelectViewModel @Inject constructor(
+class BoxMultiSelectViewModel @Inject constructor(
     private val repository: BoxRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -41,7 +41,13 @@ class BoxSelectViewModel @Inject constructor(
     init {
         loadBoxes()
     }
-
+    fun refresh(){
+        _isRefreshing.value = true
+        viewModelScope.launch {
+            _boxes.value = repository.getBoxes()
+            _isRefreshing.value = false
+        }
+    }
     fun loadBoxes() {
         _isRefreshing.value = true
         viewModelScope.launch {

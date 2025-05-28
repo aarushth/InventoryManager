@@ -68,6 +68,7 @@ import com.leopardseal.inventorymanagerapp.ui.smallCardIcon
 fun LocationScreen(
     viewModel: LocationViewModel = hiltViewModel(),
     navController: NavController,
+    locationSelected : Long = -1L,
     onUnauthorized: () -> Unit
 ) {
     val locationState by viewModel.locationResponse.collectAsState()
@@ -75,7 +76,9 @@ fun LocationScreen(
 
     val context = LocalContext.current
     var isSmallCard by remember{ mutableStateOf(true) }
-
+    LaunchedEffect(Unit){
+        viewModel.getLocations()
+    }
     when (locationState) {
         is Resource.Success -> {
             val locations = (locationState as Resource.Success<List<Locations>>).value
@@ -86,7 +89,7 @@ fun LocationScreen(
                     isAddable = true,
                     icon = icon,
                     toggleCardSize = {isSmallCard = !isSmallCard},
-                    onAddClick = { navController.navigate("locationEdit/${-1L}/${true}")}
+                    onAddClick = { navController.navigate("locationEdit/${-1L}/${false}")}
                 )
                 val refreshState = rememberPullToRefreshState()
 
@@ -101,9 +104,29 @@ fun LocationScreen(
                     ) {
                         items(locations) { location ->
                             if(isSmallCard){
-                                LocationListCard(location = location, onClick = { location.id?.let { navController.navigate("locationExpanded/${it}") } })
+                                LocationListCard(
+                                    location = location, 
+                                    onClick = { location.id?.let 
+                                        { 
+                                            navController.previousBackStackEntry
+                                                ?.savedStateHandle
+                                                ?.set("location_id", it)
+                                            navController.popBackStack() 
+                                        } 
+                                    }, 
+                                    location.id!! == locationSelected
+                                )
                             }else {
-                                LocationCard(location = location, onClick = { location.id?.let { navController.navigate("locationExpanded/${it}") } })
+                                LocationCard(
+                                    location = location, 
+                                    onClick = { 
+                                        navController.previousBackStackEntry
+                                            ?.savedStateHandle
+                                            ?.set("location_id", it)
+                                        navController.popBackStack() 
+                                        }, 
+                                    location.id!! == locationSelected
+                                )
                             }
                         }
                     }
@@ -124,112 +147,3 @@ fun LocationScreen(
 
 }
 
-@Composable
-fun LocationCard(location: Locations, onClick: () -> Unit, selected: Boolean = false) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(6.dp),
-        modifier = Modifier
-            .padding(8.dp)
-            .fillMaxWidth()
-            .clickable { onClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = if(selected){Color.Cyan} else {Color.LightGray}
-        )
-    ) {
-        Column(modifier = Modifier.padding(15.dp)) {
-            AsyncImage(
-                model = location.imageUrl,
-                contentDescription = location.name,
-                placeholder = painterResource(R.drawable.default_img),
-                error = painterResource(R.drawable.default_img),
-                fallback = painterResource(R.drawable.default_img),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-            Row (horizontalArrangement = SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically){
-                Column {
-                    Text(text = location.name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Text(text = location.barcode!!, fontSize = 12.sp, color = Color.Gray)
-                }
-                Icon(Icons.Default.LocationOn, contentDescription = "Location Icon", modifier = Modifier.padding(end = 8.dp))
-            }
-        }
-    }
-}
-
-@Composable
-fun LocationListCard(location: Locations, onClick: () -> Unit, selected: Boolean = false){
-    Column(modifier = Modifier.background(if(selected){Color.Cyan} else {Color.White})){
-        Row(
-            modifier = Modifier.fillMaxWidth()
-                .padding(5.dp)
-                .clickable { onClick() },
-
-            horizontalArrangement = SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-
-            ) {
-            Column {
-                Row {
-                    AsyncImage(
-                        model = location.imageUrl,
-                        contentDescription = location.name,
-                        placeholder = painterResource(R.drawable.default_img),
-                        error = painterResource(R.drawable.default_img),
-                        fallback = painterResource(R.drawable.default_img),
-                        modifier = Modifier
-                            .width(50.dp)
-                            .height(50.dp)
-                            .clip(RoundedCornerShape(8.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Column {
-                        Text(text = location.name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        Text(text = location.barcode!!, fontSize = 12.sp, color = Color.Gray, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                }
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.LocationOn, contentDescription = "Location Icon", modifier = Modifier.padding(end = 8.dp))
-            }
-        }
-        HorizontalDivider(color = Color.LightGray, thickness = 0.5.dp)
-    }
-}
-
-@Composable
-fun LocationHeaderRow(hasLocations : Boolean = true, isCardSizeToggleable: Boolean = true, isAddable: Boolean = true, icon : ImageVector? = null, toggleCardSize: () -> Unit = {}, onAddClick : () -> Unit = {}){
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = SpaceBetween) {
-        Text(
-            text = if (!hasLocations) "No locations found. Click + to add a locations" else "Locations:",
-            fontSize = 20.sp,
-            modifier = Modifier.padding(10.dp).weight(1f),
-            maxLines = 2
-        )
-        Row(
-            modifier = Modifier.wrapContentSize(),
-            horizontalArrangement = Arrangement.End
-        )  {
-            if (isCardSizeToggleable) {
-                IconButton(onClick = toggleCardSize) {
-                    if (icon != null) {
-                        Icon(icon, contentDescription = "Toggle Card Size")
-                    }
-                }
-            }
-            if(isAddable) {
-                IconButton(onClick = onAddClick) {
-                    Icon(Icons.Default.Add, contentDescription = "Add new Box")
-                }
-            }
-        }
-    }
-}

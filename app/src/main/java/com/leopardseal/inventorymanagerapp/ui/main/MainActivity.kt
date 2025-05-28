@@ -233,7 +233,7 @@ class MainActivity : AppCompatActivity() {
                     MyNavHost(navController, scope)
                     if(fabEnabled) {
                         ExpandingFab(
-                            onBarcode = {navController.navigate("barcode")}
+                            onBarcode = {navController.navigate("barcodeSearch")}
                         )
                     }
                 }
@@ -313,10 +313,10 @@ class MainActivity : AppCompatActivity() {
                 )
             }
             composable(
-                route = "itemSelect/{box_id}",
+                route = "itemMultiSelect/{box_id}",
                 arguments = listOf(navArgument("box_id"){type = NavType.LongType})
             ){
-                ItemSelectScreen(
+                ItemMultiSelectScreen(
                     navController = navController,
                     onConfirmSelection = {
                         navController.previousBackStackEntry
@@ -328,30 +328,23 @@ class MainActivity : AppCompatActivity() {
             composable("box") {
                 BoxScreen(
                     navController = navController,
-                    onBoxClick = { boxId -> navController.navigate("boxExpanded/${boxId}") },
                     onUnauthorized = { login() })
             }
             composable(
-                route = "boxSelectSingle/{box_id}",
+                route = "boxSingleSelect/{box_id}",
                 arguments = listOf(navArgument("box_id") { type = NavType.LongType })
             ) {backStackEntry ->
                 val boxSelectedId : Long = backStackEntry.arguments?.getLong("box_id")?:-1L
-                BoxScreen(
+                BoxSingleSelectScreen(
                     navController = navController,
                     boxSelected = boxSelectedId,
-                    isAddable = false,
-                    onBoxClick = { boxId ->
-                        navController.previousBackStackEntry
-                            ?.savedStateHandle
-                            ?.set("box_id", boxId)
-                        navController.popBackStack() },
                     onUnauthorized = { login() })
             }
             composable(
-                route = "boxSelect/{location_id}",
+                route = "boxMultiSelect/{location_id}",
                 arguments = listOf(navArgument("location_id"){type = NavType.LongType})
             ){
-                BoxSelectScreen(onConfirmSelection = {
+                BoxMultiSelectScreen(onConfirmSelection = {
                     navController.previousBackStackEntry
                         ?.savedStateHandle
                         ?.set("refresh", true)
@@ -389,24 +382,17 @@ class MainActivity : AppCompatActivity() {
             composable("location") {
                 LocationScreen(
                     navController = navController,
-                    onLocationClick = { locationId -> navController.navigate("locationExpanded/${locationId}") },
                     onUnauthorized = { login() }
                 )
             }
             composable(
-                route = "locationSelectSingle/{location_id}",
+                route = "locationSingleSelect/{location_id}",
                 arguments = listOf(navArgument("location_id") { type = NavType.LongType })
             ) {backStackEntry ->
                 val locationSelectedId : Long = backStackEntry.arguments?.getLong("location_id")?:-1L
-                LocationScreen(
+                LocationSingleSelectScreen(
                     navController = navController,
                     locationSelected = locationSelectedId,
-                    isAddable = false,
-                    onLocationClick = { locationId ->
-                        navController.previousBackStackEntry
-                            ?.savedStateHandle
-                            ?.set("location_id", locationId)
-                        navController.popBackStack() },
                     onUnauthorized = { login() })
             }
             composable(
@@ -444,6 +430,18 @@ class MainActivity : AppCompatActivity() {
                             ?.set("barcode", barcode)
 
                         navController.popBackStack()
+                    },
+                    onPermissionDenied = {
+                        Toast.makeText(LocalContext.current, "Camera permission denied", Toast.LENGTH_SHORT).show()
+                        navController.popBackStack()
+                    }
+                )
+            }
+            composable("barcodeSearch") {
+                BarcodeScannerWithPermissionScreen(
+                    onBarcodeScanned = { barcode ->
+                        SearchViewModel.setBarcodeQuery(barcode)
+                        navController.navigate("search")
                     },
                     onPermissionDenied = {
                         Toast.makeText(LocalContext.current, "Camera permission denied", Toast.LENGTH_SHORT).show()

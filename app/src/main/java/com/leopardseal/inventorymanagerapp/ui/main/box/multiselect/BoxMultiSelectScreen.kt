@@ -1,4 +1,4 @@
-package com.leopardseal.inventorymanagerapp.ui.main.box.select
+package com.leopardseal.inventorymanagerapp.ui.main.box.multiselect
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
@@ -31,25 +31,29 @@ import com.leopardseal.inventorymanagerapp.ui.main.box.BoxListCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BoxSelectScreen(
+fun BoxMultiSelectScreen(
     onConfirmSelection: (List<Boxes>) -> Unit,
-    viewModel: BoxSelectViewModel = hiltViewModel()
+    viewModel: BoxMultiSelectViewModel = hiltViewModel()
 ){
 
     val boxesState by viewModel.boxes.collectAsState()
     val hasChanges by viewModel.hasChanges.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
+
+    LaunchedEffect(Unit){
+        viewModel.refresh()
+    }
     if(boxesState is Resource.Success<*>) {
         val boxes = (boxesState as Resource.Success<List<Boxes>>).value
         Column(modifier = Modifier.fillMaxSize()) {
 
             BoxHeaderRow(hasBoxes = boxes.isNotEmpty(),
                 isCardSizeToggleable = false,
-                isAddable = false,
+                isAddable = true,
                 icon = null,
                 toggleCardSize = {},
-                onAddClick = {})
-
+                onAddClick = {navController.navigate("boxEdit/${-1L}/${false}")})
+            
             val refreshState = rememberPullToRefreshState()
             PullToRefreshBox(
                 modifier = Modifier.fillMaxSize(),

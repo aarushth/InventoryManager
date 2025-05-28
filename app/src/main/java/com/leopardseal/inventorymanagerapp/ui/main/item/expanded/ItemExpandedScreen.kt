@@ -151,7 +151,7 @@ fun ItemExpandedScreen(
                         contentScale = ContentScale.Crop
                     )
                     IconButton(
-                        onClick = { item!!.id?.let { navController.navigate("itemEdit/${item!!.id}") } },
+                        onClick = { item!!.id?.let { navController.navigate("itemEdit/${item!!.id}/${true}") } },
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(12.dp)
@@ -232,7 +232,7 @@ fun ItemExpandedScreen(
                 //box
                 BoxChangeCard(box = box,
                     onBoxClick = { navController.navigate("boxExpanded/${box!!.id!!}") },
-                    onChangeBox = {navController.navigate("boxSelectSingle/${if(box!=null){box!!.id}else{-1L}}")}
+                    onChangeBox = {navController.navigate("boxSingleSelect/${if(box!=null){box!!.id}else{-1L}}")}
                 )
                 //location
                 if(box != null) {

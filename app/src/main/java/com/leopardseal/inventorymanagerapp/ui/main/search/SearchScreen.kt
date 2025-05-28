@@ -20,7 +20,48 @@ fun SearchScreen(viewModel : SearchViewModel = hiltViewModel()){
     val searchResponse by viewModel.searchResponse.collectAsState()
     when(searchResponse){
         is Resource.Success<*> ->{
-            //TODO show searchContent
+            val searchResult = (searchResponse as Resource.Success<searchResponse>).value
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(8.dp)
+            ){
+                if((searchResult.itemCount + searchResult.boxCount + searchResult.locationCount) <= 0){
+                    Text(modifier = Modifier.fillMaxWidth(), text = "no results for search query '${debouncedQuery.value}'")
+                }else{
+                    if(searchResult.itemCount > 0){
+                        item{
+                            ItemHeaderRow(isCardSizeToggleable = false, isAddable = false)
+                        }
+                        items(searchResult.items){ item ->
+                            ItemListCard(
+                                item = item,
+                                onClick = { item.id?.let { navController.navigate("itemExpanded/${item.id}") } })
+                        }
+                    }
+                    if(searchResult.boxCount > 0){
+                        item{
+                            BoxHeaderRow(isCardSizeToggleable = false, isAddable = false)
+                        }
+                        items(searchResult.boxes){ box ->
+                            BoxListCard(
+                                box = box,
+                                onClick = { box.id?.let { navController.navigate("boxExpanded/${box.id}") } })
+                        }
+                    }
+                    if(searchResult.locationCount > 0){
+                        item{
+                            LocationHeaderRow(isCardSizeToggleable = false, isAddable = false)
+                        }
+                        items(searchResult.locations){ location ->
+                            LocationListCard(
+                                location = location,
+                                onClick = { location.id?.let { navController.navigate("locationExpanded/${location.id}") } })
+                        }
+                    }
+                }
+                
+            }
         }
         is Resource.Loading ->{
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

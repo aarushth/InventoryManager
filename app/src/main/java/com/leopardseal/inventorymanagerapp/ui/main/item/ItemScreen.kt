@@ -119,7 +119,7 @@ fun ItemScreen(
 }
 
 @Composable
-fun ItemHeaderRow(hasItems : Boolean, isCardSizeToggleable : Boolean, isAddable : Boolean, icon:ImageVector?, toggleCardSize : () -> Unit, onAddClick : () -> Unit){
+fun ItemHeaderRow(hasItems : Boolean = true, isCardSizeToggleable : Boolean, isAddable : Boolean = true, icon:ImageVector? = null, toggleCardSize : () -> Unit = {}, onAddClick : () -> Unit = {}){
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = SpaceBetween) {
         Text(
             text = if (!hasItems) "No items found. Click + to add an item" else "Items:",
