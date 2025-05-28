@@ -1,7 +1,13 @@
 package com.leopardseal.inventorymanagerapp.data.repositories
 
+import com.leopardseal.inventorymanagerapp.data.UserPreferences
+import com.leopardseal.inventorymanagerapp.data.network.api.SearchAPI
+import kotlinx.coroutines.flow.first
+import javax.inject.Inject
+import javax.inject.Singleton
+
 @Singleton
-class BoxRepository @Inject constructor(
+class SearchRepository @Inject constructor(
     private val api: SearchAPI,
     private val preferences: UserPreferences
 ): BaseRepository() {

@@ -75,6 +75,7 @@ fun BoxEditScreen(
     viewModel: BoxExpandedViewModel = hiltViewModel(),
     navController: NavController,
     orgId : Long,
+    onComplete : (boxId : Long) -> Unit,
     onUnauthorized: () -> Unit
 ) {
     val box by viewModel.box.collectAsState()
@@ -149,9 +150,8 @@ fun BoxEditScreen(
             Toast.makeText(context, "Box saved", Toast.LENGTH_LONG).show()
             if((updateResponse as Resource.Success).value.imageUrl == null){
                 viewModel.resetUpdateResponse()
-                navController.navigate("boxExpanded/${box!!.id}") {
-                    popUpTo("boxExpanded/${box!!.id}") { inclusive = true }
-                }
+                onComplete(box!!.id!!)
+
             }else{
                 viewModel.uploadImage(
                     (updateResponse as Resource.Success).value.imageUrl!!,
@@ -180,9 +180,7 @@ fun BoxEditScreen(
         is Resource.Success<Unit> -> {
             Toast.makeText(context, "Image saved", Toast.LENGTH_LONG).show()
             viewModel.resetUploadFlag()
-            navController.navigate("boxExpanded/${box!!.id}") {
-                popUpTo("boxExpanded/${box!!.id}") { inclusive = true }
-            }
+            onComplete(box!!.id!!)
         }
         is Resource.Failure -> {
             if ((uploadImgResponse as Resource.Failure).isNetworkError) {

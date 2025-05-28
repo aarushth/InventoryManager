@@ -54,7 +54,7 @@ class ItemExpandedViewModel @Inject constructor(
         get() = _isRefreshing
 
     fun setBoxIdIfNotPresent(id: Long?) {
-            savedStateHandle["box_id"] = id
+        savedStateHandle["box_id"] = id
     }
     init {
         _item.value = repository.getCachedItemById(itemId)

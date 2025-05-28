@@ -66,6 +66,7 @@ fun LocationEditScreen(
     viewModel: LocationExpandedViewModel = hiltViewModel(),
     navController: NavController,
     orgId : Long,
+    onContinue : (locationId : Long) -> Unit,
     onUnauthorized: () -> Unit
 ) {
     val location by viewModel.location.collectAsState()
@@ -140,9 +141,7 @@ fun LocationEditScreen(
             Toast.makeText(context, "Location saved", Toast.LENGTH_LONG).show()
             if((updateResponse as Resource.Success).value.imageUrl == null){
                 viewModel.resetUpdateResponse()
-                navController.navigate("locationExpanded/${location!!.id}") {
-                    popUpTo("locationExpanded/${location!!.id}") { inclusive = true }
-                }
+                onContinue(location!!.id!!)
             }else{
                 viewModel.uploadImage(
                     (updateResponse as Resource.Success).value.imageUrl!!,
@@ -172,9 +171,7 @@ fun LocationEditScreen(
         is Resource.Success<Unit> -> {
             Toast.makeText(context, "Image saved", Toast.LENGTH_LONG).show()
             viewModel.resetUploadFlag()
-            navController.navigate("locationExpanded/${location!!.id}") {
-                popUpTo("locationExpanded/${location!!.id}") { inclusive = true }
-            }
+            onContinue(location!!.id!!)
 
         }
         is Resource.Failure -> {

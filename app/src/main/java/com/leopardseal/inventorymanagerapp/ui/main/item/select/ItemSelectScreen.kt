@@ -1,6 +1,5 @@
 package com.leopardseal.inventorymanagerapp.ui.main.item.select
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -17,12 +16,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.responses.Items
 import com.leopardseal.inventorymanagerapp.ui.main.item.ItemHeaderRow
@@ -31,15 +34,20 @@ import com.leopardseal.inventorymanagerapp.ui.main.item.ItemListCard
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemSelectScreen(
-    onConfirmSelection: (List<Items>) -> Unit,
-    viewModel: ItemSelectViewModel = hiltViewModel()
+    viewModel: ItemSelectViewModel = hiltViewModel(),
+    navController: NavController,
+    onConfirmSelection: (List<Items>) -> Unit
 ){
 
     val itemsState by viewModel.items.collectAsState()
     val hasChanges by viewModel.hasChanges.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
+
+    LaunchedEffect(Unit){
+        viewModel.refresh()
+    }
     if(itemsState is Resource.Success) {
-        val items = (itemsState as Resource.Success<List<Items>>).value
+        val items = remember {(itemsState as Resource.Success<List<Items>>).value}
         Column(modifier = Modifier.fillMaxSize()) {
 
             ItemHeaderRow(hasItems = items.isNotEmpty(),

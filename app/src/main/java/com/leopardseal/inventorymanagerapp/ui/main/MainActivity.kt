@@ -5,6 +5,7 @@ import ItemEditScreen
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -28,12 +30,14 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,6 +46,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -64,16 +69,19 @@ import com.leopardseal.inventorymanagerapp.ui.main.invite.InviteScreen
 import com.leopardseal.inventorymanagerapp.ui.main.item.ItemScreen
 import com.leopardseal.inventorymanagerapp.ui.main.item.expanded.ItemExpandedScreen
 import com.leopardseal.inventorymanagerapp.ui.main.item.select.ItemSelectScreen
+import com.leopardseal.inventorymanagerapp.ui.main.item.select.ItemSelectViewModel
 import com.leopardseal.inventorymanagerapp.ui.main.location.LocationScreen
 import com.leopardseal.inventorymanagerapp.ui.main.location.expanded.LocationEditScreen
 import com.leopardseal.inventorymanagerapp.ui.main.location.expanded.LocationExpandedScreen
 import com.leopardseal.inventorymanagerapp.ui.main.org.OrgScreen
+import com.leopardseal.inventorymanagerapp.ui.main.search.SearchScreen
+import com.leopardseal.inventorymanagerapp.ui.main.search.SearchViewModel
+import com.leopardseal.inventorymanagerapp.ui.main.setting.SettingScreen
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -170,7 +178,7 @@ class MainActivity : AppCompatActivity() {
                             if (isSearchScreen) {
                                 TextField(
                                     value = searchQuery,
-                                    onValueChange = { viewModel.onSearchChange(it) },
+                                    onValueChange = { searchViewModel.onSearchChange(it) },
                                     placeholder = { Text("Search...") },
                                     modifier = Modifier.fillMaxWidth(),
                                     singleLine = true
@@ -238,7 +246,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("UnrememberedGetBackStackEntry")
+    @SuppressLint("UnrememberedGetBackStackEntry", "RestrictedApi")
     @Composable
     fun MyNavHost(navController: NavHostController, coroutineScope: CoroutineScope){
         NavHost(
@@ -285,25 +293,22 @@ class MainActivity : AppCompatActivity() {
                     navArgument("item_id") { type = NavType.LongType },
                     navArgument("go_to_expanded") { type = NavType.BoolType }
                 )
-            ) { 
+            ) { backStackEntry ->
                 val goToExpanded = backStackEntry.arguments?.getBoolean("go_to_expanded") ?: false
                 ItemEditScreen(
                     navController = navController,
                     orgId = runBlocking { 
                         userPreferences.orgId.first()?:-1L 
                     },
-                    onComplete = {
+                    onComplete = { itemId ->
                         if(goToExpanded){
-                            navController.navigate("itemExpanded/${item!!.id}") {
-                                popUpTo("locationExpanded/${item!!.id}") { inclusive = true }
+                            navController.navigate("itemExpanded/${itemId}") {
+                                popUpTo("locationExpanded/${itemId}") { inclusive = true }
                             }
                         }else{
-                            navController.previousBackStackEntry
-                                ?.savedStateHandle
-                                ?.set("refresh", true)
                             navController.popBackStack()
                         }
-                    }
+                    },
                     onUnauthorized = { login() }
                 )
             }
@@ -311,10 +316,13 @@ class MainActivity : AppCompatActivity() {
                 route = "itemSelect/{box_id}",
                 arguments = listOf(navArgument("box_id"){type = NavType.LongType})
             ){
-                ItemSelectScreen(onConfirmSelection = {
+                ItemSelectScreen(
+                    navController = navController,
+                    onConfirmSelection = {
                         navController.previousBackStackEntry
                             ?.savedStateHandle
                             ?.set("refresh", true)
+
                         navController.popBackStack()})
             }
             composable("box") {
@@ -358,12 +366,23 @@ class MainActivity : AppCompatActivity() {
                     onUnauthorized = { login() })
             }
             composable(
-                route = "boxEdit/{box_id}",
-                arguments = listOf(navArgument("box_id") { type = NavType.LongType })
-            ) {
+                route = "boxEdit/{box_id}/{go_to_expanded}",
+                arguments = listOf(navArgument("box_id") { type = NavType.LongType },
+                    navArgument("go_to_expanded") { type = NavType.BoolType })
+            ) {backStackEntry ->
+                val goToExpanded = backStackEntry.arguments?.getBoolean("go_to_expanded") ?: false
                 BoxEditScreen(
                     navController = navController,
                     orgId = runBlocking { userPreferences.orgId.first()?:-1L },
+                    onComplete = { boxId ->
+                        if(goToExpanded){
+                            navController.navigate("boxExpanded/${boxId}") {
+                                popUpTo("boxExpanded/${boxId}") { inclusive = true }
+                            }
+                        }else{
+                            navController.popBackStack()
+                        }
+                    },
                     onUnauthorized = { login() }
                 )
             }
@@ -397,12 +416,23 @@ class MainActivity : AppCompatActivity() {
                 LocationExpandedScreen(navController = navController,)
             }
             composable(
-                route = "locationEdit/{location_id}",
-                arguments = listOf(navArgument("location_id") { type = NavType.LongType })
-            ) {
+                route = "locationEdit/{location_id}/{go_to_expanded}",
+                arguments = listOf(navArgument("location_id") { type = NavType.LongType },
+                    navArgument("go_to_expanded") { type = NavType.BoolType })
+            ) { backStackEntry ->
+                val goToExpanded = backStackEntry.arguments?.getBoolean("go_to_expanded") ?: false
                 LocationEditScreen(
                     navController = navController,
                     orgId = runBlocking { userPreferences.orgId.first()?:-1L },
+                    onContinue = { locationId ->
+                        if(goToExpanded){
+                            navController.navigate("locationExpanded/${locationId}") {
+                                popUpTo("locationExpanded/${locationId}") { inclusive = true }
+                            }
+                        }else{
+                            navController.popBackStack()
+                        }
+                    },
                     onUnauthorized = { login() }
                 )
             }
@@ -443,7 +473,7 @@ class MainActivity : AppCompatActivity() {
             }
             composable("settings"){
                 SettingScreen(
-                    onUnauthorized = login()
+                    onUnauthorized = { login() }
                 )
             }
             composable("search"){

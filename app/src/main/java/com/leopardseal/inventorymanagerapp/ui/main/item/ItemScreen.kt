@@ -81,7 +81,7 @@ fun ItemScreen(
                     isAddable = true,
                     icon = icon,
                     toggleCardSize = {isSmallCard = !isSmallCard},
-                    onAddClick = {navController.navigate("itemEdit/${-1L}") })
+                    onAddClick = {navController.navigate("itemEdit/${-1L}/${true}") })
                 val refreshState = rememberPullToRefreshState()
                 PullToRefreshBox(
                     state = refreshState,

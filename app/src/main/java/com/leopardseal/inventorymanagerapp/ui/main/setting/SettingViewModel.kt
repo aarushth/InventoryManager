@@ -1,5 +1,16 @@
 package com.leopardseal.inventorymanagerapp.ui.main.org
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.leopardseal.inventorymanagerapp.data.network.Resource
+import com.leopardseal.inventorymanagerapp.data.repositories.SettingRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
 @HiltViewModel
 class SettingViewModel @Inject constructor(
     private val repository : SettingRepository
@@ -15,6 +26,8 @@ class SettingViewModel @Inject constructor(
     }
 
     fun getVersion(){
-        _versionResponse.value = repository.getVersion()
+        viewModelScope.launch {
+            _versionResponse.value = repository.getVersion()
+        }
     }
 }

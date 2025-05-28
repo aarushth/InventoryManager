@@ -1,5 +1,6 @@
 package com.leopardseal.inventorymanagerapp.ui.main.item.select
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -10,6 +11,9 @@ import com.leopardseal.inventorymanagerapp.data.responses.Items
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,18 +23,9 @@ class ItemSelectViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    val shouldRefresh by savedStateHandle
-        ?.getLiveData<Boolean>("refresh")
-        ?.observeAsState(initial = false) ?: mutableStateOf(false)
 
-    LaunchedEffect(shouldRefresh) {
-        if (shouldRefresh) {
-            viewModel.refreshWithoutResettingSelection()
-            savedStateHandle?.set("refresh", false)
-        }
-    }
-
-    private val boxId: Long = savedStateHandle["box_id"] ?: -1L
+    val boxId: Long = savedStateHandle["box_id"] ?: -1L
+//    private val refresh : StateFlow<Boolean> = savedStateHandle.getStateFlow("refresh", false)
 
     private val _items = MutableStateFlow<Resource<List<Items>>>(Resource.Loading)
     val items: StateFlow<Resource<List<Items>>>

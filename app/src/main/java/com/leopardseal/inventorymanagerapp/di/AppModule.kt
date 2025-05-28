@@ -9,6 +9,8 @@ import com.leopardseal.inventorymanagerapp.data.network.api.LoginAPI
 import com.leopardseal.inventorymanagerapp.data.network.api.OrgAPI
 import com.leopardseal.inventorymanagerapp.data.network.ServerComms
 import com.leopardseal.inventorymanagerapp.data.network.api.LocationAPI
+import com.leopardseal.inventorymanagerapp.data.network.api.SearchAPI
+import com.leopardseal.inventorymanagerapp.data.network.api.SettingAPI
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
