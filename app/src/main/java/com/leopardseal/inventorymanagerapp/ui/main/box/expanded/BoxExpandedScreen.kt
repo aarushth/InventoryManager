@@ -1,7 +1,7 @@
 package com.leopardseal.inventorymanagerapp.ui.main.box.expanded
 
 import android.widget.Toast
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement.SpaceBetween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -43,17 +44,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.modifier.modifierLocalProvider
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
@@ -162,38 +161,47 @@ fun BoxExpandedScreen(
                                 .height(36.dp)
                                 .width(36.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = "Edit Box Name",
-                                tint = Color.Black
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.White, shape = CircleShape)
+                                    .clip(CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Edit Item Name",
+                                    tint = Color.Black
+                                )
+                            }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = box!!.name,
+                                color = Color.Black,
+                                modifier = Modifier.padding(top = 4.dp, start = 8.dp)
+                            )
+                            Text(
+                                text = box!!.barcode!!,
+                                color = Color.Gray,
+                                modifier = Modifier.padding(top = 4.dp, start = 8.dp)
+                            )
+                        }
+
+                        Text(
+                            text = box!!.size!!,
+                            color = Color.Black,
+                            modifier = Modifier.padding(top = 4.dp, end = 8.dp)
+                        )
+                    }
 
 
-                    Text(
-                        text = box!!.name,
-                        color = Color.Black,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                    Text(
-                        text = box!!.barcode!!,
-                        color = Color.Gray,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(2.dp))
-
-                    Text(
-                        text = box!!.size!!,
-                        color = Color.Black,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-
-
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     LocationChangeCard(location = location,
                         onLocationClick = { navController.navigate("locationExpanded/${location!!.id!!}") },
@@ -203,9 +211,6 @@ fun BoxExpandedScreen(
                             )
                         }
                     )
-
-
-                    Spacer(modifier = Modifier.height(12.dp))
                 }
                 item {
                     // ComposeItemHeaderRow logic from ItemScreen (title, toggle size, filters)
@@ -259,14 +264,14 @@ fun LocationChangeCard(location: Locations?, onLocationClick: () -> Unit, onChan
                 elevation = CardDefaults.cardElevation(2.dp),
                 modifier = Modifier
                     .weight(1f)
-                    .padding(5.dp)
+                    .padding(2.dp)
                     .wrapContentSize()
             ) {
                 LocationListCard(location, onClick = onLocationClick)
             }
         }
         Button(onClick = onChangeLocation ,shape = RoundedCornerShape(8.dp), modifier = Modifier
-            .padding(5.dp)
+            .padding(2.dp)
             .fillMaxHeight()
             .weight(0.6f),
             contentPadding = PaddingValues(horizontal = 2.dp)) {

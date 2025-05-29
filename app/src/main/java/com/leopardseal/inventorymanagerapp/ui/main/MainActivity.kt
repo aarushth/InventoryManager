@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -19,6 +20,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
@@ -44,7 +47,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.lifecycleScope
@@ -61,16 +66,17 @@ import com.leopardseal.inventorymanagerapp.data.UserPreferences
 import com.leopardseal.inventorymanagerapp.ui.login.LoginActivity
 import com.leopardseal.inventorymanagerapp.ui.main.box.BoxScreen
 import com.leopardseal.inventorymanagerapp.ui.main.box.expanded.BoxExpandedScreen
-import com.leopardseal.inventorymanagerapp.ui.main.box.select.BoxSelectScreen
+import com.leopardseal.inventorymanagerapp.ui.main.box.multiselect.BoxMultiSelectScreen
+import com.leopardseal.inventorymanagerapp.ui.main.box.singleselect.BoxSingleSelectScreen
 import com.leopardseal.inventorymanagerapp.ui.main.camera.BarcodeScannerWithPermissionScreen
 import com.leopardseal.inventorymanagerapp.ui.main.camera.CameraScreen
 import com.leopardseal.inventorymanagerapp.ui.main.camera.PhotoPickerScreen
 import com.leopardseal.inventorymanagerapp.ui.main.invite.InviteScreen
 import com.leopardseal.inventorymanagerapp.ui.main.item.ItemScreen
 import com.leopardseal.inventorymanagerapp.ui.main.item.expanded.ItemExpandedScreen
-import com.leopardseal.inventorymanagerapp.ui.main.item.select.ItemSelectScreen
-import com.leopardseal.inventorymanagerapp.ui.main.item.select.ItemSelectViewModel
+import com.leopardseal.inventorymanagerapp.ui.main.item.multiselect.ItemMultiSelectScreen
 import com.leopardseal.inventorymanagerapp.ui.main.location.LocationScreen
+import com.leopardseal.inventorymanagerapp.ui.main.location.LocationSingleSelectScreen
 import com.leopardseal.inventorymanagerapp.ui.main.location.expanded.LocationEditScreen
 import com.leopardseal.inventorymanagerapp.ui.main.location.expanded.LocationExpandedScreen
 import com.leopardseal.inventorymanagerapp.ui.main.org.OrgScreen
@@ -119,6 +125,7 @@ class MainActivity : AppCompatActivity() {
         val navController = rememberNavController()
         val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
         val scope = rememberCoroutineScope()
+        val keyboardController = LocalSoftwareKeyboardController.current
 
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route ?: ""
@@ -175,12 +182,21 @@ class MainActivity : AppCompatActivity() {
                 topBar = {
                     TopAppBar(
                         title = {
+
                             if (isSearchScreen) {
                                 TextField(
                                     value = searchQuery,
                                     onValueChange = { searchViewModel.onSearchChange(it) },
                                     placeholder = { Text("Search...") },
                                     modifier = Modifier.fillMaxWidth(),
+                                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
+                                    keyboardActions = KeyboardActions(
+                                        onSearch = {
+                                            searchViewModel.performSearch()
+                                            // optionally hide keyboard
+                                            keyboardController?.hide()
+                                        }
+                                    ),
                                     singleLine = true
                                 )
                             } else {
@@ -213,7 +229,12 @@ class MainActivity : AppCompatActivity() {
                             }
                         },
                         actions = {
-                            IconButton(onClick = { navController.navigate("search") }) {
+                            IconButton(onClick = {
+                                if (!isSearchScreen) {
+                                    searchViewModel.clearQuery()
+                                    navController.navigate("search")
+                                }
+                            }) {
                                 Icon(Icons.Default.Search, contentDescription = "Search")
                             }
                         }
@@ -230,7 +251,7 @@ class MainActivity : AppCompatActivity() {
                         .fillMaxSize()
                         .padding(innerPadding)
                 ) {
-                    MyNavHost(navController, scope)
+                    MyNavHost(navController, scope, searchViewModel, innerPadding)
                     if(fabEnabled) {
                         ExpandingFab(
                             onBarcode = {navController.navigate("barcodeSearch")}
@@ -248,7 +269,7 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("UnrememberedGetBackStackEntry", "RestrictedApi")
     @Composable
-    fun MyNavHost(navController: NavHostController, coroutineScope: CoroutineScope){
+    fun MyNavHost(navController: NavHostController, coroutineScope: CoroutineScope, searchViewModel: SearchViewModel, innerPaddingValues: PaddingValues){
         NavHost(
             navController = navController,
             startDestination = "invite"
@@ -297,6 +318,7 @@ class MainActivity : AppCompatActivity() {
                 val goToExpanded = backStackEntry.arguments?.getBoolean("go_to_expanded") ?: false
                 ItemEditScreen(
                     navController = navController,
+                    innerPaddingValues = innerPaddingValues,
                     orgId = runBlocking { 
                         userPreferences.orgId.first()?:-1L 
                     },
@@ -344,7 +366,9 @@ class MainActivity : AppCompatActivity() {
                 route = "boxMultiSelect/{location_id}",
                 arguments = listOf(navArgument("location_id"){type = NavType.LongType})
             ){
-                BoxMultiSelectScreen(onConfirmSelection = {
+                BoxMultiSelectScreen(
+                    navController = navController,
+                    onConfirmSelection = {
                     navController.previousBackStackEntry
                         ?.savedStateHandle
                         ?.set("refresh", true)
@@ -440,7 +464,7 @@ class MainActivity : AppCompatActivity() {
             composable("barcodeSearch") {
                 BarcodeScannerWithPermissionScreen(
                     onBarcodeScanned = { barcode ->
-                        SearchViewModel.setBarcodeQuery(barcode)
+                        searchViewModel.searchBarcode(barcode)
                         navController.navigate("search")
                     },
                     onPermissionDenied = {
@@ -475,7 +499,10 @@ class MainActivity : AppCompatActivity() {
                 )
             }
             composable("search"){
-                SearchScreen()
+                SearchScreen(
+                    viewModel = searchViewModel,
+                    navController = navController
+                )
             }
         }
     }

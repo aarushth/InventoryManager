@@ -16,10 +16,10 @@ import javax.inject.Inject
 class ServerComms @Inject constructor(){
     companion object{
         //use this when using production server
-//        private const val BASE_URL = "https://leopardseal.duckdns.org"
+        private const val BASE_URL = "https://leopardseal.duckdns.org"
 
 //        use this when testing on local server, change to pc ip
-        private const val BASE_URL = "http://192.168.68.68:8080"
+//        private const val BASE_URL = "http://192.168.68.68:8080"
     }
 
 

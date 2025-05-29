@@ -1,20 +1,24 @@
 package com.leopardseal.inventorymanagerapp.ui.main.item.expanded
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement.SpaceBetween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -158,15 +162,21 @@ fun ItemExpandedScreen(
                             .height(36.dp)
                             .width(36.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Edit Item Name",
-                            tint = Color.Black
-                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.White, shape = CircleShape)
+                                .clip(CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Edit Item Name",
+                                tint = Color.Black
+                            )
+                        }
                     }
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
 
                 // Name, Barcode, Quantity controls
                 Row(
@@ -178,19 +188,19 @@ fun ItemExpandedScreen(
                             text = item!!.name,
                             fontSize = 20.sp,
                             color = Color.Black,
-                            modifier = Modifier.padding(top = 4.dp)
+                            modifier = Modifier.padding(top = 4.dp, start = 8.dp)
                         )
                         Text(
                             text = item!!.barcode!!,
                             color = Color.Gray,
-                            modifier = Modifier.padding(top = 4.dp)
+                            modifier = Modifier.padding(top = 4.dp, start = 8.dp)
                         )
                     }
 
                     Spacer(modifier = Modifier.width(16.dp))
 
                     Column(
-                        modifier = Modifier.weight(0.4f),
+                        modifier = Modifier.weight(0.4f).padding(end = 8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -220,14 +230,11 @@ fun ItemExpandedScreen(
                         )
                     }
                 }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
                 // Description
                 Text(
                     text = item!!.description!!,
                     color = Color.DarkGray,
-                    modifier = Modifier.padding(vertical = 10.dp)
+                    modifier = Modifier.padding(top = 8.dp, start = 8.dp, bottom = 4.dp)
                 )
                 //box
                 BoxChangeCard(box = box,
@@ -239,7 +246,7 @@ fun ItemExpandedScreen(
                     LocationCard(location, onLocationClick = {navController.navigate("locationExpanded/${location!!.id}")})
                 }
 
-                Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(72.dp))
 
             }
             if ((currentQuantity != originalQuantity || item!!.boxId != box?.id) && saveEnable) {
@@ -274,14 +281,14 @@ fun BoxChangeCard(box:Boxes?, onBoxClick: () -> Unit, onChangeBox: () -> Unit){
                 elevation = CardDefaults.cardElevation(2.dp),
                 modifier = Modifier
                     .weight(1f)
-                    .padding(5.dp)
+                    .padding(2.dp)
                     .wrapContentSize()
             ) {
                 BoxListCard(box, onClick = { onBoxClick() })
             }
         }
         Button(onClick = { onChangeBox() },shape = RoundedCornerShape(8.dp), modifier = Modifier
-            .padding(5.dp)
+            .padding(2.dp)
             .fillMaxHeight()
             .weight(0.6f)) {
             Text(if (box == null) {"Add To Box"} else {"Change Box"}, textAlign = TextAlign.Center)
@@ -303,7 +310,7 @@ fun LocationCard(location:Locations?, onLocationClick: () -> Unit){
                 elevation = CardDefaults.cardElevation(2.dp),
                 modifier = Modifier
                     .weight(1f)
-                    .padding(5.dp)
+                    .padding(2.dp)
                     .wrapContentSize()
             ) {
                 LocationListCard(location, onClick = { onLocationClick() })

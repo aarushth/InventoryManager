@@ -36,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -65,7 +66,7 @@ import com.leopardseal.inventorymanagerapp.ui.smallCardIcon
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LocationScreen(
+fun LocationSingleSelectScreen(
     viewModel: LocationViewModel = hiltViewModel(),
     navController: NavController,
     locationSelected : Long = -1L,
@@ -106,7 +107,7 @@ fun LocationScreen(
                             if(isSmallCard){
                                 LocationListCard(
                                     location = location, 
-                                    onClick = { location.id?.let 
+                                    onClick = { location.id?.let()
                                         { 
                                             navController.previousBackStackEntry
                                                 ?.savedStateHandle
@@ -122,7 +123,7 @@ fun LocationScreen(
                                     onClick = { 
                                         navController.previousBackStackEntry
                                             ?.savedStateHandle
-                                            ?.set("location_id", it)
+                                            ?.set("location_id", location.id)
                                         navController.popBackStack() 
                                         }, 
                                     location.id!! == locationSelected

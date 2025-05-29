@@ -38,6 +38,7 @@ import java.io.File
 import java.util.*
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 
@@ -52,6 +53,7 @@ import com.leopardseal.inventorymanagerapp.ui.main.item.expanded.ItemExpandedVie
 @Composable
 fun ItemEditScreen(
     viewModel : ItemExpandedViewModel = hiltViewModel(),
+    innerPaddingValues: PaddingValues,
     navController: NavController,
     orgId : Long,
     onComplete : (itemId : Long) -> Unit,
@@ -290,9 +292,10 @@ fun ItemEditScreen(
 
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(72.dp))
         }
         if(isSaveEnabled) {
+            val imeBottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
             Button(
                 onClick = {
                     val newItem = item?.copy(
@@ -316,6 +319,8 @@ fun ItemEditScreen(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(16.dp)
+                    .consumeWindowInsets(innerPaddingValues)
+                    .imePadding()
                     .fillMaxWidth(),
             ) {
                 Text(if (item == null) "Create Item" else "Save Changes")

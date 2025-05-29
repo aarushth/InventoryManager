@@ -19,55 +19,54 @@ class SearchViewModel @Inject constructor(
     private val repository : SearchRepository
 ) : ViewModel(){
 
-    private val _searchResponse = MutableStateFlow<Resource<SearchResponse>>(Resource.Loading)
+    private val _searchResponse = MutableStateFlow<Resource<SearchResponse>>(Resource.Init)
     val searchResponse : StateFlow<Resource<SearchResponse>>
         get() = _searchResponse
 
-    private val _isBarcodeSearch = MutableStateFlow(false)
+    private val _isBarcodeSearch = MutableStateFlow<Boolean>(false)
+    val isBarcodeSearch : StateFlow<Boolean>
+        get() = _isBarcodeSearch
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> 
         get() = _searchQuery
 
-    private val _debouncedQuery = MutableStateFlow("")
-    val debouncedQuery: StateFlow<String> 
-        get() = _debouncedQuery
+//s
 
     private fun search(){
-        viewModelScope.launch {
-            _searchResponse.value = repository.search(debouncedQuery.value)
+        if(searchQuery.value.isNotEmpty()) {
+            viewModelScope.launch {
+                _searchResponse.value = Resource.Loading
+                _searchResponse.value = repository.search(searchQuery.value)
+            }
         }
     }
-    private fun searchBarcode(){
+    fun resetIsBarcodeSearch(){
+        _isBarcodeSearch.value = false
+    }
+    fun searchBarcode(barcode : String){
+        _searchQuery.value = barcode
+        _isBarcodeSearch.value = true
         viewModelScope.launch {
-            _searchResponse.value = repository.searchBarcode(debouncedQuery.value)
+            _searchResponse.value = Resource.Loading
+            _searchResponse.value = repository.searchBarcode(searchQuery.value)
         }
     }
-
+    fun clearQuery(){
+        _searchQuery.value = ""
+        _searchResponse.value = Resource.Init
+    }
     fun onSearchChange(query: String) {
         _searchQuery.value = query
         _isBarcodeSearch.value = false
     }
-    fun setBarcodeQuery(barcode: String){
-        _searchQuery.value = barcode
-        _isBarcodeSearch.value = true
-    }
 
-    
-
-    init {
+    fun performSearch() {
         viewModelScope.launch {
-            _searchQuery
-                .debounce(300) // wait 300ms after last input
-                .distinctUntilChanged()
-                .collectLatest { query ->
-                    _debouncedQuery.value = query
-                   if (_isBarcodeSearch.value) {
-                        searchBarcode(query)
-                    } else {
-                        search(query)
-                    }
-                }
+//            _debouncedQuery.value = _searchQuery.value
+            _isBarcodeSearch.value = false
+            search() // your existing search logic
         }
     }
+
 }

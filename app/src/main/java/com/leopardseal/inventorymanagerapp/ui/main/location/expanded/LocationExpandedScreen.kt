@@ -1,7 +1,10 @@
 package com.leopardseal.inventorymanagerapp.ui.main.location.expanded
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -101,35 +105,38 @@ fun LocationExpandedScreen(
                                 .height(36.dp)
                                 .width(36.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = "Edit Location Name",
-                                tint = Color.Black
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.White, shape = CircleShape)
+                                    .clip(CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Edit Item Name",
+                                    tint = Color.Black
+                                )
+                            }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = location!!.name,
                         color = Color.Black,
-                        modifier = Modifier.padding(top = 4.dp)
+                        modifier = Modifier.padding(top = 4.dp, start = 8.dp)
                     )
                     Text(
                         text = location!!.barcode!!,
                         color = Color.Gray,
-                        modifier = Modifier.padding(top = 4.dp)
+                        modifier = Modifier.padding(top = 4.dp, start = 8.dp)
                     )
 
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Description
                     Text(
                         text = location!!.description!!,
                         color = Color.DarkGray,
-                        modifier = Modifier.padding(vertical = 10.dp)
+                        modifier = Modifier.padding(top = 8.dp, start = 8.dp)
                     )
                 }
                 item{

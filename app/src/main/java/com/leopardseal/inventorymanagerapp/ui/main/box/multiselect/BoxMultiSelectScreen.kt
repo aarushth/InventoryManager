@@ -17,12 +17,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.responses.Boxes
 import com.leopardseal.inventorymanagerapp.ui.main.box.BoxHeaderRow
@@ -32,8 +34,9 @@ import com.leopardseal.inventorymanagerapp.ui.main.box.BoxListCard
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BoxMultiSelectScreen(
-    onConfirmSelection: (List<Boxes>) -> Unit,
-    viewModel: BoxMultiSelectViewModel = hiltViewModel()
+    viewModel: BoxMultiSelectViewModel = hiltViewModel(),
+    navController: NavController,
+    onConfirmSelection: (List<Boxes>) -> Unit
 ){
 
     val boxesState by viewModel.boxes.collectAsState()

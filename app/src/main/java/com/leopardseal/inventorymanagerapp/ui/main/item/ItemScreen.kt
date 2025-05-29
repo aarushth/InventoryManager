@@ -200,7 +200,7 @@ fun ItemListCard(item: Items, onClick: () -> Unit, selectable : Boolean = false,
     })) {
         Row(
             modifier = Modifier.fillMaxWidth()
-                .padding(5.dp)
+                .padding(4.dp)
                 .clickable { onClick() },
 
             horizontalArrangement = SpaceBetween,

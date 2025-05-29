@@ -4,9 +4,8 @@ import com.leopardseal.inventorymanagerapp.data.UserPreferences
 import com.leopardseal.inventorymanagerapp.data.network.api.SearchAPI
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
+
 class SearchRepository @Inject constructor(
     private val api: SearchAPI,
     private val preferences: UserPreferences
@@ -18,7 +17,7 @@ class SearchRepository @Inject constructor(
     }
 
     suspend fun searchBarcode(barcode : String) = safeApiCall{
-        api.search(preferences.orgId.first()!!, barcode)
+        api.searchBarcode(preferences.orgId.first()!!, barcode)
     }
 
 }
