@@ -101,17 +101,10 @@ class MainActivity : AppCompatActivity() {
             MainScreen()
         }
     }
-    fun login(){
-        Intent(this, LoginActivity::class.java).also{
-            it.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(it)
-        }
-    }
+
     fun logoutAndRedirectToLogin() {
         lifecycleScope.launch {
             userPreferences.clear()
-
-            // Navigate to LoginActivity and clear back stack
             val intent = Intent(this@MainActivity, LoginActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             }
@@ -139,6 +132,7 @@ class MainActivity : AppCompatActivity() {
 
         val orgName by userPreferences.orgName.collectAsState(initial = "")
         val orgImg by userPreferences.orgImg.collectAsState(initial = "")
+        val orgRole by userPreferences.orgRole.collectAsState(initial = "")
         val userImg by userPreferences.userImg.collectAsState(initial = "")
         val userEmail by userPreferences.userEmail.collectAsState(initial = "")
 
@@ -169,6 +163,7 @@ class MainActivity : AppCompatActivity() {
                         navController,
                         userImg,
                         userEmail,
+                        orgRole,
                         closeDrawer = { scope.launch { drawerState.close() } },
                         logout = {logoutAndRedirectToLogin()}
                     )
@@ -286,17 +281,17 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                     },
-                    onUnauthorized = { login() })
+                    onUnauthorized = { logoutAndRedirectToLogin() })
             }
             composable("org") {
                 OrgScreen(
                     navController = navController,
-                    onUnauthorized = { login() })
+                    onUnauthorized = { logoutAndRedirectToLogin() })
             }
             composable("item") {
                 ItemScreen(
                     navController = navController,
-                    onUnauthorized = { login() }
+                    onUnauthorized = { logoutAndRedirectToLogin() }
                 )
             }
             composable(
@@ -305,7 +300,7 @@ class MainActivity : AppCompatActivity() {
             ) {
                 ItemExpandedScreen(
                     navController = navController,
-                    onUnauthorized = { login() },
+                    onUnauthorized = { logoutAndRedirectToLogin() },
                 )
             }
             composable(
@@ -331,7 +326,7 @@ class MainActivity : AppCompatActivity() {
                             navController.popBackStack()
                         }
                     },
-                    onUnauthorized = { login() }
+                    onUnauthorized = { logoutAndRedirectToLogin() }
                 )
             }
             composable(
@@ -350,7 +345,7 @@ class MainActivity : AppCompatActivity() {
             composable("box") {
                 BoxScreen(
                     navController = navController,
-                    onUnauthorized = { login() })
+                    onUnauthorized = { logoutAndRedirectToLogin() })
             }
             composable(
                 route = "boxSingleSelect/{box_id}",
@@ -360,7 +355,7 @@ class MainActivity : AppCompatActivity() {
                 BoxSingleSelectScreen(
                     navController = navController,
                     boxSelected = boxSelectedId,
-                    onUnauthorized = { login() })
+                    onUnauthorized = { logoutAndRedirectToLogin() })
             }
             composable(
                 route = "boxMultiSelect/{location_id}",
@@ -380,7 +375,7 @@ class MainActivity : AppCompatActivity() {
             ) {
                 BoxExpandedScreen(
                     navController = navController,
-                    onUnauthorized = { login() })
+                    onUnauthorized = { logoutAndRedirectToLogin() })
             }
             composable(
                 route = "boxEdit/{box_id}/{go_to_expanded}",
@@ -400,13 +395,13 @@ class MainActivity : AppCompatActivity() {
                             navController.popBackStack()
                         }
                     },
-                    onUnauthorized = { login() }
+                    onUnauthorized = { logoutAndRedirectToLogin() }
                 )
             }
             composable("location") {
                 LocationScreen(
                     navController = navController,
-                    onUnauthorized = { login() }
+                    onUnauthorized = { logoutAndRedirectToLogin() }
                 )
             }
             composable(
@@ -417,7 +412,7 @@ class MainActivity : AppCompatActivity() {
                 LocationSingleSelectScreen(
                     navController = navController,
                     locationSelected = locationSelectedId,
-                    onUnauthorized = { login() })
+                    onUnauthorized = { logoutAndRedirectToLogin() })
             }
             composable(
                 route = "locationExpanded/{location_id}",
@@ -443,7 +438,7 @@ class MainActivity : AppCompatActivity() {
                             navController.popBackStack()
                         }
                     },
-                    onUnauthorized = { login() }
+                    onUnauthorized = { logoutAndRedirectToLogin() }
                 )
             }
             composable("barcode") {
@@ -495,13 +490,18 @@ class MainActivity : AppCompatActivity() {
             }
             composable("settings"){
                 SettingScreen(
-                    onUnauthorized = { login() }
+                    onUnauthorized = { logoutAndRedirectToLogin() }
                 )
             }
             composable("search"){
                 SearchScreen(
                     viewModel = searchViewModel,
                     navController = navController
+                )
+            }
+            composable("manage_org"){
+                ManageOrgScreen(
+                    onUnauthorized = {logoutAndRedirectToLogin()}
                 )
             }
         }

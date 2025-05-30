@@ -53,7 +53,7 @@ import com.leopardseal.inventorymanagerapp.ui.itemIcon
 import com.leopardseal.inventorymanagerapp.ui.orgIcon
 
 @Composable
-fun NavigationDrawerContent(navController: NavController, userImg : String?, userEmail : String? , closeDrawer: () -> Unit, logout: () -> Unit) {
+fun NavigationDrawerContent(navController: NavController, userImg : String, userEmail : String, role : String, closeDrawer: () -> Unit, logout: () -> Unit) {
     Column(modifier = Modifier.fillMaxHeight()) {
         // Header
         Box(
@@ -64,7 +64,6 @@ fun NavigationDrawerContent(navController: NavController, userImg : String?, use
                 .padding(16.dp),
             contentAlignment = Alignment.BottomCenter
         ) {
-//            Spacer(modifier = Modifier.height(50.dp))
             Column(
                 modifier = Modifier
                     .fillMaxSize(),
@@ -107,6 +106,19 @@ fun NavigationDrawerContent(navController: NavController, userImg : String?, use
                 
             }
         )
+        if(orgRole == "admin"){
+            HorizontalDivider(color = Color.LightGray, thickness = 0.5.dp)
+            NavigationDrawerItem(
+                icon = { Icon(Icons.Default., contentDescription = "Manage Org") },
+                label = { Text("Manage Organization") },
+                selected = false,
+                onClick = {
+                    closeDrawer()
+                    navController.navigate("manage_org")
+                    
+                }
+            )
+        }
         Spacer(modifier = Modifier.weight(0.5f))
         HorizontalDivider(color = Color.LightGray, thickness = 0.5.dp)
         NavigationDrawerItem(

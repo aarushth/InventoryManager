@@ -1,4 +1,4 @@
-package com.leopardseal.inventorymanagerapp.ui.main.setting
+package com.leopardseal.inventorymanagerapp.ui.main.manageorg
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,22 +12,22 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SettingViewModel @Inject constructor(
-    private val repository : SettingRepository
+class ManageOrgViewModel @Inject constructor(
+    private val repository : ManageOrgRepository
 ) : ViewModel(){
 
-    private val _versionResponse = MutableStateFlow<Resource<String>>(Resource.Init)
-    val versionResponse : StateFlow<Resource<String>>
-        get() = _versionResponse
+    private val _userResponse = MutableStateFlow<Resource<List<UserResponse>>(Resource.Init)
+    val userResponse : StateFlow<Resource<List<UserResponse>>
+        get() = _userResponse
 
     init{
-        _versionResponse.value = Resource.Loading
-        getVersion()
+        _userResponse.value = Resource.Loading
+        getUserList()
     }
 
-    fun getVersion(){
+    fun getUserList(){
         viewModelScope.launch {
-            _versionResponse.value = repository.getVersion()
+            _userResponse.value = repository.getUserList()
         }
     }
 }

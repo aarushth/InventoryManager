@@ -64,5 +64,10 @@ object AppModule{
     fun provideSearchApi(userPreferences : UserPreferences, serverComms: ServerComms) : SearchAPI {
         return serverComms.buildApi(SearchAPI::class.java, userPreferences)
     }
+    
+    @Provides
+    fun provideManageOrgApi(userPreferences : UserPreferences, serverComms : ServerComms) : ManageOrgAPI {
+        return serverComms.buildApi(ManageOrgAPI::class.java, userPreferences)
+    }
 
 }

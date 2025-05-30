@@ -22,5 +22,6 @@ class OrgRepository @Inject constructor(
             preferences.saveOrgImg("")
         }
         preferences.saveOrgName(org.name)
+        preferences.saveOrgRole(org.role)
     }
 }

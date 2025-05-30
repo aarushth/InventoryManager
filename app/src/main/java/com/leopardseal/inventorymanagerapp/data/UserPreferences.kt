@@ -43,7 +43,8 @@ class UserPreferences @Inject constructor(
     val userEmail : Flow<String?>
         get() = appContext.dataStore.data.map { it[USER_EMAIL] }
 
-
+    val orgRole : Flow<String?>
+        get() = appContext.dataStore.data.map { it[ORG_ROLE] }
 
     suspend fun saveAuthToken(authToken: String){
         appContext.dataStore.edit {
@@ -66,6 +67,11 @@ class UserPreferences @Inject constructor(
             it[ORG_NAME] = orgName
         }
     }
+    suspend fun orgRole(orgRole : String){
+        appContext.dataStore.edit {
+            it[ORG_ROLE] = orgRole
+        }
+    }
     suspend fun saveUserImg(userImg: String){
         appContext.dataStore.edit {
             it[USER_IMG] = userImg
@@ -81,6 +87,7 @@ class UserPreferences @Inject constructor(
         private val KEY_AUTH = stringPreferencesKey("authToken")
         private val ORG_ID = longPreferencesKey("orgId")
         private val ORG_NAME = stringPreferencesKey("orgName")
+        private val ORG_ROLE = stringPreferencesKey("orgRole")
         private val ORG_IMG = stringPreferencesKey("orgImg")
         private val USER_IMG = stringPreferencesKey("userImg")
         private val USER_EMAIL = stringPreferencesKey("userEmail")
