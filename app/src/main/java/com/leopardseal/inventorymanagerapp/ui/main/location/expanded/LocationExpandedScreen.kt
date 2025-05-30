@@ -157,6 +157,9 @@ fun LocationExpandedScreen(
                             onClick = { box.id?.let { navController.navigate("boxExpanded/${box.id}") } })
                     }
                 }
+                item{
+                    Spacer(modifier = Modifier.height(72.dp))
+                }
             }
         }
     }

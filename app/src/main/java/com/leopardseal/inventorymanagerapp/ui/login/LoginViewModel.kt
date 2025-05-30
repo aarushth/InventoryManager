@@ -67,8 +67,9 @@ class LoginViewModel @Inject constructor(
                 response.value.user.imgUrl?.let {
                     userPreferences.saveUserImg(it)
                 }
+                _tokenSaved.value = true
             }
-            _tokenSaved.value = true
+
         } catch (e: Exception) {
             _loginResponse.value = Resource.Failure(
                 isNetworkError = e is IOException,

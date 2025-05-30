@@ -9,11 +9,14 @@ import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -74,6 +77,7 @@ import java.util.UUID
 fun BoxEditScreen(
     viewModel: BoxExpandedViewModel = hiltViewModel(),
     navController: NavController,
+    innerPaddingValues : PaddingValues,
     orgId : Long,
     onComplete : (boxId : Long) -> Unit,
     onUnauthorized: () -> Unit
@@ -88,7 +92,7 @@ fun BoxEditScreen(
     val savedStateHandle : SavedStateHandle? = currentBackStackEntry?.savedStateHandle
 
     var name by rememberSaveable { mutableStateOf("") }
-    var size by rememberSaveable { mutableStateOf("Large") }
+    var size by rememberSaveable { mutableStateOf("big") }
     var barcode by rememberSaveable { mutableStateOf("") }
     var imageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
     var imageFile by rememberSaveable  { mutableStateOf<File?>(null) }
@@ -291,7 +295,7 @@ fun BoxEditScreen(
 
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(72.dp))
         }
         if (isSaveEnabled) {
             Button(
@@ -311,9 +315,12 @@ fun BoxEditScreen(
                     )
                     viewModel.saveOrUpdateBox(newBox, (imageFile != null))
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .consumeWindowInsets(innerPaddingValues)
+                    .imePadding()
+                    .fillMaxWidth(),
             ) {
                 Text(if (box == null) "Create Box" else "Save Changes")
             }
@@ -321,70 +328,70 @@ fun BoxEditScreen(
     }
 }
 
-    @Composable
-    fun SizeDropdownMenu(
-        selectedSize: String,
-        onSizeSelected: (String) -> Unit,
-    ) {
-        val sizeOptions = listOf("Large", "Medium", "Small")
-        var expanded by remember { mutableStateOf(false) }
-        val textFieldSize = remember { mutableStateOf(IntSize.Zero) }
+@Composable
+fun SizeDropdownMenu(
+    selectedSize: String,
+    onSizeSelected: (String) -> Unit,
+) {
+    val sizeOptions = listOf("big", "medium", "small")
+    var expanded by remember { mutableStateOf(false) }
+    val textFieldSize = remember { mutableStateOf(IntSize.Zero) }
 
-        val interactionSource = remember { MutableInteractionSource() }
-        val indication = LocalIndication.current
-        Box(modifier = Modifier.fillMaxWidth()) {
-            OutlinedTextField(
-                value = selectedSize,
-                interactionSource = remember { MutableInteractionSource() }
-                    .also { interactionSource ->
-                        LaunchedEffect(interactionSource) {
-                            interactionSource.interactions.collect {
-                                if (it is PressInteraction.Release) {
-                                    expanded = true
-                                }
+    val interactionSource = remember { MutableInteractionSource() }
+    val indication = LocalIndication.current
+    Box(modifier = Modifier.fillMaxWidth()) {
+        OutlinedTextField(
+            value = selectedSize,
+            interactionSource = remember { MutableInteractionSource() }
+                .also { interactionSource ->
+                    LaunchedEffect(interactionSource) {
+                        interactionSource.interactions.collect {
+                            if (it is PressInteraction.Release) {
+                                expanded = true
                             }
                         }
-                    },
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Select Size") },
-                trailingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.ArrowDropDown,
-                        contentDescription = "Dropdown"
-                    )
+                    }
                 },
-                enabled = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .onGloballyPositioned { coordinates ->
-                        textFieldSize.value = coordinates.size
-                    },
-            )
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Select Size") },
+            trailingIcon = {
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = "Dropdown"
+                )
+            },
+            enabled = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .onGloballyPositioned { coordinates ->
+                    textFieldSize.value = coordinates.size
+                },
+        )
 
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier
-                    .width(with(LocalDensity.current) { textFieldSize.value.width.toDp() }) // match width
-            ) {
-                sizeOptions.forEach { sizeOpt ->
-                    DropdownMenuItem(
-                        text = { Text(sizeOpt) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .indication(interactionSource, indication)
-                            .clickable(
-                                interactionSource = interactionSource,
-                                indication = null,
-                                onClick = {}
-                            ),
-                        onClick = {
-                            onSizeSelected(sizeOpt)
-                            expanded = false
-                        }
-                    )
-                }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .width(with(LocalDensity.current) { textFieldSize.value.width.toDp() }) // match width
+        ) {
+            sizeOptions.forEach { sizeOpt ->
+                DropdownMenuItem(
+                    text = { Text(sizeOpt) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .indication(interactionSource, indication)
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null,
+                            onClick = {}
+                        ),
+                    onClick = {
+                        onSizeSelected(sizeOpt)
+                        expanded = false
+                    }
+                )
             }
         }
     }
+}

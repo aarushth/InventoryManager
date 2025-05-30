@@ -9,6 +9,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -34,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
@@ -45,6 +47,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -79,6 +84,7 @@ import com.leopardseal.inventorymanagerapp.ui.main.location.LocationScreen
 import com.leopardseal.inventorymanagerapp.ui.main.location.LocationSingleSelectScreen
 import com.leopardseal.inventorymanagerapp.ui.main.location.expanded.LocationEditScreen
 import com.leopardseal.inventorymanagerapp.ui.main.location.expanded.LocationExpandedScreen
+import com.leopardseal.inventorymanagerapp.ui.main.manageorg.ManageOrgScreen
 import com.leopardseal.inventorymanagerapp.ui.main.org.OrgScreen
 import com.leopardseal.inventorymanagerapp.ui.main.search.SearchScreen
 import com.leopardseal.inventorymanagerapp.ui.main.search.SearchViewModel
@@ -112,6 +118,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("RememberReturnType")
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun MainScreen() {
@@ -141,15 +148,28 @@ class MainActivity : AppCompatActivity() {
             currentRoute == "invite" -> "You Have Been Invited"
             currentRoute == "camera" -> "Take a picture"
             currentRoute == "barcode" -> "Scan Barcode"
-            currentRoute.startsWith("itemSelect")-> "Select Items"
+            currentRoute == "settings" -> "Settings"
+            currentRoute == "itemEdit/${-1L}" -> "Create new Item"
+            currentRoute == "boxEdit/${-1L}" -> "Create new Box"
+            currentRoute == "locationEdit/${-1L}" -> "Create new Location"
+            currentRoute.startsWith("itemEdit")-> "Edit Item"
+            currentRoute.startsWith("boxEdit")-> "Edit Box"
+            currentRoute.startsWith("locationEdit")-> "Edit Location"
+            currentRoute.startsWith("itemMultiSelect")-> "Select Items"
             currentRoute.startsWith("boxSelectSingle")-> "Select A Box"
-            currentRoute.startsWith("boxSelect")-> "Select Boxes"
-            currentRoute.startsWith("locationSelect")-> "Select A Location"
+            currentRoute.startsWith("boxMultiSelect")-> "Select Boxes"
+            currentRoute.startsWith("locationSingleSelect")-> "Select A Location"
             else -> orgName
         }
         
         val isSearchScreen = currentRoute == "search"
 
+        val focusRequester = remember { FocusRequester() }
+        LaunchedEffect(isSearchScreen) {
+            if (isSearchScreen) {
+                focusRequester.requestFocus()
+            }
+        }
         val screenWidth = LocalConfiguration.current.screenWidthDp.dp
         ModalNavigationDrawer(
             drawerContent = {
@@ -183,16 +203,21 @@ class MainActivity : AppCompatActivity() {
                                     value = searchQuery,
                                     onValueChange = { searchViewModel.onSearchChange(it) },
                                     placeholder = { Text("Search...") },
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier.fillMaxWidth()
+                                        .focusRequester(focusRequester),
                                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
                                     keyboardActions = KeyboardActions(
                                         onSearch = {
                                             searchViewModel.performSearch()
-                                            // optionally hide keyboard
                                             keyboardController?.hide()
                                         }
                                     ),
-                                    singleLine = true
+                                    singleLine = true,
+                                    colors = TextFieldDefaults.colors(
+                                        focusedContainerColor = Color.Transparent,
+                                        unfocusedContainerColor = Color.Transparent,
+                                        disabledContainerColor = Color.Transparent,
+                                    )
                                 )
                             } else {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -246,7 +271,7 @@ class MainActivity : AppCompatActivity() {
                         .fillMaxSize()
                         .padding(innerPadding)
                 ) {
-                    MyNavHost(navController, scope, searchViewModel, innerPadding)
+                    MyNavHost(navController, scope, searchViewModel, innerPadding, userEmail)
                     if(fabEnabled) {
                         ExpandingFab(
                             onBarcode = {navController.navigate("barcodeSearch")}
@@ -264,7 +289,7 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("UnrememberedGetBackStackEntry", "RestrictedApi")
     @Composable
-    fun MyNavHost(navController: NavHostController, coroutineScope: CoroutineScope, searchViewModel: SearchViewModel, innerPaddingValues: PaddingValues){
+    fun MyNavHost(navController: NavHostController, coroutineScope: CoroutineScope, searchViewModel: SearchViewModel, innerPaddingValues: PaddingValues, userEmail : String?){
         NavHost(
             navController = navController,
             startDestination = "invite"
@@ -385,6 +410,7 @@ class MainActivity : AppCompatActivity() {
                 val goToExpanded = backStackEntry.arguments?.getBoolean("go_to_expanded") ?: false
                 BoxEditScreen(
                     navController = navController,
+                    innerPaddingValues = innerPaddingValues,
                     orgId = runBlocking { userPreferences.orgId.first()?:-1L },
                     onComplete = { boxId ->
                         if(goToExpanded){
@@ -428,6 +454,7 @@ class MainActivity : AppCompatActivity() {
                 val goToExpanded = backStackEntry.arguments?.getBoolean("go_to_expanded") ?: false
                 LocationEditScreen(
                     navController = navController,
+                    innerPaddingValues = innerPaddingValues,
                     orgId = runBlocking { userPreferences.orgId.first()?:-1L },
                     onContinue = { locationId ->
                         if(goToExpanded){
@@ -501,6 +528,7 @@ class MainActivity : AppCompatActivity() {
             }
             composable("manage_org"){
                 ManageOrgScreen(
+                    userEmail = userEmail,
                     onUnauthorized = {logoutAndRedirectToLogin()}
                 )
             }

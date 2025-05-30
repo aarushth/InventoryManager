@@ -1,7 +1,8 @@
-package com.leopardseal.inventorymanagerapp.data.responses.destination
+package com.leopardseal.inventorymanagerapp.data.responses.dto
 
 data class UserResponse(
-    id : Long?, 
-    email : String, 
-    imgUrl : String?,
-    role : String)
+    val id : Long?,
+    val email : String,
+    val imgUrl : String?,
+    val role : String) {
+}

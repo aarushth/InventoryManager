@@ -67,7 +67,7 @@ class UserPreferences @Inject constructor(
             it[ORG_NAME] = orgName
         }
     }
-    suspend fun orgRole(orgRole : String){
+    suspend fun saveOrgRole(orgRole : String){
         appContext.dataStore.edit {
             it[ORG_ROLE] = orgRole
         }

@@ -231,6 +231,9 @@ fun BoxExpandedScreen(
                             onClick = { item.id?.let { navController.navigate("itemExpanded/${item.id}") } })
                     }
                 }
+                item{
+                    Spacer(modifier = Modifier.height(72.dp))
+                }
             }
             if ( box!!.locationId != location?.id && saveEnable) {
                 Button(
@@ -246,6 +249,7 @@ fun BoxExpandedScreen(
                     Text("Save")
                 }
             }
+
         }
     }
 }

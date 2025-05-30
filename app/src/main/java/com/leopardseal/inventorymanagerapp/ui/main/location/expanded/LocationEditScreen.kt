@@ -6,11 +6,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -65,6 +68,7 @@ import java.util.UUID
 fun LocationEditScreen(
     viewModel: LocationExpandedViewModel = hiltViewModel(),
     navController: NavController,
+    innerPaddingValues : PaddingValues,
     orgId : Long,
     onContinue : (locationId : Long) -> Unit,
     onUnauthorized: () -> Unit
@@ -282,7 +286,7 @@ fun LocationEditScreen(
 
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(72.dp))
         }
         if(isSaveEnabled) {
             Button(
@@ -304,6 +308,8 @@ fun LocationEditScreen(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(16.dp)
+                    .consumeWindowInsets(innerPaddingValues)
+                    .imePadding()
                     .fillMaxWidth(),
             ) {
                 Text(if (location == null) "Create Location" else "Save Changes")

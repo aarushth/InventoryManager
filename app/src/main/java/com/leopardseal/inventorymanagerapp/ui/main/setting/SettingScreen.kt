@@ -12,10 +12,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.ui.main.org.SettingViewModel
 
 @Composable
 fun SettingScreen(
@@ -26,7 +27,9 @@ fun SettingScreen(
     val context = LocalContext.current
     when(versionResource){
         is Resource.Success<String> ->{
-            Text("Server version : ${(versionResource as Resource.Success<String>).value}")
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Server version : ${(versionResource as Resource.Success<String>).value}", fontSize = 15.sp, textAlign = TextAlign.Center)
+            }
         }
         is Resource.Loading, Resource.Init -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
