@@ -3,10 +3,10 @@
 - ~~add locations~~
 - ~~show small box cards~~
 - ~~show small location cards~~
-- search
+- ~~search~~
 - tags
 - filters
-- scan to search
+- ~~scan to search~~
 
 # LATER
 - ~~fix login system~~
@@ -17,12 +17,13 @@
 - admin manage orgs/invite people
 - ~~user image in side bar~~
 - scan many to add to box
+- 3D model for box locations
 
 # OPTIONAL
 - quantity graph
 - history
 - email for low stock
-- settings page 
+- ~~settings page~~ 
 - light/dark mode toggle and custom color theme
 - dont load images toggle for low network
 - ~~small/big card toggle on home screen~~

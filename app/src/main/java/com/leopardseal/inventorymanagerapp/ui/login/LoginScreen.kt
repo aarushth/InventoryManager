@@ -103,7 +103,7 @@ fun LoginContent(onSignInClicked: () -> Unit, isLoading: Boolean) {
 
             Text(text = "Inventory Manager", modifier = Modifier.fillMaxWidth().padding(10.dp), textAlign = TextAlign.Center, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.width(20.dp))
-            SignInWithGoogleButton(onClick = { onSignInClicked()})
+            SignInWithGoogleButton(onClick = { onSignInClicked()}, isLoading = isLoading)
             if (isLoading) {
                 Spacer(modifier = Modifier.height(32.dp))
                 CircularProgressIndicator()
@@ -116,7 +116,8 @@ fun LoginContent(onSignInClicked: () -> Unit, isLoading: Boolean) {
 fun SignInWithGoogleButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    text: String = "Sign in with Google"
+    text: String = "Sign in with Google",
+    isLoading: Boolean
 ) {
     Button(
         onClick = onClick,
@@ -128,7 +129,8 @@ fun SignInWithGoogleButton(
             containerColor = Color.White,
             contentColor = Color.Black),
         border = BorderStroke(1.dp, Color.LightGray),
-        elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
+        enabled = !isLoading
     ) {
 
         Icon(

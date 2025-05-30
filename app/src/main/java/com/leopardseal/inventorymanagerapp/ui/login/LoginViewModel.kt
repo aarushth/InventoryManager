@@ -68,6 +68,8 @@ class LoginViewModel @Inject constructor(
                     userPreferences.saveUserImg(it)
                 }
                 _tokenSaved.value = true
+            }else{
+                userPreferences.clear()
             }
 
         } catch (e: Exception) {
