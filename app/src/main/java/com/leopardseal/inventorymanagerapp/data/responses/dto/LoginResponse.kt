@@ -1,8 +1,8 @@
 package com.leopardseal.inventorymanagerapp.data.responses.dto
 
-import com.leopardseal.inventorymanagerapp.data.responses.MyUsers
+import com.leopardseal.inventorymanagerapp.data.responses.MyUser
 
 data class LoginResponse(
     val token: String,
-    val user: MyUsers
+    val user: MyUser
 )

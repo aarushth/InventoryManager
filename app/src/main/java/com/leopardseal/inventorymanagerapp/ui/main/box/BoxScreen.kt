@@ -64,7 +64,7 @@ import coil.compose.AsyncImage
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.data.responses.Boxes
+import com.leopardseal.inventorymanagerapp.data.responses.Box
 import com.leopardseal.inventorymanagerapp.ui.boxIcon
 import com.leopardseal.inventorymanagerapp.ui.largeCardIcon
 import com.leopardseal.inventorymanagerapp.ui.smallCardIcon
@@ -84,7 +84,7 @@ fun BoxScreen(
     var isSmallCard by rememberSaveable{mutableStateOf(true)}
     when (boxState) {
         is Resource.Success -> {
-            val boxes = (boxState as Resource.Success<List<Boxes>>).value.filterNotNull()
+            val boxes = (boxState as Resource.Success<List<Box>>).value.filterNotNull()
             Column(modifier = Modifier.fillMaxSize()) {
 
 
@@ -163,7 +163,7 @@ fun BoxHeaderRow(hasBoxes : Boolean = true, isCardSizeToggleable: Boolean = true
 }
 
 @Composable
-fun BoxCard(box: Boxes, onClick: () -> Unit, selected: Boolean = false) {
+fun BoxCard(box: Box, onClick: () -> Unit, selected: Boolean = false) {
     Card(
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(6.dp),
@@ -204,7 +204,7 @@ fun BoxCard(box: Boxes, onClick: () -> Unit, selected: Boolean = false) {
 }
 
 @Composable
-fun BoxListCard(box: Boxes, onClick: () -> Unit, selectable : Boolean = false, selected: Boolean = false){
+fun BoxListCard(box: Box, onClick: () -> Unit, selectable : Boolean = false, selected: Boolean = false){
     Column(modifier = Modifier.background(if(selected && !selectable){Color.Cyan} else {Color.White})){
         Row(
             modifier = Modifier.fillMaxWidth()

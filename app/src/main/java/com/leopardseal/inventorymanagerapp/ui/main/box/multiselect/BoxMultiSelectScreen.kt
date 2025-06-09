@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.data.responses.Boxes
+import com.leopardseal.inventorymanagerapp.data.responses.Box
 import com.leopardseal.inventorymanagerapp.ui.main.box.BoxHeaderRow
 import com.leopardseal.inventorymanagerapp.ui.main.box.BoxListCard
 
@@ -36,7 +36,7 @@ import com.leopardseal.inventorymanagerapp.ui.main.box.BoxListCard
 fun BoxMultiSelectScreen(
     viewModel: BoxMultiSelectViewModel = hiltViewModel(),
     navController: NavController,
-    onConfirmSelection: (List<Boxes>) -> Unit
+    onConfirmSelection: (List<Box>) -> Unit
 ){
 
     val boxesState by viewModel.boxes.collectAsState()
@@ -47,7 +47,7 @@ fun BoxMultiSelectScreen(
         viewModel.refresh()
     }
     if(boxesState is Resource.Success<*>) {
-        val boxes = (boxesState as Resource.Success<List<Boxes>>).value
+        val boxes = (boxesState as Resource.Success<List<Box>>).value
         Column(modifier = Modifier.fillMaxSize()) {
 
             BoxHeaderRow(hasBoxes = boxes.isNotEmpty(),

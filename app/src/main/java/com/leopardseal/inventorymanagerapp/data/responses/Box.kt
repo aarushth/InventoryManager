@@ -1,11 +1,9 @@
 package com.leopardseal.inventorymanagerapp.data.responses
 
-data class Items (var id: Long? = null,
+data class Box (var id: Long? = null,
              var name: String,
              var orgId: Long,
              var barcode: String?,
-             var description: String?,
-             var boxId: Long?,
-             var quantity : Long,
-             var alert : Long,
+             var locationId: Long?,
+             var size: String?,
              var imageUrl: String?)

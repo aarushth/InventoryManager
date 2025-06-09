@@ -87,6 +87,8 @@ fun ItemExpandedScreen(
 
     LaunchedEffect(item) {
         viewModel.setBoxIdIfNotPresent(item?.boxId)
+        currentQuantity = item?.quantity : 0L
+        originalQuantity = item?quantity : 0L
     }
 
     val selectedBoxId = currentBackStackEntry?.savedStateHandle?.get<Long>("box_id")

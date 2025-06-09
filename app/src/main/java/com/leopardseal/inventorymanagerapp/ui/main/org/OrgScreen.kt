@@ -43,7 +43,7 @@ import coil.compose.AsyncImage
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.data.responses.Orgs
+import com.leopardseal.inventorymanagerapp.data.responses.Org
 
 
 @Composable
@@ -84,7 +84,7 @@ fun OrgScreen(
         }
 
         is Resource.Success -> {
-            val orgs = (orgsResource as Resource.Success<List<Orgs>>).value
+            val orgs = (orgsResource as Resource.Success<List<Org>>).value
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -100,7 +100,7 @@ fun OrgScreen(
     }
 }
 @Composable
-fun OrgCard(org: Orgs, onClick: () -> Unit) {
+fun OrgCard(org: Org, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()

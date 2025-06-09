@@ -55,7 +55,7 @@ import coil.compose.AsyncImage
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.data.responses.Items
+import com.leopardseal.inventorymanagerapp.data.responses.Item
 import com.leopardseal.inventorymanagerapp.ui.largeCardIcon
 import com.leopardseal.inventorymanagerapp.ui.smallCardIcon
 
@@ -73,7 +73,7 @@ fun ItemScreen(
     var isSmallCard by remember{mutableStateOf(true)}
     when (itemState) {
         is Resource.Success -> {
-            val items = (itemState as Resource.Success<List<Items>>).value
+            val items = (itemState as Resource.Success<List<Item>>).value
             Column(modifier = Modifier.fillMaxSize()) {
                 val icon = if (isSmallCard) largeCardIcon else smallCardIcon
                 ItemHeaderRow(hasItems = items.isNotEmpty(),
@@ -148,7 +148,7 @@ fun ItemHeaderRow(hasItems : Boolean = true, isCardSizeToggleable : Boolean, isA
 }
 
 @Composable
-fun ItemCard(item: Items, onClick: () -> Unit) {
+fun ItemCard(item: Item, onClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(6.dp),
@@ -192,7 +192,7 @@ fun ItemCard(item: Items, onClick: () -> Unit) {
 }
 
 @Composable
-fun ItemListCard(item: Items, onClick: () -> Unit, selectable : Boolean = false, selected : Boolean = false){
+fun ItemListCard(item: Item, onClick: () -> Unit, selectable : Boolean = false, selected : Boolean = false){
     Column(modifier = Modifier.background(when {
         item.quantity <= 0L -> Color.Red          // Out of stock
         item.quantity <= item.alert -> Color.Yellow // Low stock

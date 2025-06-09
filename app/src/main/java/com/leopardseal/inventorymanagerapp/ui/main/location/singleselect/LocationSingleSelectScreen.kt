@@ -60,7 +60,7 @@ import coil.compose.AsyncImage
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.data.responses.Locations
+import com.leopardseal.inventorymanagerapp.data.responses.Location
 import com.leopardseal.inventorymanagerapp.ui.largeCardIcon
 import com.leopardseal.inventorymanagerapp.ui.smallCardIcon
 
@@ -82,7 +82,7 @@ fun LocationSingleSelectScreen(
     }
     when (locationState) {
         is Resource.Success -> {
-            val locations = (locationState as Resource.Success<List<Locations>>).value
+            val locations = (locationState as Resource.Success<List<Location>>).value
             Column(modifier = Modifier.fillMaxSize()) {
                 val icon = if (isSmallCard) largeCardIcon else smallCardIcon
                 LocationHeaderRow(hasLocations = locations.isNotEmpty(),

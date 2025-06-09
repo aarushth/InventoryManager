@@ -27,7 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.data.responses.Items
+import com.leopardseal.inventorymanagerapp.data.responses.Item
 import com.leopardseal.inventorymanagerapp.ui.main.item.ItemHeaderRow
 import com.leopardseal.inventorymanagerapp.ui.main.item.ItemListCard
 
@@ -36,7 +36,7 @@ import com.leopardseal.inventorymanagerapp.ui.main.item.ItemListCard
 fun ItemMultiSelectScreen(
     viewModel: ItemMultiSelectViewModel = hiltViewModel(),
     navController: NavController,
-    onConfirmSelection: (List<Items>) -> Unit
+    onConfirmSelection: (List<Item>) -> Unit
 ){
 
     val itemsState by viewModel.items.collectAsState()
@@ -47,7 +47,7 @@ fun ItemMultiSelectScreen(
         viewModel.refresh()
     }
     if(itemsState is Resource.Success) {
-        val items = remember {(itemsState as Resource.Success<List<Items>>).value}
+        val items = remember {(itemsState as Resource.Success<List<Item>>).value}
         Column(modifier = Modifier.fillMaxSize()) {
 
             ItemHeaderRow(hasItems = items.isNotEmpty(),

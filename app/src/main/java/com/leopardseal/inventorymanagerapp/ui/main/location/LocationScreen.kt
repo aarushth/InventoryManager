@@ -59,7 +59,7 @@ import coil.compose.AsyncImage
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.data.responses.Locations
+import com.leopardseal.inventorymanagerapp.data.responses.Location
 import com.leopardseal.inventorymanagerapp.ui.largeCardIcon
 import com.leopardseal.inventorymanagerapp.ui.smallCardIcon
 
@@ -78,7 +78,7 @@ fun LocationScreen(
 
     when (locationState) {
         is Resource.Success -> {
-            val locations = (locationState as Resource.Success<List<Locations>>).value
+            val locations = (locationState as Resource.Success<List<Location>>).value
             Column(modifier = Modifier.fillMaxSize()) {
                 val icon = if (isSmallCard) largeCardIcon else smallCardIcon
                 LocationHeaderRow(hasLocations = locations.isNotEmpty(),
@@ -125,7 +125,7 @@ fun LocationScreen(
 }
 
 @Composable
-fun LocationCard(location: Locations, onClick: () -> Unit, selected: Boolean = false) {
+fun LocationCard(location: Location, onClick: () -> Unit, selected: Boolean = false) {
     Card(
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(6.dp),
@@ -165,7 +165,7 @@ fun LocationCard(location: Locations, onClick: () -> Unit, selected: Boolean = f
 }
 
 @Composable
-fun LocationListCard(location: Locations, onClick: () -> Unit, selected: Boolean = false){
+fun LocationListCard(location: Location, onClick: () -> Unit, selected: Boolean = false){
     Column(modifier = Modifier.background(if(selected){Color.Cyan} else {Color.White})){
         Row(
             modifier = Modifier.fillMaxWidth()

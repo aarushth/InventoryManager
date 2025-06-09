@@ -56,7 +56,7 @@ import coil.request.ImageRequest
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.data.responses.Locations
+import com.leopardseal.inventorymanagerapp.data.responses.Location
 import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
 import com.leopardseal.inventorymanagerapp.ui.barcodeIcon
 import com.leopardseal.inventorymanagerapp.ui.cameraIcon
@@ -295,7 +295,7 @@ fun LocationEditScreen(
                         name = name.trim(),
                         description = description.trim(),
                         barcode = barcode.trim(),
-                    ) ?: Locations( 
+                    ) ?: Location( 
                         name = name.trim(),
                         orgId = orgId, 
                         barcode = barcode.trim(),

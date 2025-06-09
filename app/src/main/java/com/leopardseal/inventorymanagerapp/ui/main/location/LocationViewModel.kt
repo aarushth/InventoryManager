@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.repositories.LocationRepository
-import com.leopardseal.inventorymanagerapp.data.responses.Locations
+import com.leopardseal.inventorymanagerapp.data.responses.Location
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,8 +18,8 @@ class LocationViewModel @Inject constructor(
     private val repository: LocationRepository
 ) : ViewModel(){
 
-    private val _locationResponse = MutableStateFlow<Resource<List<Locations>>>(Resource.Loading)
-    val locationResponse: StateFlow<Resource<List<Locations>>>
+    private val _locationResponse = MutableStateFlow<Resource<List<Location>>>(Resource.Loading)
+    val locationResponse: StateFlow<Resource<List<Location>>>
         get() = _locationResponse
 
     private val _isRefreshing = MutableStateFlow<Boolean>(false)

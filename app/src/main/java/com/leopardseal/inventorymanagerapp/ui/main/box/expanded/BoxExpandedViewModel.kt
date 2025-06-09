@@ -9,7 +9,7 @@ import com.leopardseal.inventorymanagerapp.data.repositories.BoxRepository
 import com.leopardseal.inventorymanagerapp.data.repositories.ImageRepository
 import com.leopardseal.inventorymanagerapp.data.repositories.ItemRepository
 import com.leopardseal.inventorymanagerapp.data.repositories.LocationRepository
-import com.leopardseal.inventorymanagerapp.data.responses.Boxes
+import com.leopardseal.inventorymanagerapp.data.responses.Box
 import com.leopardseal.inventorymanagerapp.data.responses.Items
 import com.leopardseal.inventorymanagerapp.data.responses.Locations
 import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
@@ -31,8 +31,8 @@ class BoxExpandedViewModel @Inject constructor(
     private val boxId: Long = savedStateHandle["box_id"] ?: -1L
     private val locationIdFlow = savedStateHandle.getStateFlow<Long?>("location_id", null)
 
-    private val _box = MutableStateFlow<Boxes?>(repository.getCachedBoxById(boxId))
-    val box: StateFlow<Boxes?>
+    private val _box = MutableStateFlow<Box?>(repository.getCachedBoxById(boxId))
+    val box: StateFlow<Box?>
         get() = _box
 
     private val _location = MutableStateFlow<Locations?>(null)
@@ -115,7 +115,7 @@ class BoxExpandedViewModel @Inject constructor(
         _box.value = newBox
         savedStateHandle["location_id"] = newBox.locationId
     }
-    fun saveOrUpdateBox(updatedBox: Boxes, imageChanged : Boolean) = viewModelScope.launch {
+    fun saveOrUpdateBox(updatedBox: Box, imageChanged : Boolean) = viewModelScope.launch {
         _updateResponse.value = Resource.Loading
 
         try {

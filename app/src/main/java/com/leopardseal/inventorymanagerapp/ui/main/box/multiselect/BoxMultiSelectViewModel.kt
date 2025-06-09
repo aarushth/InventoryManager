@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.repositories.BoxRepository
-import com.leopardseal.inventorymanagerapp.data.responses.Boxes
+import com.leopardseal.inventorymanagerapp.data.responses.Box
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,15 +21,15 @@ class BoxMultiSelectViewModel @Inject constructor(
 
     private val locationId: Long = savedStateHandle["location_id"] ?: -1L
 
-    private val _boxes = MutableStateFlow<Resource<List<Boxes>>>(Resource.Loading)
-    val boxes: StateFlow<Resource<List<Boxes>>>
+    private val _boxes = MutableStateFlow<Resource<List<Box>>>(Resource.Loading)
+    val boxes: StateFlow<Resource<List<Box>>>
         get() = _boxes
 
-    private val _selectedBoxes = mutableStateListOf<Boxes>()
-    val selectedBoxes: List<Boxes>
+    private val _selectedBoxes = mutableStateListOf<Box>()
+    val selectedBoxes: List<Box>
         get() = _selectedBoxes
 
-    private var initialSelectedBoxes: List<Boxes> = emptyList()
+    private var initialSelectedBoxes: List<Box> = emptyList()
 
     private val _isRefreshing = MutableStateFlow<Boolean>(false)
     val isRefreshing: StateFlow<Boolean>
@@ -65,7 +65,7 @@ class BoxMultiSelectViewModel @Inject constructor(
         }
     }
 
-    fun toggleBoxSelection(box: Boxes) {
+    fun toggleBoxSelection(box: Box) {
         if (_selectedBoxes.contains(box)) {
             _selectedBoxes.remove(box)
         } else {
@@ -74,12 +74,12 @@ class BoxMultiSelectViewModel @Inject constructor(
         _hasChanges.value = !areBoxListsEqual(initialSelectedBoxes, _selectedBoxes)
     }
 
-    private fun areBoxListsEqual(list1: List<Boxes>, list2: List<Boxes>): Boolean {
+    private fun areBoxListsEqual(list1: List<Box>, list2: List<Box>): Boolean {
         val ids1 = list1.mapNotNull { it.id }.toSet()
         val ids2 = list2.mapNotNull { it.id }.toSet()
         return ids1 == ids2
     }
-    fun isSelected(box: Boxes): Boolean {
+    fun isSelected(box: Box): Boolean {
         return _selectedBoxes.contains(box)
     }
     fun syncSelectionWithBackend(onComplete: () -> Unit = {}) {

@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.repositories.ItemRepository
-import com.leopardseal.inventorymanagerapp.data.responses.Items
+import com.leopardseal.inventorymanagerapp.data.responses.Item
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,8 +18,8 @@ class ItemViewModel @Inject constructor(
     private val repository: ItemRepository
 ) : ViewModel(){
 
-    private val _itemResponse = MutableStateFlow<Resource<List<Items>>>(Resource.Loading)
-    val itemResponse: StateFlow<Resource<List<Items>>>
+    private val _itemResponse = MutableStateFlow<Resource<List<Item>>>(Resource.Loading)
+    val itemResponse: StateFlow<Resource<List<Item>>>
         get() = _itemResponse
 
     private val _isRefreshing = MutableStateFlow<Boolean>(false)

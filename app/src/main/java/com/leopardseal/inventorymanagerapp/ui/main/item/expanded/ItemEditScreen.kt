@@ -31,7 +31,7 @@ import coil.request.ImageRequest
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.data.responses.Items
+import com.leopardseal.inventorymanagerapp.data.responses.Item
 import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
 
 import java.io.File
@@ -304,7 +304,7 @@ fun ItemEditScreen(
                         quantity = quantity.toLongOrNull() ?: 0,
                         alert = alertQuantity.toLongOrNull() ?: 0,
                         barcode = barcode.trim(),
-                    ) ?: Items( // or auto-generated if new
+                    ) ?: Item( // or auto-generated if new
                         name = name.trim(),
                         orgId = orgId, // fill this from context or user prefs
                         barcode = barcode.trim(),

@@ -25,7 +25,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.data.responses.Boxes
+import com.leopardseal.inventorymanagerapp.data.responses.Box
 import com.leopardseal.inventorymanagerapp.ui.largeCardIcon
 import com.leopardseal.inventorymanagerapp.ui.main.box.BoxCard
 import com.leopardseal.inventorymanagerapp.ui.main.box.BoxHeaderRow
@@ -52,7 +52,7 @@ fun BoxSingleSelectScreen(
     }
     when (boxState) {
         is Resource.Success<*> -> {
-            val boxes = (boxState as Resource.Success<List<Boxes>>).value.filterNotNull()
+            val boxes = (boxState as Resource.Success<List<Box>>).value.filterNotNull()
             Column(modifier = Modifier.fillMaxSize()) {
 
 

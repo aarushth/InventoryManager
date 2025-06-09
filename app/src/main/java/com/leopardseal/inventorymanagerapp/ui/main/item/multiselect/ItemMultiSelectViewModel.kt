@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.repositories.ItemRepository
-import com.leopardseal.inventorymanagerapp.data.responses.Items
+import com.leopardseal.inventorymanagerapp.data.responses.Item
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,15 +26,15 @@ class ItemMultiSelectViewModel @Inject constructor(
 
     val boxId: Long = savedStateHandle["box_id"] ?: -1L
 
-    private val _items = MutableStateFlow<Resource<List<Items>>>(Resource.Loading)
-    val items: StateFlow<Resource<List<Items>>>
+    private val _items = MutableStateFlow<Resource<List<Item>>>(Resource.Loading)
+    val items: StateFlow<Resource<List<Item>>>
         get() = _items
 
-    private val _selectedItems = mutableStateListOf<Items>()
-    val selectedItems: List<Items>
+    private val _selectedItems = mutableStateListOf<Item>()
+    val selectedItems: List<Item>
         get() = _selectedItems
 
-    private var initialSelectedItems: List<Items> = emptyList()
+    private var initialSelectedItems: List<Item> = emptyList()
 
     private val _isRefreshing = MutableStateFlow<Boolean>(false)
     val isRefreshing: StateFlow<Boolean>
@@ -64,7 +64,7 @@ class ItemMultiSelectViewModel @Inject constructor(
         }
     }
 
-    fun toggleItemSelection(item: Items) {
+    fun toggleItemSelection(item: Item) {
         if (_selectedItems.contains(item)) {
             _selectedItems.remove(item)
         } else {
@@ -73,7 +73,7 @@ class ItemMultiSelectViewModel @Inject constructor(
         _hasChanges.value = !areItemListsEqual(initialSelectedItems, _selectedItems)
     }
 
-    private fun areItemListsEqual(list1: List<Items>, list2: List<Items>): Boolean {
+    private fun areItemListsEqual(list1: List<Item>, list2: List<Item>): Boolean {
         val ids1 = list1.mapNotNull { it.id }.toSet()
         val ids2 = list2.mapNotNull { it.id }.toSet()
         return ids1 == ids2
@@ -86,7 +86,7 @@ class ItemMultiSelectViewModel @Inject constructor(
             _isRefreshing.value = false
         }
     }
-    fun isSelected(item: Items): Boolean {
+    fun isSelected(item: Item): Boolean {
         return _selectedItems.contains(item)
     }
     fun syncSelectionWithBackend(onComplete: () -> Unit = {}) {

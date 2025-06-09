@@ -44,7 +44,7 @@ import com.leopardseal.inventorymanagerapp.R
 
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 
-import com.leopardseal.inventorymanagerapp.data.responses.Orgs
+import com.leopardseal.inventorymanagerapp.data.responses.Org
 
 
 @Composable
@@ -76,7 +76,7 @@ fun InviteScreen(
         }
     }
     LaunchedEffect(invitesResource){
-        if(invitesResource is Resource.Success<List<Orgs>> && (invitesResource as Resource.Success<List<Orgs>>).value.isEmpty()){
+        if(invitesResource is Resource.Success<List<Org>> && (invitesResource as Resource.Success<List<Org>>).value.isEmpty()){
             Toast.makeText(context, "no invites found", Toast.LENGTH_SHORT).show()
             onSkip()
         }
@@ -94,7 +94,7 @@ fun InviteScreen(
                 contentPadding = PaddingValues(vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items((invitesResource as Resource.Success<List<Orgs>>).value) { invite ->
+                items((invitesResource as Resource.Success<List<Org>>).value) { invite ->
                     InviteCard(invite = invite, onAccept = { viewModel.acceptInvite(invite) })
                 }
             }
@@ -109,7 +109,7 @@ fun InviteScreen(
 }
 
 @Composable
-fun InviteCard(invite: Orgs, onAccept: () -> Unit) {
+fun InviteCard(invite: Org, onAccept: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth(),

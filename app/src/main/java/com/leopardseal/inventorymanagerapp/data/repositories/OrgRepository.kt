@@ -2,7 +2,7 @@ package com.leopardseal.inventorymanagerapp.data.repositories
 
 import com.leopardseal.inventorymanagerapp.data.UserPreferences
 import com.leopardseal.inventorymanagerapp.data.network.api.OrgAPI
-import com.leopardseal.inventorymanagerapp.data.responses.Orgs
+import com.leopardseal.inventorymanagerapp.data.responses.Org
 import javax.inject.Inject
 
 class OrgRepository @Inject constructor(
@@ -14,7 +14,7 @@ class OrgRepository @Inject constructor(
         api.getOrgs()
     }
 
-    suspend fun saveOrg(org: Orgs){
+    suspend fun saveOrg(org: Org){
         preferences.saveOrgId(org.id)
         if(org.imageUrl != null) {
             preferences.saveOrgImg(org.imageUrl!!)

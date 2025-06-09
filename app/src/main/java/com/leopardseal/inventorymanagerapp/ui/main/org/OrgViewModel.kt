@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.repositories.OrgRepository
-import com.leopardseal.inventorymanagerapp.data.responses.Orgs
+import com.leopardseal.inventorymanagerapp.data.responses.Org
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,8 +18,8 @@ class OrgViewModel @Inject constructor(
     private val repository: OrgRepository
 ) : ViewModel(){
 
-    private val _orgResponse = MutableStateFlow<Resource<List<Orgs>>>(Resource.Loading)
-    val orgResponse: StateFlow<Resource<List<Orgs>>>
+    private val _orgResponse = MutableStateFlow<Resource<List<Org>>>(Resource.Loading)
+    val orgResponse: StateFlow<Resource<List<Org>>>
         get() = _orgResponse
 
     private val _orgSaved = MutableStateFlow<Boolean>(false)
@@ -32,12 +32,12 @@ class OrgViewModel @Inject constructor(
         _orgSaved.value = false
     }
 
-    fun saveOrg(org: Orgs) = viewModelScope.launch{
+    fun saveOrg(org: Org) = viewModelScope.launch{
         repository.saveOrg(org)
         _orgSaved.emit(true)
     }
     fun getOrgs() = viewModelScope.launch {
-        _orgResponse.value = repository.getOrgs() as Resource<List<Orgs>>
+        _orgResponse.value = repository.getOrgs() as Resource<List<Org>>
     }
 
     

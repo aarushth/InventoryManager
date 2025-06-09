@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.repositories.InviteRepository
-import com.leopardseal.inventorymanagerapp.data.responses.Orgs
+import com.leopardseal.inventorymanagerapp.data.responses.Org
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,8 +18,8 @@ class InviteViewModel @Inject constructor(
         private val repository: InviteRepository
 ) : ViewModel(){
 
-    private val _inviteResponse = MutableStateFlow<Resource<List<Orgs>>>(Resource.Loading)
-    val inviteResponse: StateFlow<Resource<List<Orgs>>>
+    private val _inviteResponse = MutableStateFlow<Resource<List<Org>>>(Resource.Loading)
+    val inviteResponse: StateFlow<Resource<List<Org>>>
     get() = _inviteResponse
 
     fun getInvites() = viewModelScope.launch {
@@ -32,7 +32,7 @@ class InviteViewModel @Inject constructor(
     val acceptResponse: StateFlow<Resource<Unit>>
         get() = _acceptResponse
 
-    fun acceptInvite(invite : Orgs) = viewModelScope.launch {
+    fun acceptInvite(invite : Org) = viewModelScope.launch {
         _acceptResponse.value = repository.acceptInvite(invite.id, invite.role)
     }
 

@@ -64,7 +64,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.data.responses.Boxes
+import com.leopardseal.inventorymanagerapp.data.responses.Box
 import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
 import com.leopardseal.inventorymanagerapp.ui.barcodeIcon
 import com.leopardseal.inventorymanagerapp.ui.cameraIcon
@@ -304,7 +304,7 @@ fun BoxEditScreen(
                         name = name.trim(),
                         barcode = barcode.trim(),
                         size = size
-                    ) ?: Boxes( // or auto-generated if new
+                    ) ?: Box( // or auto-generated if new
                         name = name.trim(),
                         orgId = orgId, // fill this from context or user prefs
                         barcode = barcode.trim(),

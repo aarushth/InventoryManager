@@ -10,9 +10,9 @@ import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.repositories.BoxRepository
 import com.leopardseal.inventorymanagerapp.data.repositories.ImageRepository
 import com.leopardseal.inventorymanagerapp.data.repositories.LocationRepository
-import com.leopardseal.inventorymanagerapp.data.responses.Boxes
-import com.leopardseal.inventorymanagerapp.data.responses.Items
-import com.leopardseal.inventorymanagerapp.data.responses.Locations
+import com.leopardseal.inventorymanagerapp.data.responses.Box
+import com.leopardseal.inventorymanagerapp.data.responses.Item
+import com.leopardseal.inventorymanagerapp.data.responses.Location
 import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
 
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,8 +31,8 @@ class LocationExpandedViewModel @Inject constructor(
 ) : ViewModel() {
     private val locationId: Long = savedStateHandle["location_id"] ?: -1L
 
-    private val _location = MutableStateFlow<Locations?>(repository.getCachedLocationById(locationId))
-    val location: StateFlow<Locations?>
+    private val _location = MutableStateFlow<Location?>(repository.getCachedLocationById(locationId))
+    val location: StateFlow<Location?>
         get() = _location
 
     private val _updateResponse = MutableStateFlow<Resource<SaveResponse>>(Resource.Init)
@@ -74,7 +74,7 @@ class LocationExpandedViewModel @Inject constructor(
             _boxResource.value = boxRepository.getBoxesByLocationId(locationId)
         }
     }
-    fun saveOrUpdateLocation(updatedLocation: Locations, imageChanged : Boolean) = viewModelScope.launch {
+    fun saveOrUpdateLocation(updatedLocation: Location, imageChanged : Boolean) = viewModelScope.launch {
         _updateResponse.value = Resource.Loading
 
         try {
