@@ -27,9 +27,21 @@ class LocationViewModel @Inject constructor(
         get() = _isRefreshing
 
     init {
-        getLocations()
+        if (repository.isLocationListFullyCached()) {
+            getLocations()
+        } else {
+            fetchLocations()
+        }
     }
-    fun getLocations() = viewModelScope.launch {
+    fun getLocations(){
+        val cachedLocation = repository.getCachedLocations()
+        if(cachedLocation is Resource.Failure){
+            fetchLocations()
+        }else{
+            _locationResponse.value = cachedLocation
+        }
+    }
+    fun fetchLocations() = viewModelScope.launch {
         _isRefreshing.value = true
         val response = repository.getLocations()
         _locationResponse.value = response

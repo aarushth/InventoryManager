@@ -71,8 +71,10 @@ import coil.compose.AsyncImage
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
+import com.leopardseal.inventorymanagerapp.data.responses.Invite
+import com.leopardseal.inventorymanagerapp.data.responses.Role
+import com.leopardseal.inventorymanagerapp.data.responses.UserRole
 import com.leopardseal.inventorymanagerapp.data.responses.dto.ManageOrgsResponse
-import com.leopardseal.inventorymanagerapp.data.responses.dto.UserResponse
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,7 +92,7 @@ fun ManageOrgScreen(
     val context = LocalContext.current
 
     var email by remember { mutableStateOf("") }
-    var selectedRole by remember { mutableStateOf("stocker") }
+    var selectedRole by remember { mutableStateOf(Role(2, "stocker")) }
 
     val isEmailValid = Patterns.EMAIL_ADDRESS.matcher(email).matches() && email.endsWith("@gmail.com", ignoreCase = true) && inviteResponse !is Resource.Loading
     when(removeResponse){
@@ -144,7 +146,7 @@ fun ManageOrgScreen(
             viewModel.resetInviteFlag()
             Toast.makeText(context, "$email invited as $selectedRole", Toast.LENGTH_SHORT).show()
             email = ""
-            selectedRole = "stocker"
+            selectedRole = Role(2, "stocker")
         }
         is Resource.Loading -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -214,19 +216,14 @@ fun ManageOrgScreen(
                             ) {
                                 RoleDropdownMenu(
                                     modifier = Modifier.weight(1f),
-                                    selectedSize = selectedRole,
-                                    onSizeSelected = { selectedRole = it }
+                                    selectedRole = selectedRole,
+                                    onRoleSelected = { selectedRole = it }
                                 )
 
                                 Button(
                                     modifier = Modifier.wrapContentWidth(),
                                     onClick = {
-                                        viewModel.invite(
-                                            UserResponse(
-                                                id = null,
-                                                email = email, imgUrl = null, role = selectedRole
-                                            )
-                                        )
+                                        viewModel.invite(email, selectedRole)
                                     },
                                     enabled = isEmailValid
                                 ) {
@@ -244,7 +241,7 @@ fun ManageOrgScreen(
                         )
                     }
                     items(users) { user ->
-                        UserListCard(user, { viewModel.removeUser(it) }, user.email != userEmail)
+                        UserListCard(user, { viewModel.removeUser(user.myUser.id) }, user.myUser.email != userEmail)
                     }
                     if (invites.isNotEmpty()) {
                         item {
@@ -256,7 +253,7 @@ fun ManageOrgScreen(
                             )
                         }
                         items(invites) { invite ->
-                            UserListCard(invite, { viewModel.removeInvite(invite) }, true)
+                            InviteListCard(invite, { viewModel.removeInvite(invite.myUser.id) }, true)
                         }
                     }
                 }
@@ -282,7 +279,7 @@ fun ManageOrgScreen(
     }
 }
 @Composable
-fun UserListCard(user: UserResponse, onUserClick : (user: UserResponse) -> Unit, removeEnabled : Boolean){
+fun UserListCard(user: UserRole, onUserClick : (user: UserRole) -> Unit, removeEnabled : Boolean){
     Column(modifier = Modifier.background(Color.White)){
         Row(
             modifier = Modifier
@@ -295,8 +292,8 @@ fun UserListCard(user: UserResponse, onUserClick : (user: UserResponse) -> Unit,
             Column {
                 Row {
                     AsyncImage(
-                        model = user.imgUrl,
-                        contentDescription = user.email,
+                        model = user.myUser.imgUrl,
+                        contentDescription = user.myUser.email,
                         placeholder = painterResource(R.drawable.default_img),
                         error = painterResource(R.drawable.default_img),
                         fallback = painterResource(R.drawable.default_img),
@@ -308,8 +305,8 @@ fun UserListCard(user: UserResponse, onUserClick : (user: UserResponse) -> Unit,
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Column {
-                        Text(text = user.email, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        Text(text = user.role, fontSize = 12.sp, color = Color.Gray, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(text = user.myUser.email, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Text(text = user.role.role, fontSize = 12.sp, color = Color.Gray, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
             }
@@ -330,12 +327,60 @@ fun UserListCard(user: UserResponse, onUserClick : (user: UserResponse) -> Unit,
     }
 }
 @Composable
+fun InviteListCard(invite: Invite, onInviteClick : (invite: Invite) -> Unit, removeEnabled : Boolean){
+    Column(modifier = Modifier.background(Color.White)){
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(5.dp),
+            horizontalArrangement = SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+
+            ) {
+            Column {
+                Row {
+                    AsyncImage(
+                        model = invite.myUser.imgUrl,
+                        contentDescription = invite.myUser.email,
+                        placeholder = painterResource(R.drawable.default_img),
+                        error = painterResource(R.drawable.default_img),
+                        fallback = painterResource(R.drawable.default_img),
+                        modifier = Modifier
+                            .width(50.dp)
+                            .height(50.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
+                        Text(text = invite.myUser.email, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Text(text = invite.role.role, fontSize = 12.sp, color = Color.Gray, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if(removeEnabled) {
+                    IconButton(onClick = { onInviteClick(invite) }) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Remove user",
+                            modifier = Modifier.padding(end = 8.dp),
+                            tint = Color.Red
+                        )
+                    }
+                }
+            }
+        }
+        HorizontalDivider(color = Color.LightGray, thickness = 0.5.dp)
+    }
+}
+@Composable
 fun RoleDropdownMenu(
     modifier: Modifier = Modifier,
-    selectedSize: String,
-    onSizeSelected: (String) -> Unit
+    selectedRole: Role,
+    onRoleSelected: (roleOpt: Role) -> Unit
 ) {
-    val sizeOptions = listOf("admin", "stocker", "contributer")
+    val roleOptions = listOf(Role(1, "admin"), Role(2, "stocker"), Role(3, "contributer"))
     var expanded by remember { mutableStateOf(false) }
     val textFieldSize = remember { mutableStateOf(IntSize.Zero) }
 
@@ -343,7 +388,7 @@ fun RoleDropdownMenu(
     val indication = LocalIndication.current
     Box(modifier = modifier) {
         OutlinedTextField(
-            value = selectedSize,
+            value = selectedRole.role,
             interactionSource = remember { MutableInteractionSource() }
                 .also { interactionSource ->
                     LaunchedEffect(interactionSource) {
@@ -377,9 +422,9 @@ fun RoleDropdownMenu(
             modifier = Modifier
                 .width(with(LocalDensity.current) { textFieldSize.value.width.toDp() }) // match width
         ) {
-            sizeOptions.forEach { sizeOpt ->
+            roleOptions.forEach { roleOpt ->
                 DropdownMenuItem(
-                    text = { Text(sizeOpt) },
+                    text = { Text(roleOpt.role) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .indication(interactionSource, indication)
@@ -389,7 +434,7 @@ fun RoleDropdownMenu(
                             onClick = {}
                         ),
                     onClick = {
-                        onSizeSelected(sizeOpt)
+                        onRoleSelected(roleOpt)
                         expanded = false
                     }
                 )

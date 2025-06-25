@@ -1,8 +1,6 @@
 package com.leopardseal.inventorymanagerapp.ui.main.location.expanded
 
 
-import android.content.Context
-import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,10 +9,8 @@ import com.leopardseal.inventorymanagerapp.data.repositories.BoxRepository
 import com.leopardseal.inventorymanagerapp.data.repositories.ImageRepository
 import com.leopardseal.inventorymanagerapp.data.repositories.LocationRepository
 import com.leopardseal.inventorymanagerapp.data.responses.Box
-import com.leopardseal.inventorymanagerapp.data.responses.Item
 import com.leopardseal.inventorymanagerapp.data.responses.Location
 import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
-
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -43,25 +39,40 @@ class LocationExpandedViewModel @Inject constructor(
     val isRefreshing: StateFlow<Boolean>
         get() = _isRefreshing
 
-    private val _boxResource = MutableStateFlow<Resource<List<Boxes>>>(Resource.Init)
-    val boxResource: StateFlow<Resource<List<Boxes>>>
+    private val _boxResource = MutableStateFlow<Resource<List<Box>>>(Resource.Init)
+    val boxResource: StateFlow<Resource<List<Box>>>
         get() = _boxResource
 
     init {
         _location.value = repository.getCachedLocationById(locationId)
-        getLocation()
+        if (_location.value == null) {
+            getLocation(true)
+        } else {
+            getBoxes(false)
+        }
     }
     
-    fun getLocation(){
-        _location.value = null
+    fun getLocation(forceRefresh:Boolean){
         _isRefreshing.value = true
+
+        if (!forceRefresh) {
+            val cached = repository.getCachedLocationById(locationId)
+            if (cached != null) {
+                _location.value = cached
+                _isRefreshing.value = false
+                getBoxes(false)
+                return
+            }
+        }
+
         if(locationId >= 0 ) {
             viewModelScope.launch {
                 val response = repository.fetchLocationById(locationId)
                 if (response is Resource.Success) {
                     _location.value = response.value
+                    repository.updateCachedLocation(response.value)
                 }
-                getBoxes()
+                getBoxes(forceRefresh)
                 _isRefreshing.value = false
             }
         }else {
@@ -69,7 +80,14 @@ class LocationExpandedViewModel @Inject constructor(
         }
     }
 
-    fun getBoxes(){
+    fun getBoxes(forceRefresh: Boolean = false) {
+        if (!forceRefresh) {
+            val cachedBoxes = boxRepository.getCachedBoxesByLocationId(locationId)
+            if (cachedBoxes.isNotEmpty()) {
+                _boxResource.value = Resource.Success(cachedBoxes)
+                return
+            }
+        }
         viewModelScope.launch {
             _boxResource.value = boxRepository.getBoxesByLocationId(locationId)
         }
@@ -83,6 +101,7 @@ class LocationExpandedViewModel @Inject constructor(
             if (_updateResponse.value is Resource.Success) {
                 updatedLocation.id = (_updateResponse.value as Resource.Success<SaveResponse>).value.id
                 _location.value = updatedLocation
+                repository.updateCachedLocation(updatedLocation)
             }
 
         } catch (e: Exception) {

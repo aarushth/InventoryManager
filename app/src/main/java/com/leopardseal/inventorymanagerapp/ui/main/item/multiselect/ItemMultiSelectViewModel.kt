@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.repositories.ItemRepository
 import com.leopardseal.inventorymanagerapp.data.responses.Item
+import com.leopardseal.inventorymanagerapp.data.responses.Tag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -44,26 +45,45 @@ class ItemMultiSelectViewModel @Inject constructor(
     val hasChanges: StateFlow<Boolean> = _hasChanges
 
     init {
-        loadItems()
+        if (repository.isItemListFullyCached()) {
+            getItems(true)
+        } else {
+            fetchItems()
+        }
     }
 
-    fun loadItems() {
-        _isRefreshing.value = true
-        viewModelScope.launch {
-            _items.value = Resource.Loading
-            val result = repository.getItems()
-            _items.value = result
+    fun getItems(resetSelected : Boolean) {
 
-            if (result is Resource.Success) {
-                val itemsInBox = result.value.filter { it.boxId == boxId }
-                initialSelectedItems = itemsInBox
-                _selectedItems.clear()
-                _selectedItems.addAll(itemsInBox)
+        _items.value = Resource.Loading
+        val result = repository.getCachedItems()
+        if(result is Resource.Failure){
+            fetchItems()
+        }else{
+            _items.value = result
+            if(resetSelected){
+                getSelected(result as Resource.Success<List<Item>>)
             }
             _isRefreshing.value = false
         }
     }
-
+    fun fetchItems(){
+        _isRefreshing.value = true
+        _hasChanges.value = false
+        viewModelScope.launch {
+            val result = repository.getItems()
+            _items.value = result
+            if (result is Resource.Success<List<Item>>) {
+                getSelected(result)
+            }
+            _isRefreshing.value = false
+        }
+    }
+    fun getSelected(response : Resource.Success<List<Item>>){
+        val itemsInBox = (response as Resource.Success<List<Item>>).value.filter { it.boxId == boxId }
+        initialSelectedItems = itemsInBox
+        _selectedItems.clear()
+        _selectedItems.addAll(itemsInBox)
+    }
     fun toggleItemSelection(item: Item) {
         if (_selectedItems.contains(item)) {
             _selectedItems.remove(item)
@@ -78,14 +98,6 @@ class ItemMultiSelectViewModel @Inject constructor(
         val ids2 = list2.mapNotNull { it.id }.toSet()
         return ids1 == ids2
     }
-    fun refresh(){
-        viewModelScope.launch {
-            _isRefreshing.value = true
-            _items.value = Resource.Loading
-            _items.value = repository.getItems()
-            _isRefreshing.value = false
-        }
-    }
     fun isSelected(item: Item): Boolean {
         return _selectedItems.contains(item)
     }
@@ -97,12 +109,18 @@ class ItemMultiSelectViewModel @Inject constructor(
             // Add boxId to new selections
             newlySelected.forEach { item ->
                 val updatedItem = item.copy(boxId = boxId)
-                repository.updateItem(updatedItem, false)
+                val response = repository.updateItem(updatedItem, false)
+                if(response is Resource.Success){
+                    repository.updateCachedItem(updatedItem)
+                }
             }
 
             deselected.forEach { item ->
                 val updatedItem = item.copy(boxId = null)
-                repository.updateItem(updatedItem, false)
+                val response = repository.updateItem(updatedItem, false)
+                if(response is Resource.Success){
+                    repository.updateCachedItem(updatedItem)
+                }
             }
             _hasChanges.value = false
             onComplete()

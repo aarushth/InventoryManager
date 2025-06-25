@@ -39,16 +39,22 @@ class BoxMultiSelectViewModel @Inject constructor(
     val hasChanges: StateFlow<Boolean> = _hasChanges
 
     init {
-        loadBoxes()
-    }
-    fun refresh(){
-        _isRefreshing.value = true
-        viewModelScope.launch {
-            _boxes.value = repository.getBoxes()
-            _isRefreshing.value = false
+        if (repository.isBoxListFullyCached()) {
+            getBoxes()
+        } else {
+            fetchBoxes()
         }
     }
-    fun loadBoxes() {
+    fun getBoxes(){
+        val result = repository.getCachedBoxes()
+        if(result is Resource.Success){
+            _boxes.value = result
+            getSelected(result)
+        }else{
+            fetchBoxes()
+        }
+    }
+    fun fetchBoxes() {
         _isRefreshing.value = true
         viewModelScope.launch {
             _boxes.value = Resource.Loading
@@ -56,15 +62,17 @@ class BoxMultiSelectViewModel @Inject constructor(
             _boxes.value = result
 
             if (result is Resource.Success) {
-                val boxesInLocation = result.value.filter { it.locationId == locationId }
-                initialSelectedBoxes = boxesInLocation
-                _selectedBoxes.clear()
-                _selectedBoxes.addAll(boxesInLocation)
+                getSelected(result)
             }
             _isRefreshing.value = false
         }
     }
-
+    private fun getSelected(response : Resource.Success<List<Box>>){
+        val boxesInLocation = response.value.filter { it.locationId == locationId }
+        initialSelectedBoxes = boxesInLocation
+        _selectedBoxes.clear()
+        _selectedBoxes.addAll(boxesInLocation)
+    }
     fun toggleBoxSelection(box: Box) {
         if (_selectedBoxes.contains(box)) {
             _selectedBoxes.remove(box)
@@ -90,12 +98,18 @@ class BoxMultiSelectViewModel @Inject constructor(
             // Add locationId to new selections
             newlySelected.forEach { box ->
                 val updatedBox = box.copy(locationId = locationId)
-                repository.updateBox(updatedBox, false)
+                val response = repository.updateBox(updatedBox, false)
+                if(response is Resource.Success){
+                    repository.updateCachedBox(updatedBox)
+                }
             }
 
             deselected.forEach { box ->
                 val updatedBox = box.copy(locationId = null)
-                repository.updateBox(updatedBox, false)
+                val response = repository.updateBox(updatedBox, false)
+                if(response is Resource.Success){
+                    repository.updateCachedBox(updatedBox)
+                }
             }
             _hasChanges.value = false
             onComplete()

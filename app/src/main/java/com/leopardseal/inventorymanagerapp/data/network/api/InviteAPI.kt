@@ -1,6 +1,6 @@
 package com.leopardseal.inventorymanagerapp.data.network.api
 
-import com.leopardseal.inventorymanagerapp.data.responses.Orgs
+import com.leopardseal.inventorymanagerapp.data.responses.Invite
 import retrofit2.Response
 
 import retrofit2.http.Field
@@ -10,7 +10,7 @@ import retrofit2.http.POST
 
 interface InviteAPI {
     @GET("get_invites")
-    suspend fun getInvites() : Response<List<Orgs>>
+    suspend fun getInvites() : Response<List<Invite>>
 
     @FormUrlEncoded
     @POST("accept_invite")

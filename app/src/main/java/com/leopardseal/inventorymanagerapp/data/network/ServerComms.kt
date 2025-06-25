@@ -19,7 +19,7 @@ class ServerComms @Inject constructor(){
         private const val BASE_URL = "https://leopardseal.duckdns.org"
 
 //        use this when testing on local server, change to pc ip
-//        private const val BASE_URL = "http://192.168.68.68:8080"
+//        private const val BASE_URL = "http://192.168.68.72:8080"
     }
 
 
@@ -29,8 +29,9 @@ class ServerComms @Inject constructor(){
     ):Api {
 
         val okHttpClient = OkHttpClient.Builder()
-            .addInterceptor(HttpLoggingInterceptor())
+
             .addInterceptor(AuthInterceptor(userPreferences))
+            .addInterceptor(LoggingInterceptor())
             .readTimeout(60, TimeUnit.SECONDS)
             .connectTimeout(60, TimeUnit.SECONDS)
             .build()

@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.repositories.ManageOrgRepository
+import com.leopardseal.inventorymanagerapp.data.responses.Role
 import com.leopardseal.inventorymanagerapp.data.responses.dto.ManageOrgsResponse
-import com.leopardseal.inventorymanagerapp.data.responses.dto.UserResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -50,10 +50,10 @@ class ManageOrgViewModel @Inject constructor(
         }
     }
 
-    fun removeUser(user : UserResponse){
+    fun removeUser(userId : Long){
         viewModelScope.launch {
             _removeResponse.value = Resource.Loading
-            _removeResponse.value = repository.removeUser(user)
+            _removeResponse.value = repository.removeUser(userId)
         }
     }
 
@@ -62,10 +62,10 @@ class ManageOrgViewModel @Inject constructor(
         getUserList()
     }
 
-    fun invite(userResponse: UserResponse) {
+    fun invite(email : String, role: Role) {
         viewModelScope.launch {
             _inviteResponse.value = Resource.Loading
-            _inviteResponse.value = repository.invite(userResponse)
+            _inviteResponse.value = repository.invite(email, role)
         }
     }
 
@@ -74,10 +74,10 @@ class ManageOrgViewModel @Inject constructor(
         getUserList()
     }
 
-    fun removeInvite(user : UserResponse){
+    fun removeInvite(userId : Long){
         viewModelScope.launch {
             _removeInviteResponse.value = Resource.Loading
-            _removeInviteResponse.value = repository.removeInvite(user)
+            _removeInviteResponse.value = repository.removeInvite(userId)
         }
     }
 

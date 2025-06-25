@@ -36,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -75,7 +76,9 @@ fun LocationScreen(
 
     val context = LocalContext.current
     var isSmallCard by remember{ mutableStateOf(true) }
-
+    LaunchedEffect(Unit){
+        viewModel.getLocations()
+    }
     when (locationState) {
         is Resource.Success -> {
             val locations = (locationState as Resource.Success<List<Location>>).value
@@ -93,7 +96,7 @@ fun LocationScreen(
                 PullToRefreshBox(
                     state = refreshState,
                     isRefreshing = isRefreshing,
-                    onRefresh = {viewModel.getLocations()}
+                    onRefresh = {viewModel.fetchLocations()}
                 ) {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(if (isSmallCard) {1} else {2}),

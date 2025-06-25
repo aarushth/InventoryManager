@@ -44,6 +44,7 @@ import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStat
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.responses.Org
+import com.leopardseal.inventorymanagerapp.data.responses.UserRole
 
 
 @Composable
@@ -84,7 +85,7 @@ fun OrgScreen(
         }
 
         is Resource.Success -> {
-            val orgs = (orgsResource as Resource.Success<List<Org>>).value
+            val userRoles = (orgsResource as Resource.Success<List<UserRole>>).value
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -92,15 +93,15 @@ fun OrgScreen(
                 contentPadding = PaddingValues(vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(orgs) { org ->
-                    OrgCard(org = org, onClick = { viewModel.saveOrg(org) })
+                items(userRoles) { userRole ->
+                    OrgCard(userRole = userRole, onClick = { viewModel.saveOrg(userRole) })
                 }
             }
         }
     }
 }
 @Composable
-fun OrgCard(org: Org, onClick: () -> Unit) {
+fun OrgCard(userRole: UserRole, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -111,8 +112,8 @@ fun OrgCard(org: Org, onClick: () -> Unit) {
     ) {
         Row(modifier = Modifier.padding(12.dp)) {
             AsyncImage(
-                model = org.imageUrl,
-                contentDescription = org.name,
+                model = userRole.org.imageUrl,
+                contentDescription = userRole.org.name,
                 placeholder = painterResource(R.drawable.default_img),
                 error = painterResource(R.drawable.default_img),
                 fallback = painterResource(R.drawable.default_img),
@@ -125,14 +126,14 @@ fun OrgCard(org: Org, onClick: () -> Unit) {
             Spacer(modifier = Modifier.width(16.dp))
             Column {
                 Text(
-                    text = org.name,
+                    text = userRole.org.name,
                     fontSize = 20.sp,
                     color = Color.Black,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = org.role,
+                    text = userRole.role.role,
                     fontSize = 14.sp,
                     color = Color.Gray
                 )

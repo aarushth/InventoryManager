@@ -39,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -82,6 +83,9 @@ fun BoxScreen(
 
     val context = LocalContext.current
     var isSmallCard by rememberSaveable{mutableStateOf(true)}
+    LaunchedEffect(Unit){
+        viewModel.getBoxes()
+    }
     when (boxState) {
         is Resource.Success -> {
             val boxes = (boxState as Resource.Success<List<Box>>).value.filterNotNull()
@@ -100,7 +104,7 @@ fun BoxScreen(
                 PullToRefreshBox(
                     state = refreshState,
                     isRefreshing = isRefreshing,
-                    onRefresh = {viewModel.getBoxes()}
+                    onRefresh = {viewModel.fetchBoxes()}
                 ) {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(if (isSmallCard) {1} else {2}),
@@ -238,7 +242,7 @@ fun BoxListCard(box: Box, onClick: () -> Unit, selectable : Boolean = false, sel
                 Spacer(modifier = Modifier.width(10.dp))
                 Column {
                     Text(text = box.name, fontSize = 18.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(text = box.size?:"", fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(text = box.size?.size?:"", fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(text = box.barcode!!, fontSize = 12.sp, color = Color.Gray, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }

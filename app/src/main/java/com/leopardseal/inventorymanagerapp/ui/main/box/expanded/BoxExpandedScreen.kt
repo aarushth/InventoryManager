@@ -15,9 +15,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -44,7 +44,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.modifier.modifierLocalProvider
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -56,8 +55,8 @@ import coil.compose.AsyncImage
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.data.responses.Items
-import com.leopardseal.inventorymanagerapp.data.responses.Locations
+import com.leopardseal.inventorymanagerapp.data.responses.Item
+import com.leopardseal.inventorymanagerapp.data.responses.Location
 import com.leopardseal.inventorymanagerapp.ui.main.item.ItemHeaderRow
 import com.leopardseal.inventorymanagerapp.ui.main.item.ItemListCard
 import com.leopardseal.inventorymanagerapp.ui.main.location.LocationListCard
@@ -82,14 +81,9 @@ fun BoxExpandedScreen(
 
     var saveEnable by remember { mutableStateOf(true) }
 
-    LaunchedEffect(savedStateHandle) {
-        val refresh = savedStateHandle?.getLiveData<Boolean>("refresh")
-        refresh?.observeForever { shouldRefresh ->
-            if (shouldRefresh == true) {
-                viewModel.getBox()
-                savedStateHandle["refresh"] = false
-            }
-        }
+
+    LaunchedEffect(Unit){
+        viewModel.getBox(false)
     }
     LaunchedEffect(box) {
         viewModel.setLocationIdIfNotPresent(box?.locationId)
@@ -129,7 +123,7 @@ fun BoxExpandedScreen(
         PullToRefreshBox(
             state = refreshState,
             isRefreshing = isRefreshing,
-            onRefresh = { viewModel.getBox() }
+            onRefresh = { viewModel.getBox(true) }
         ) {
             LazyColumn(
                 modifier = Modifier
@@ -194,7 +188,7 @@ fun BoxExpandedScreen(
                         }
 
                         Text(
-                            text = box!!.size!!,
+                            text = box!!.size!!.size,
                             color = Color.Black,
                             modifier = Modifier.padding(top = 4.dp, end = 8.dp)
                         )
@@ -224,7 +218,7 @@ fun BoxExpandedScreen(
                     )
                 }
                 if (itemState is Resource.Success) {
-                    val items = (itemState as Resource.Success<List<Items>>).value
+                    val items = (itemState as Resource.Success<List<Item>>).value
                     items(items) { item ->
                         ItemListCard(
                             item = item,
@@ -255,7 +249,7 @@ fun BoxExpandedScreen(
 }
 
 @Composable
-fun LocationChangeCard(location: Locations?, onLocationClick: () -> Unit, onChangeLocation: () -> Unit){
+fun LocationChangeCard(location: Location?, onLocationClick: () -> Unit, onChangeLocation: () -> Unit){
     Row(
         modifier = Modifier
             .fillMaxWidth()

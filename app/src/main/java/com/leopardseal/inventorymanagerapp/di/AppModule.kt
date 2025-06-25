@@ -12,6 +12,7 @@ import com.leopardseal.inventorymanagerapp.data.network.api.LocationAPI
 import com.leopardseal.inventorymanagerapp.data.network.api.ManageOrgAPI
 import com.leopardseal.inventorymanagerapp.data.network.api.SearchAPI
 import com.leopardseal.inventorymanagerapp.data.network.api.SettingAPI
+import com.leopardseal.inventorymanagerapp.data.network.api.TagAPI
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -71,4 +72,8 @@ object AppModule{
         return serverComms.buildApi(ManageOrgAPI::class.java, userPreferences)
     }
 
+    @Provides
+    fun provideTagApi(userPreferences: UserPreferences, serverComms: ServerComms) : TagAPI {
+        return serverComms.buildApi(TagAPI::class.java, userPreferences)
+    }
 }

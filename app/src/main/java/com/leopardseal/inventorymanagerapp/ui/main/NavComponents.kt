@@ -30,6 +30,7 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -102,7 +103,9 @@ fun NavigationDrawerContent(navController: NavController, userImg : String?, use
                 
             }
         )
-        if(role == "admin"){
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = navBackStackEntry?.destination?.route
+        if(role == "admin" && currentRoute != "org" && currentRoute != "invite"){
             HorizontalDivider(color = Color.LightGray, thickness = 0.5.dp)
             NavigationDrawerItem(
                 icon = { Icon(Icons.Default.MoreVert, contentDescription = "Manage Org") },
@@ -146,19 +149,31 @@ fun BottomNavBar(navController: NavController) {
     NavigationBar {
         NavigationBarItem(
             selected = currentDestination == "item",
-            onClick = { navController.navigate("item") },
+            onClick = { navController.navigate("item") {
+                popUpTo("item") {
+                    inclusive = true
+                }
+                launchSingleTop = true } },
             icon = { Icon(itemIcon, contentDescription = "Items") },
             label = { Text("Items") }
         )
         NavigationBarItem(
             selected = currentDestination == "box",
-            onClick = { navController.navigate("box") },
+            onClick = { navController.navigate("box") {
+                popUpTo("box") {
+                    inclusive = true
+                }
+                launchSingleTop = true } },
             icon = { Icon(boxIcon, contentDescription = "Boxes") },
             label = { Text("Boxes") }
         )
         NavigationBarItem(
             selected = currentDestination == "location",
-            onClick = { navController.navigate("location") },
+            onClick = { navController.navigate("location") {
+                popUpTo("location") {
+                    inclusive = true
+                }
+                launchSingleTop = true } },
             icon = { Icon(Icons.Default.LocationOn, contentDescription = "Locations") },
             label = { Text("Locations") }
         )

@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.repositories.OrgRepository
 import com.leopardseal.inventorymanagerapp.data.responses.Org
+import com.leopardseal.inventorymanagerapp.data.responses.UserRole
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,8 +33,8 @@ class OrgViewModel @Inject constructor(
         _orgSaved.value = false
     }
 
-    fun saveOrg(org: Org) = viewModelScope.launch{
-        repository.saveOrg(org)
+    fun saveOrg(userRole: UserRole) = viewModelScope.launch{
+        repository.saveOrg(userRole)
         _orgSaved.emit(true)
     }
     fun getOrgs() = viewModelScope.launch {

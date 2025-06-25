@@ -24,9 +24,21 @@ class BoxViewModel @Inject constructor(
     val isRefreshing: StateFlow<Boolean>
         get() = _isRefreshing
     init {
-        getBoxes()
+        if (repository.isBoxListFullyCached()) {
+            getBoxes()
+        } else {
+            fetchBoxes()
+        }
     }
-    fun getBoxes() = viewModelScope.launch {
+    fun getBoxes(){
+        val cachedBoxes = repository.getCachedBoxes()
+        if(cachedBoxes is Resource.Failure){
+            fetchBoxes()
+        }else{
+            _boxResponse.value = cachedBoxes
+        }
+    }
+    fun fetchBoxes() = viewModelScope.launch {
         _isRefreshing.value = true
         val response = repository.getBoxes() as Resource<List<Box>>
         _boxResponse.value = response

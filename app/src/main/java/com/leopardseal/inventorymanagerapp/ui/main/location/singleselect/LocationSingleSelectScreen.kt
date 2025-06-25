@@ -97,7 +97,7 @@ fun LocationSingleSelectScreen(
                 PullToRefreshBox(
                     state = refreshState,
                     isRefreshing = isRefreshing,
-                    onRefresh = {viewModel.getLocations()}
+                    onRefresh = {viewModel.fetchLocations()}
                 ) {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(if (isSmallCard) {1} else {2}),

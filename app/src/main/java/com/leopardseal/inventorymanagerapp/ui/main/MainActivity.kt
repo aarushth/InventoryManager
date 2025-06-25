@@ -80,6 +80,7 @@ import com.leopardseal.inventorymanagerapp.ui.main.invite.InviteScreen
 import com.leopardseal.inventorymanagerapp.ui.main.item.ItemScreen
 import com.leopardseal.inventorymanagerapp.ui.main.item.expanded.ItemExpandedScreen
 import com.leopardseal.inventorymanagerapp.ui.main.item.multiselect.ItemMultiSelectScreen
+import com.leopardseal.inventorymanagerapp.ui.main.item.tag.TagSelectScreen
 import com.leopardseal.inventorymanagerapp.ui.main.location.LocationScreen
 import com.leopardseal.inventorymanagerapp.ui.main.location.LocationSingleSelectScreen
 import com.leopardseal.inventorymanagerapp.ui.main.location.expanded.LocationEditScreen
@@ -91,6 +92,7 @@ import com.leopardseal.inventorymanagerapp.ui.main.search.SearchViewModel
 import com.leopardseal.inventorymanagerapp.ui.main.setting.SettingScreen
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -108,7 +110,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun logoutAndRedirectToLogin() {
+    private fun logoutAndRedirectToLogin() {
         lifecycleScope.launch {
             userPreferences.clear()
             val intent = Intent(this@MainActivity, LoginActivity::class.java).apply {
@@ -117,8 +119,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
     }
-
-    @SuppressLint("RememberReturnType")
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun MainScreen() {
@@ -161,9 +161,16 @@ class MainActivity : AppCompatActivity() {
             currentRoute.startsWith("locationSingleSelect")-> "Select A Location"
             else -> orgName
         }
-        
-        val isSearchScreen = currentRoute == "search"
+        //        navController.addOnDestinationChangedListener { controller, _, _ ->
+        //            val routes = controller
+        //                .currentBackStack.value
+        //                .map { it.destination.route }
+        //                .joinToString(", ")
+        //
+        //            Log.d("BackStackLog", "BackStack: $routes")
+        //        }
 
+        val isSearchScreen = currentRoute == "search"
         val focusRequester = remember { FocusRequester() }
         LaunchedEffect(isSearchScreen) {
             if (isSearchScreen) {
@@ -190,8 +197,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
             },
-            drawerState = drawerState,
-            gesturesEnabled = drawerGesturesEnabled
+            drawerState = drawerState
         ) {
             Scaffold(
                 topBar = {
@@ -240,13 +246,13 @@ class MainActivity : AppCompatActivity() {
                             }
                         },
                         navigationIcon = {
-                            if (drawerGesturesEnabled) {
-                                IconButton(onClick = {
-                                    scope.launch { drawerState.open() }
-                                }) {
-                                    Icon(Icons.Default.Menu, contentDescription = "Menu")
-                                }
+
+                            IconButton(onClick = {
+                                scope.launch { drawerState.open() }
+                            }) {
+                                Icon(Icons.Default.Menu, contentDescription = "Menu")
                             }
+
                         },
                         actions = {
                             IconButton(onClick = {
@@ -344,6 +350,7 @@ class MainActivity : AppCompatActivity() {
                     },
                     onComplete = { itemId ->
                         if(goToExpanded){
+                            navController.popBackStack()
                             navController.navigate("itemExpanded/${itemId}") {
                                 popUpTo("locationExpanded/${itemId}") { inclusive = true }
                             }
@@ -361,10 +368,6 @@ class MainActivity : AppCompatActivity() {
                 ItemMultiSelectScreen(
                     navController = navController,
                     onConfirmSelection = {
-                        navController.previousBackStackEntry
-                            ?.savedStateHandle
-                            ?.set("refresh", true)
-
                         navController.popBackStack()})
             }
             composable("box") {
@@ -389,10 +392,15 @@ class MainActivity : AppCompatActivity() {
                 BoxMultiSelectScreen(
                     navController = navController,
                     onConfirmSelection = {
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("refresh", true)
                     navController.popBackStack()})
+            }
+            composable(
+                route = "tagsMultiSelect/{item_id}",
+                arguments = listOf(navArgument("item_id"){type = NavType.LongType})
+            ){
+                TagSelectScreen(
+                    navController = navController
+                )
             }
             composable(
                 route = "boxExpanded/{box_id}",
@@ -414,6 +422,7 @@ class MainActivity : AppCompatActivity() {
                     orgId = runBlocking { userPreferences.orgId.first()?:-1L },
                     onComplete = { boxId ->
                         if(goToExpanded){
+                            navController.popBackStack()
                             navController.navigate("boxExpanded/${boxId}") {
                                 popUpTo("boxExpanded/${boxId}") { inclusive = true }
                             }
@@ -458,6 +467,7 @@ class MainActivity : AppCompatActivity() {
                     orgId = runBlocking { userPreferences.orgId.first()?:-1L },
                     onContinue = { locationId ->
                         if(goToExpanded){
+                            navController.popBackStack()
                             navController.navigate("locationExpanded/${locationId}") {
                                 popUpTo("locationExpanded/${locationId}") { inclusive = true }
                             }

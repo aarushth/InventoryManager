@@ -304,6 +304,7 @@ fun ItemEditScreen(
                         quantity = quantity.toLongOrNull() ?: 0,
                         alert = alertQuantity.toLongOrNull() ?: 0,
                         barcode = barcode.trim(),
+                        tags = emptyList()
                     ) ?: Item( // or auto-generated if new
                         name = name.trim(),
                         orgId = orgId, // fill this from context or user prefs
@@ -312,7 +313,8 @@ fun ItemEditScreen(
                         boxId = null,
                         quantity = quantity.toLongOrNull() ?: 0,
                         alert = alertQuantity.toLongOrNull() ?: 0,
-                        imageUrl = null
+                        imageUrl = null,
+                        tags = emptyList()
                     )
                     viewModel.saveOrUpdateItem(newItem, (imageFile != null))
                 },

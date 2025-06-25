@@ -1,5 +1,6 @@
 package com.leopardseal.inventorymanagerapp.ui.main.item.multiselect
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -25,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.responses.Item
 import com.leopardseal.inventorymanagerapp.ui.main.item.ItemHeaderRow
@@ -44,54 +44,64 @@ fun ItemMultiSelectScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsState()
 
     LaunchedEffect(Unit){
-        viewModel.refresh()
+        viewModel.getItems(false)
+
     }
     if(itemsState is Resource.Success) {
-        val items = remember {(itemsState as Resource.Success<List<Item>>).value}
-        Column(modifier = Modifier.fillMaxSize()) {
+        val items = (itemsState as Resource.Success<List<Item>>).value
+        Box {
+            Column(modifier = Modifier.fillMaxSize()) {
 
-            ItemHeaderRow(hasItems = items.isNotEmpty(),
-                isCardSizeToggleable = false,
-                isAddable = true,
-                icon = null,
-                toggleCardSize = {},
-                onAddClick = {navController.navigate("itemEdit/${-1L}/${false}")})
+                ItemHeaderRow(hasItems = items.isNotEmpty(),
+                    isCardSizeToggleable = false,
+                    isAddable = true,
+                    icon = null,
+                    toggleCardSize = {},
+                    onAddClick = { navController.navigate("itemEdit/${-1L}/${false}") })
 
-            val refreshState = rememberPullToRefreshState()
-            PullToRefreshBox(
-                modifier = Modifier.fillMaxSize(),
-                state = refreshState,
-                isRefreshing = isRefreshing,
-                onRefresh = { viewModel.loadItems() }
-            ) {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(1),
-                    contentPadding = PaddingValues(8.dp)
+                val refreshState = rememberPullToRefreshState()
+                PullToRefreshBox(
+                    modifier = Modifier.fillMaxSize(),
+                    state = refreshState,
+                    isRefreshing = isRefreshing,
+                    onRefresh = { viewModel.fetchItems() }
                 ) {
-                    items(items) { item ->
-                        ItemListCard(
-                            item = item,
-                            onClick = { item.id?.let { viewModel.toggleItemSelection(item) } }, selectable = true, selected = viewModel.isSelected(item))
-                    }
-                }
-                Spacer(modifier = Modifier.height(40.dp))
-                if(hasChanges) {
-                    Button(
-                        onClick = {
-                            viewModel.syncSelectionWithBackend {
-                                onConfirmSelection(viewModel.selectedItems)
-                            }
-                        },
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(16.dp)
-                            .fillMaxWidth()
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(1),
+                        contentPadding = PaddingValues(8.dp)
                     ) {
-                        Text("Save")
+                        items(items) { item ->
+                            ItemListCard(
+                                item = item,
+                                onClick = { item.id?.let { viewModel.toggleItemSelection(item) } },
+                                selectable = true,
+                                selected = viewModel.isSelected(item)
+                            )
+                        }
+                        item{
+                            Spacer(modifier = Modifier.height(72.dp))
+                        }
                     }
-                }
-            }
 
+                }
+
+            }
+            if (hasChanges) {
+                Button(
+                    onClick = {
+                        viewModel.syncSelectionWithBackend {
+                            onConfirmSelection(viewModel.selectedItems)
+                        }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp)
+                        .fillMaxWidth()
+                ) {
+                    Text("Save")
+                }
+
+            }
         }
     }
 }

@@ -4,8 +4,8 @@
 - ~~show small box cards~~
 - ~~show small location cards~~
 - ~~search~~
-- tags
-- filters
+- ~~tags~~
+- ~~filters~~
 - ~~scan to search~~
 
 # LATER
@@ -14,7 +14,7 @@
 - ~~new login goes to orgs page to choose~~
 - no orgs goes to invites to accept
 - ~~migrate login page to compose~~
-- admin manage orgs/invite people
+- ~~admin manage orgs/invite people~~
 - ~~user image in side bar~~
 - scan many to add to box
 - 3D model for box locations

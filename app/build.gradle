@@ -119,6 +119,7 @@ dependencies {
     implementation 'com.google.mlkit:barcode-scanning:17.2.0'
 
     implementation "com.google.accompanist:accompanist-permissions:0.34.0"
+    implementation("com.google.accompanist:accompanist-flowlayout:0.30.1")
 
 }
 

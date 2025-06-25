@@ -40,7 +40,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.data.responses.Boxes
+import com.leopardseal.inventorymanagerapp.data.responses.Box
 import com.leopardseal.inventorymanagerapp.ui.main.box.BoxHeaderRow
 import com.leopardseal.inventorymanagerapp.ui.main.box.BoxListCard
 
@@ -52,28 +52,21 @@ fun LocationExpandedScreen(
     navController: NavController
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
-    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+    val savedStateHandle = currentBackStackEntry?.savedStateHandle
 
     val location by viewModel.location.collectAsState()
     val boxState by viewModel.boxResource.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
 
-    LaunchedEffect(savedStateHandle) {
-        val refresh = savedStateHandle?.getLiveData<Boolean>("refresh")
-        refresh?.observeForever { shouldRefresh ->
-            if (shouldRefresh == true) {
-                viewModel.getLocation()
-                savedStateHandle["refresh"] = false
-            }
-        }
+    LaunchedEffect(Unit){
+        viewModel.getLocation(false)
     }
-
     if(location != null){
         val refreshState = rememberPullToRefreshState()
         PullToRefreshBox(
             state = refreshState,
             isRefreshing = isRefreshing,
-            onRefresh = {viewModel.getLocation()}
+            onRefresh = {viewModel.getLocation(true)}
         ) {
             LazyColumn(
                 modifier = Modifier
@@ -141,7 +134,7 @@ fun LocationExpandedScreen(
                 }
                 item{
 
-                    BoxHeaderRow(hasBoxes = (boxState as? Resource.Success)?.value?.isNotEmpty() ?: false,
+                    BoxHeaderRow(hasBoxes = (boxState as? Resource.Success<List<Box>>)?.value?.isNotEmpty() ?: false,
                         isCardSizeToggleable = false,
                         isAddable = true,
                         toggleCardSize = {},
@@ -150,7 +143,7 @@ fun LocationExpandedScreen(
                     )
                 }
                 if (boxState is Resource.Success) {
-                    val boxes = (boxState as Resource.Success<List<Boxes>>).value
+                    val boxes = (boxState as Resource.Success<List<Box>>).value
                     items(boxes) { box ->
                         BoxListCard(
                             box = box,

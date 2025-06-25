@@ -1,6 +1,5 @@
 package com.leopardseal.inventorymanagerapp.ui.main.box.multiselect
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -44,7 +43,7 @@ fun BoxMultiSelectScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsState()
 
     LaunchedEffect(Unit){
-        viewModel.refresh()
+        viewModel.getBoxes()
     }
     if(boxesState is Resource.Success<*>) {
         val boxes = (boxesState as Resource.Success<List<Box>>).value
@@ -62,7 +61,7 @@ fun BoxMultiSelectScreen(
                 modifier = Modifier.fillMaxSize(),
                 state = refreshState,
                 isRefreshing = isRefreshing,
-                onRefresh = { viewModel.loadBoxes() }
+                onRefresh = { viewModel.fetchBoxes() }
             ) {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(1),

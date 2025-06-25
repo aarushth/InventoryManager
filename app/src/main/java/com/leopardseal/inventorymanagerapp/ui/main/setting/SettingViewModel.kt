@@ -30,4 +30,5 @@ class SettingViewModel @Inject constructor(
             _versionResponse.value = repository.getVersion()
         }
     }
+
 }

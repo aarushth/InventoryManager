@@ -68,7 +68,7 @@ fun BoxSingleSelectScreen(
                 PullToRefreshBox(
                     state = refreshState,
                     isRefreshing = isRefreshing,
-                    onRefresh = {viewModel.getBoxes()}
+                    onRefresh = {viewModel.fetchBoxes()}
                 ) {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(if (isSmallCard) {1} else {2}),

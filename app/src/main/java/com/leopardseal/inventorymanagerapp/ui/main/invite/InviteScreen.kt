@@ -1,6 +1,5 @@
 package com.leopardseal.inventorymanagerapp.ui.main.invite
 
-import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -38,13 +37,11 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
 
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-
-import com.leopardseal.inventorymanagerapp.data.responses.Org
+import com.leopardseal.inventorymanagerapp.data.responses.Invite
 
 
 @Composable
@@ -76,7 +73,7 @@ fun InviteScreen(
         }
     }
     LaunchedEffect(invitesResource){
-        if(invitesResource is Resource.Success<List<Org>> && (invitesResource as Resource.Success<List<Org>>).value.isEmpty()){
+        if(invitesResource is Resource.Success<List<Invite>> && (invitesResource as Resource.Success<List<Invite>>).value.isEmpty()){
             Toast.makeText(context, "no invites found", Toast.LENGTH_SHORT).show()
             onSkip()
         }
@@ -94,7 +91,7 @@ fun InviteScreen(
                 contentPadding = PaddingValues(vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items((invitesResource as Resource.Success<List<Org>>).value) { invite ->
+                items((invitesResource as Resource.Success<List<Invite>>).value) { invite ->
                     InviteCard(invite = invite, onAccept = { viewModel.acceptInvite(invite) })
                 }
             }
@@ -109,7 +106,7 @@ fun InviteScreen(
 }
 
 @Composable
-fun InviteCard(invite: Org, onAccept: () -> Unit) {
+fun InviteCard(invite: Invite, onAccept: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth(),
@@ -123,8 +120,8 @@ fun InviteCard(invite: Org, onAccept: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
-                model = invite.imageUrl,
-                contentDescription = invite.name,
+                model = invite.org.imageUrl,
+                contentDescription = invite.org.name,
                 placeholder = painterResource(R.drawable.default_img),
                 error = painterResource(R.drawable.default_img),
                 fallback = painterResource(R.drawable.default_img),
@@ -141,14 +138,14 @@ fun InviteCard(invite: Org, onAccept: () -> Unit) {
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = invite.name,
+                    text = invite.org.name,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = invite.role,
+                    text = invite.role.role,
                     fontSize = 14.sp,
                     color = Color.Gray
                 )

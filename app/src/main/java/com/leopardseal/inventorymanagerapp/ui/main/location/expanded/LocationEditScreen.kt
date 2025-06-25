@@ -92,7 +92,7 @@ fun LocationEditScreen(
 
     LaunchedEffect(Unit){
         if(!initialized.value){
-            viewModel.getLocation()
+            viewModel.getLocation(false)
         }
     }
     LaunchedEffect(location) {

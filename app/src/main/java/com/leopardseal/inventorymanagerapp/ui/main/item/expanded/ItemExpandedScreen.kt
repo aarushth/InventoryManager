@@ -2,18 +2,18 @@ package com.leopardseal.inventorymanagerapp.ui.main.item.expanded
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement.SpaceBetween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
@@ -58,11 +58,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
+import com.google.accompanist.flowlayout.FlowRow
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.data.responses.Boxes
-import com.leopardseal.inventorymanagerapp.data.responses.Locations
+import com.leopardseal.inventorymanagerapp.data.responses.Box
+import com.leopardseal.inventorymanagerapp.data.responses.Location
 import com.leopardseal.inventorymanagerapp.ui.main.box.BoxListCard
 import com.leopardseal.inventorymanagerapp.ui.main.location.LocationListCard
 import com.leopardseal.inventorymanagerapp.ui.subtractIcon
@@ -85,23 +86,25 @@ fun ItemExpandedScreen(
     val updateResponse by viewModel.updateResponse.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
 
-    LaunchedEffect(item) {
-        viewModel.setBoxIdIfNotPresent(item?.boxId)
-        currentQuantity = item?.quantity : 0L
-        originalQuantity = item?quantity : 0L
-    }
 
     val selectedBoxId = currentBackStackEntry?.savedStateHandle?.get<Long>("box_id")
 
     LaunchedEffect(selectedBoxId) {
         if (selectedBoxId != null && selectedBoxId != -1L) {
-            viewModel.setBoxId(selectedBoxId)
+            viewModel.setBoxIdIfNotPresent(selectedBoxId)
         }
     }
-
+    LaunchedEffect(Unit){
+        viewModel.getItem()
+    }
 
     var currentQuantity by rememberSaveable { mutableLongStateOf(savedStateHandle?.get<Long>("currentQuantity") ?: (item?.quantity?: 0L)) }
     var originalQuantity by rememberSaveable { mutableLongStateOf(savedStateHandle?.get<Long>("originalQuantity") ?: (item?.quantity?: 0L)) }
+    LaunchedEffect(item) {
+        viewModel.setBoxIdIfNotPresent(item?.boxId)
+        currentQuantity = item?.quantity?:0L
+        originalQuantity = item?.quantity?:0L
+    }
 
     LaunchedEffect(currentQuantity) { savedStateHandle?.set("currentQuantity", currentQuantity) }
     LaunchedEffect(originalQuantity) { savedStateHandle?.set("originalQuantity", originalQuantity) }
@@ -135,7 +138,7 @@ fun ItemExpandedScreen(
         PullToRefreshBox(
             state = refreshState,
             isRefreshing = isRefreshing,
-            onRefresh = { viewModel.getItem() }) {
+            onRefresh = { viewModel.fetchItem(true) }) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -238,7 +241,55 @@ fun ItemExpandedScreen(
                     color = Color.DarkGray,
                     modifier = Modifier.padding(top = 8.dp, start = 8.dp, bottom = 4.dp)
                 )
+                Spacer(modifier = Modifier.height(12.dp))
+                FlowRow(
+                    mainAxisSpacing = 8.dp,
+                    crossAxisSpacing = 8.dp,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color.Transparent)
+                            .border(
+                                width = 2.dp,
+                                color = Color(0xFF007BFF),
+                                shape = RoundedCornerShape(20.dp)
+                            )
+                            .clickable { navController.navigate("tagsMultiSelect/${item!!.id}")}
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Row {
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = "Add Tags",
+                                Modifier,
+                                Color(0xFF007BFF)
+                            )
+                            Text(
+                                text = if (item?.tags?.isEmpty() == true) "Add Tags" else "Edit Tags",
+                                color = Color(0xFF007BFF),
+                                fontSize = 18.sp
+                            )
+                        }
+                    }
+                    item?.tags?.forEach { tag ->
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(Color(0xFF007BFF))
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = tag.name,
+                                color = Color.White,
+                                fontSize = 18.sp
+                            )
+                        }
+                    }
+                }
                 //box
+                Spacer(modifier = Modifier.height(12.dp))
                 BoxChangeCard(box = box,
                     onBoxClick = { navController.navigate("boxExpanded/${box!!.id!!}") },
                     onChangeBox = {navController.navigate("boxSingleSelect/${if(box!=null){box!!.id}else{-1L}}")}
@@ -270,7 +321,7 @@ fun ItemExpandedScreen(
 }
 
 @Composable
-fun BoxChangeCard(box:Boxes?, onBoxClick: () -> Unit, onChangeBox: () -> Unit){
+fun BoxChangeCard(box: Box?, onBoxClick: () -> Unit, onChangeBox: () -> Unit){
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -299,7 +350,7 @@ fun BoxChangeCard(box:Boxes?, onBoxClick: () -> Unit, onChangeBox: () -> Unit){
 }
 
 @Composable
-fun LocationCard(location:Locations?, onLocationClick: () -> Unit){
+fun LocationCard(location: Location?, onLocationClick: () -> Unit){
     Row(
         modifier = Modifier
             .fillMaxWidth()

@@ -41,6 +41,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -65,13 +66,17 @@ import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStat
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
 import com.leopardseal.inventorymanagerapp.data.responses.Box
+import com.leopardseal.inventorymanagerapp.data.responses.BoxSize
 import com.leopardseal.inventorymanagerapp.data.responses.dto.SaveResponse
 import com.leopardseal.inventorymanagerapp.ui.barcodeIcon
 import com.leopardseal.inventorymanagerapp.ui.cameraIcon
 import com.leopardseal.inventorymanagerapp.ui.main.box.expanded.BoxExpandedViewModel
 import java.io.File
 import java.util.UUID
-
+val BoxSizeSaver = Saver<BoxSize, List<Any>>(
+    save = { listOf(it.id, it.size) },
+    restore = { BoxSize(it[0] as Long, it[1] as String) }
+)
 
 @Composable
 fun BoxEditScreen(
@@ -92,7 +97,9 @@ fun BoxEditScreen(
     val savedStateHandle : SavedStateHandle? = currentBackStackEntry?.savedStateHandle
 
     var name by rememberSaveable { mutableStateOf("") }
-    var size by rememberSaveable { mutableStateOf("big") }
+    var size by rememberSaveable(stateSaver = BoxSizeSaver) {
+        mutableStateOf(BoxSize(1, "big"))
+    }
     var barcode by rememberSaveable { mutableStateOf("") }
     var imageUri by rememberSaveable { mutableStateOf<Uri?>(null) }
     var imageFile by rememberSaveable  { mutableStateOf<File?>(null) }
@@ -101,13 +108,13 @@ fun BoxEditScreen(
 
     LaunchedEffect(Unit){
         if(!initialized.value){
-            viewModel.getBox()
+            viewModel.getBox(false)
         }
     }
     LaunchedEffect(box) {
         if (box != null && !initialized.value) {
             name = box!!.name.orEmpty()
-            size = box!!.size.orEmpty()
+            size = box!!.size?: BoxSize(1, "big")
             barcode = box!!.barcode.orEmpty()
             initialized.value = true
         }
@@ -266,8 +273,6 @@ fun BoxEditScreen(
                 onSizeSelected = { size = it }
             )
 
-            Text("You selected: $size")
-
             Row(verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
                     value = barcode,
@@ -330,10 +335,10 @@ fun BoxEditScreen(
 
 @Composable
 fun SizeDropdownMenu(
-    selectedSize: String,
-    onSizeSelected: (String) -> Unit,
+    selectedSize: BoxSize,
+    onSizeSelected: (BoxSize) -> Unit,
 ) {
-    val sizeOptions = listOf("big", "medium", "small")
+    val sizeOptions = listOf(BoxSize(1, "big"), BoxSize(2, "medium"), BoxSize(3, "small"))
     var expanded by remember { mutableStateOf(false) }
     val textFieldSize = remember { mutableStateOf(IntSize.Zero) }
 
@@ -341,7 +346,7 @@ fun SizeDropdownMenu(
     val indication = LocalIndication.current
     Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
-            value = selectedSize,
+            value = selectedSize.size,
             interactionSource = remember { MutableInteractionSource() }
                 .also { interactionSource ->
                     LaunchedEffect(interactionSource) {
@@ -377,7 +382,7 @@ fun SizeDropdownMenu(
         ) {
             sizeOptions.forEach { sizeOpt ->
                 DropdownMenuItem(
-                    text = { Text(sizeOpt) },
+                    text = { Text(sizeOpt.size) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .indication(interactionSource, indication)
