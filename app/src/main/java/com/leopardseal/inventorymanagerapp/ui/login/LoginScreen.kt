@@ -13,11 +13,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -45,6 +47,15 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = hi
     val context = LocalContext.current
     val loginResponse by viewModel.loginResponse.collectAsState()
     val tokenSaved by viewModel.tokenSaved.collectAsState()
+    val showDeletePopup by viewModel.showDeletePopup.collectAsState()
+    val deleted by viewModel.deleted.collectAsState()
+
+    LaunchedEffect(deleted){
+        if(deleted){
+            Toast.makeText(context, "Account successfully deleted", Toast.LENGTH_SHORT).show()
+            viewModel.resetDeleted()
+        }
+    }
 
     LaunchedEffect(tokenSaved) {
         if (tokenSaved) {
@@ -90,6 +101,35 @@ fun LoginScreen(navController: NavHostController, viewModel: LoginViewModel = hi
         onSignInClicked = { viewModel.triggerLogin(context, false) },
         isLoading = loginResponse is Resource.Loading
     )
+    if (showDeletePopup) {
+        AlertDialog(
+            onDismissRequest = { viewModel.savedetails() },
+            title = {
+                Text(text = "Delete Account")
+            },
+            text = {
+                Text("Your account is scheduled for deletion.\n\nAre you sure you want to delete your account? This cannot be undone.")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.confirmAccountDeletion()
+                    }
+                ) {
+                    Text("Delete", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.cancelDeletion()
+                    }
+                ) {
+                    Text("Cancel Deletion")
+                }
+            }
+        )
+    }
 }
 
 @Composable

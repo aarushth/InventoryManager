@@ -27,10 +27,10 @@ interface ManageOrgAPI{
         @Path("org_id") userId: Long
     ) : Response<Unit>
 
-    @POST("invite_user/{org_id}")
+    @POST("invite_user/{org_id}/{email}")
     suspend fun invite(
         @Path("org_id") orgId : Long,
-        @Body email: String,
+        @Path("email") email: String,
         @Body role : Role
     ) : Response<Unit>
 }

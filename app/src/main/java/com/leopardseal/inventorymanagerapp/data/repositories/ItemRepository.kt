@@ -57,5 +57,9 @@ class ItemRepository @Inject constructor(
     suspend fun updateItem(item : Item, imageChanged : Boolean) = safeApiCall  {
         api.updateItem(item, imageChanged)
     }
+    fun clearCache(){
+        cachedItems = emptyList()
+        isFullItemListCached  = false
+    }
 
 }

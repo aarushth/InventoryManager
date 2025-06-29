@@ -15,4 +15,11 @@ interface LoginAPI {
     suspend fun login(
         @Body authToken: String
     ) : Response<LoginResponse>
+
+    @POST("confirm_delete")
+    suspend fun confirmDelete() : Response<Unit>
+
+    @POST("cancel_delete")
+    suspend fun cancelDelete() : Response<Unit>
+
 }

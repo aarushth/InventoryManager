@@ -30,8 +30,8 @@ class ItemExpandedViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val itemId: Long = savedStateHandle["item_id"] ?: -1L
-    private val boxIdFlow = savedStateHandle.getStateFlow<Long?>("box_id", null)
-    private var lastLocationId: Long? = null
+//    private val boxIdFlow = savedStateHandle.getStateFlow<Long?>("box_id", null)
+//    private var lastLocationId: Long? = null
 
     private val _item = MutableStateFlow<Item?>(repository.getCachedItemById(itemId))
     val item: StateFlow<Item?>
@@ -53,38 +53,43 @@ class ItemExpandedViewModel @Inject constructor(
     val isRefreshing: StateFlow<Boolean>
         get() = _isRefreshing
 
-    fun setBoxIdIfNotPresent(id: Long?) {
-        savedStateHandle["box_id"] = id
+    private val _newBoxId = MutableStateFlow<Long>(-1L)
+    val newBoxId: StateFlow<Long>
+        get() = _newBoxId
+
+    fun setBoxIdIfNotPresent(id: Long) {
+        _newBoxId.value = id
+        getBox(_newBoxId.value)
     }
     init {
 
 
-        if (savedStateHandle.get<Long>("box_id") == null) {
-            val itemBoxId = _item.value?.boxId
-            if (itemBoxId != null) {
-                savedStateHandle["box_id"] = itemBoxId
-            }
-        }
-        viewModelScope.launch {
-            boxIdFlow.collect { boxId ->
-                if(boxId != null) {
-                    if (box.value != null) {
-                        getBox(boxId)
-                    } else {
-                        fetchBox(boxId, true)
-                    }
-                }
-            }
-        }
-        viewModelScope.launch {
-            _box.filterNotNull().collect { newBox ->
-                val newLocationId = newBox.locationId
-                if (newLocationId != null && newLocationId != lastLocationId) {
-                    lastLocationId = newLocationId
-                    getLocation(newLocationId)
-                }
-            }
-        }
+//        if (savedStateHandle.get<Long>("box_id") == null) {
+//            val itemBoxId = _item.value?.boxId
+//            if (itemBoxId != null) {
+//                savedStateHandle["box_id"] = itemBoxId
+//            }
+//        }
+//        viewModelScope.launch {
+//            boxIdFlow.collect { boxId ->
+//                if(boxId != null) {
+//                    if (box.value != null) {
+//                        getBox(boxId)
+//                    } else {
+//                        fetchBox(boxId, true)
+//                    }
+//                }
+//            }
+//        }
+//        viewModelScope.launch {
+//            _box.filterNotNull().collect { newBox ->
+//                val newLocationId = newBox.locationId
+//                if (newLocationId != null && newLocationId != lastLocationId) {
+//                    lastLocationId = newLocationId
+//                    getLocation(newLocationId)
+//                }
+//            }
+//        }
     }
 
     fun getItem(){
@@ -92,7 +97,9 @@ class ItemExpandedViewModel @Inject constructor(
         if(_item.value == null) {
             fetchItem(false)
         }else{
-            savedStateHandle["box_id"] = _item.value!!.boxId
+            if(_item.value!!.boxId != null) {
+                getBox(_item.value!!.boxId!!)
+            }
         }
     }
     fun fetchItem(refresh : Boolean) {
@@ -104,9 +111,15 @@ class ItemExpandedViewModel @Inject constructor(
                 if (response is Resource.Success) {
                     _item.value = response.value
                     if(refresh){
-                        _box.value = null
+                        _newBoxId.value = -1L
                     }
-                    savedStateHandle["box_id"] = _item.value!!.boxId
+                    if(_item.value!!.boxId != null){
+                        if(refresh){
+                            fetchBox(_item.value!!.boxId, true)
+                        }else{
+                            getBox(_item.value!!.boxId)
+                        }
+                    }
                 }
                 _isRefreshing.value = false
             }
@@ -119,6 +132,10 @@ class ItemExpandedViewModel @Inject constructor(
             _box.value = boxRepository.getCachedBoxById(boxId)
             if(_box.value == null){
                 fetchBox(boxId, false)
+            }else if(_box.value!!.locationId != null){
+                getLocation(_box.value!!.locationId!!)
+            }else if(_box.value!!.locationId == null){
+                _location.value = null
             }
         }else{
             _isRefreshing.value = false
@@ -138,6 +155,8 @@ class ItemExpandedViewModel @Inject constructor(
                     }else {
                         getLocation(locationId)
                     }
+                }else {
+                    _location.value = null
                 }
             }
             _isRefreshing.value = false
@@ -167,14 +186,18 @@ class ItemExpandedViewModel @Inject constructor(
     }
 
     fun updateItemQuantity(newQuantity: Long) = viewModelScope.launch {
-        val newItem = _item.value!!.copy(quantity = newQuantity, boxId = boxIdFlow.value)
+        val newItem = _item.value!!.copy(quantity = newQuantity, boxId = newBoxId.value)
 
         _updateResponse.value = repository.updateItem(newItem, false)
         if(_updateResponse.value is Resource.Success){
             repository.updateCachedItem(newItem)
+            _item.value = newItem
+            _newBoxId.value = -1L
         }
-        _item.value = newItem
-        savedStateHandle["box_id"] = newItem.boxId
+
+    }
+    fun saveEnable() : Boolean{
+        return newBoxId.value != -1L && newBoxId.value != item.value!!.boxId
     }
     fun saveOrUpdateItem(updatedItem: Item, imageChanged : Boolean) = viewModelScope.launch {
         _updateResponse.value = Resource.Loading
@@ -185,6 +208,7 @@ class ItemExpandedViewModel @Inject constructor(
             if (_updateResponse.value is Resource.Success) {
                 updatedItem.id = (_updateResponse.value as Resource.Success<SaveResponse>).value.id
                 _item.value = updatedItem
+                _newBoxId.value = -1L
                 repository.updateCachedItem(updatedItem)
             }
 

@@ -1,7 +1,6 @@
 package com.leopardseal.inventorymanagerapp.ui.main.item
 
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.leopardseal.inventorymanagerapp.data.network.Resource

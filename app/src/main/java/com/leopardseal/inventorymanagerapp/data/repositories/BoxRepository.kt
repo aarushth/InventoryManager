@@ -59,5 +59,8 @@ class BoxRepository @Inject constructor(
     suspend fun updateBox(box : Box, imageChanged : Boolean) = safeApiCall  {
         api.updateBox(box, imageChanged)
     }
-
+    fun clearCache(){
+        cachedBoxes = emptyList()
+        isFullBoxListCached  = false
+    }
 }

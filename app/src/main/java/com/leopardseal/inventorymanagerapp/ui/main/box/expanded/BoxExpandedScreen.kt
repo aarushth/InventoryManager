@@ -79,27 +79,23 @@ fun BoxExpandedScreen(
     val updateResponse by viewModel.updateResponse.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
 
-    var saveEnable by remember { mutableStateOf(true) }
-
 
     LaunchedEffect(Unit){
-        viewModel.getBox(false)
+        viewModel.getBox()
     }
-    LaunchedEffect(box) {
-        viewModel.setLocationIdIfNotPresent(box?.locationId)
-    }
-
+    val updateBox : () -> Unit = {viewModel.updateBoxLoc()}
     val selectedLocationId = currentBackStackEntry?.savedStateHandle?.get<Long>("location_id")
 
     LaunchedEffect(selectedLocationId) {
         if (selectedLocationId != null && selectedLocationId != -1L) {
-            viewModel.setLocationId(selectedLocationId)
+            viewModel.setLocationIdIfNotPresent(selectedLocationId)
         }
     }
+
     when (updateResponse) {
         is Resource.Success -> {
             Toast.makeText(context, "Location updated to ${location!!.name}", Toast.LENGTH_LONG).show()
-            saveEnable = true
+//            saveEnable = false
         }
         is Resource.Failure -> {
             if ((updateResponse as Resource.Failure).isNetworkError) {
@@ -123,7 +119,7 @@ fun BoxExpandedScreen(
         PullToRefreshBox(
             state = refreshState,
             isRefreshing = isRefreshing,
-            onRefresh = { viewModel.getBox(true) }
+            onRefresh = { viewModel.fetchBox(true) }
         ) {
             LazyColumn(
                 modifier = Modifier
@@ -229,12 +225,9 @@ fun BoxExpandedScreen(
                     Spacer(modifier = Modifier.height(72.dp))
                 }
             }
-            if ( box!!.locationId != location?.id && saveEnable) {
+            if (viewModel.saveEnable()) {
                 Button(
-                    onClick = {
-                        saveEnable = false
-                        viewModel.updateBoxLoc()
-                    },
+                    onClick = updateBox,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp)
@@ -247,6 +240,7 @@ fun BoxExpandedScreen(
         }
     }
 }
+
 
 @Composable
 fun LocationChangeCard(location: Location?, onLocationClick: () -> Unit, onChangeLocation: () -> Unit){

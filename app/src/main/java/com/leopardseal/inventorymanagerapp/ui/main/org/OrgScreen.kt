@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -43,7 +44,6 @@ import coil.compose.AsyncImage
 import com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.HttpStatus
 import com.leopardseal.inventorymanagerapp.R
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-import com.leopardseal.inventorymanagerapp.data.responses.Org
 import com.leopardseal.inventorymanagerapp.data.responses.UserRole
 
 
@@ -86,15 +86,24 @@ fun OrgScreen(
 
         is Resource.Success -> {
             val userRoles = (orgsResource as Resource.Success<List<UserRole>>).value
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
-                contentPadding = PaddingValues(vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(userRoles) { userRole ->
-                    OrgCard(userRole = userRole, onClick = { viewModel.saveOrg(userRole) })
+            if(userRoles.isEmpty()){
+                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("No organizations found for this account")
+                    Button(onClick = { navController.navigate("invite") }, enabled = true) {
+                        Text("Check Invites")
+                    }
+                }
+            }else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    contentPadding = PaddingValues(vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(userRoles) { userRole ->
+                        OrgCard(userRole = userRole, onClick = { viewModel.saveOrg(userRole) })
+                    }
                 }
             }
         }

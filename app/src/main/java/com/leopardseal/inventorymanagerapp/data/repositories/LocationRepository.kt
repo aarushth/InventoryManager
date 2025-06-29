@@ -52,5 +52,8 @@ class LocationRepository @Inject constructor(
     suspend fun updateLocation(location : Location, imageChanged : Boolean) = safeApiCall  {
         api.updateLocation(location, imageChanged)
     }
-
+    fun clearCache(){
+        cachedLocations = emptyList()
+        isFullLocationListCached  = false
+    }
 }

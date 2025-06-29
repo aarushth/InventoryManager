@@ -29,7 +29,6 @@ class BoxExpandedViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val boxId: Long = savedStateHandle["box_id"] ?: -1L
-    private val locationIdFlow = savedStateHandle.getStateFlow<Long?>("location_id", null)
 
     private val _box = MutableStateFlow<Box?>(repository.getCachedBoxById(boxId))
     val box: StateFlow<Box?>
@@ -38,7 +37,6 @@ class BoxExpandedViewModel @Inject constructor(
     private val _location = MutableStateFlow<Location?>(null)
     val location: StateFlow<Location?>
         get() = _location
-
 
     private val _updateResponse = MutableStateFlow<Resource<SaveResponse>>(Resource.Init)
     val updateResponse: StateFlow<Resource<SaveResponse>>
@@ -52,33 +50,31 @@ class BoxExpandedViewModel @Inject constructor(
     val isRefreshing: StateFlow<Boolean>
         get() = _isRefreshing
 
-    fun setLocationIdIfNotPresent(id: Long?) {
-        savedStateHandle["location_id"] = id
-    }
+    private val _newLocationId = MutableStateFlow<Long>(-1L)
+    val newLocationId: StateFlow<Long>
+        get() = _newLocationId
+
     init {
+
+
+
+    }
+    fun getBox(){
         _box.value = repository.getCachedBoxById(boxId)
         if(_box.value == null){
-            getBox(false)
+            fetchBox(false)
         }else{
             getCacheItems()
         }
-
-        if (savedStateHandle.get<Long>("location_id") == null) {
-            val boxLocationId = _box.value?.locationId
-            if (boxLocationId != null) {
-                savedStateHandle["location_id"] = boxLocationId
-            }
-        }
-        viewModelScope.launch {
-            locationIdFlow.collect { locationId ->
-                    getCacheLocation(locationId)
-            }
-        }
     }
-    fun setLocationId(id: Long) {
-        savedStateHandle["location_id"] = id
+    fun saveEnable() : Boolean{
+        return newLocationId.value != -1L && newLocationId.value != box.value?.locationId
     }
-    fun getBox(forceRefresh: Boolean){
+    fun setLocationIdIfNotPresent(id: Long) {
+        _newLocationId.value = id
+        getLocation(_newLocationId.value)
+    }
+    fun fetchBox(forceRefresh: Boolean){
         _box.value = null
         _isRefreshing.value = true
         if(boxId >= 0) {
@@ -90,7 +86,11 @@ class BoxExpandedViewModel @Inject constructor(
                 }
                 if(!forceRefresh) {
                     getCacheItems()
-                    getCacheLocation(_box.value?.locationId)
+                    if(_newLocationId.value == -1L){
+                        getCacheLocation(_box.value?.locationId)
+                    }else{
+                        getCacheLocation(_newLocationId.value)
+                    }
                 }else{
                     getItems()
                     getLocation(_box.value?.locationId)
@@ -143,14 +143,15 @@ class BoxExpandedViewModel @Inject constructor(
         }
     }
     fun updateBoxLoc() = viewModelScope.launch {
-        val newBox = _box.value!!.copy(locationId = locationIdFlow.value)
+        val newBox = _box.value!!.copy(locationId = newLocationId.value)
 
         _updateResponse.value = repository.updateBox(newBox, false)
         if(_updateResponse.value is Resource.Success){
             repository.updateCachedBox(newBox)
+            _box.value = newBox
+            _newLocationId.value = -1L
         }
-        _box.value = newBox
-        savedStateHandle["location_id"] = newBox.locationId
+
     }
     fun saveOrUpdateBox(updatedBox: Box, imageChanged : Boolean) = viewModelScope.launch {
         _updateResponse.value = Resource.Loading
@@ -161,6 +162,7 @@ class BoxExpandedViewModel @Inject constructor(
             if (_updateResponse.value is Resource.Success) {
                 updatedBox.id = (_updateResponse.value as Resource.Success<SaveResponse>).value.id
                 _box.value = updatedBox
+                _newLocationId.value = -1L
                 repository.updateCachedBox(updatedBox)
             }
 

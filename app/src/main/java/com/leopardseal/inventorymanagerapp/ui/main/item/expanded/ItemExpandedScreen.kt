@@ -101,21 +101,18 @@ fun ItemExpandedScreen(
     var currentQuantity by rememberSaveable { mutableLongStateOf(savedStateHandle?.get<Long>("currentQuantity") ?: (item?.quantity?: 0L)) }
     var originalQuantity by rememberSaveable { mutableLongStateOf(savedStateHandle?.get<Long>("originalQuantity") ?: (item?.quantity?: 0L)) }
     LaunchedEffect(item) {
-        viewModel.setBoxIdIfNotPresent(item?.boxId)
         currentQuantity = item?.quantity?:0L
         originalQuantity = item?.quantity?:0L
     }
 
     LaunchedEffect(currentQuantity) { savedStateHandle?.set("currentQuantity", currentQuantity) }
     LaunchedEffect(originalQuantity) { savedStateHandle?.set("originalQuantity", originalQuantity) }
-
-    var saveEnable by remember { mutableStateOf(true) }
+    val updateItem : () -> Unit = {viewModel.updateItemQuantity(currentQuantity)}
 
     when (updateResponse) {
         is Resource.Success -> {
             Toast.makeText(context, "Changes Saved", Toast.LENGTH_LONG).show()
             originalQuantity = currentQuantity
-            saveEnable = true
         }
         is Resource.Failure -> {
             if ((updateResponse as Resource.Failure).isNetworkError) {
@@ -302,12 +299,9 @@ fun ItemExpandedScreen(
                 Spacer(modifier = Modifier.height(72.dp))
 
             }
-            if ((currentQuantity != originalQuantity || item!!.boxId != box?.id) && saveEnable) {
+            if ((currentQuantity != originalQuantity || item!!.boxId != box?.id) && viewModel.saveEnable()) {
                 Button(
-                    onClick = {
-                        saveEnable = false
-                        viewModel.updateItemQuantity(currentQuantity)
-                    },
+                    onClick = updateItem,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp)

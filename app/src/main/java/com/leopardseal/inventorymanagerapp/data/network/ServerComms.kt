@@ -19,7 +19,7 @@ class ServerComms @Inject constructor(){
         private const val BASE_URL = "https://leopardseal.duckdns.org"
 
 //        use this when testing on local server, change to pc ip
-//        private const val BASE_URL = "http://192.168.68.72:8080"
+//        private const val BASE_URL = "http://192.168.68.70:8080"
     }
 
 

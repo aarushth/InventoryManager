@@ -108,7 +108,7 @@ fun BoxEditScreen(
 
     LaunchedEffect(Unit){
         if(!initialized.value){
-            viewModel.getBox(false)
+            viewModel.getBox()
         }
     }
     LaunchedEffect(box) {

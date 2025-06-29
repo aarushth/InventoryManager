@@ -1,28 +1,23 @@
 package com.leopardseal.inventorymanagerapp.ui.login
 
+
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.leopardseal.inventorymanagerapp.data.UserPreferences
-
-
 import com.leopardseal.inventorymanagerapp.data.network.Resource
-
 import com.leopardseal.inventorymanagerapp.data.repositories.LoginRepository
 import com.leopardseal.inventorymanagerapp.data.responses.dto.LoginResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import retrofit2.HttpException
@@ -31,8 +26,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val repository: LoginRepository,
-    private val userPreferences: UserPreferences
+    private val repository: LoginRepository
 ) : ViewModel(){
 
     private val _loginResponse = MutableStateFlow<Resource<LoginResponse>>(Resource.Init)
@@ -44,8 +38,14 @@ class LoginViewModel @Inject constructor(
     private val _tokenSaved = MutableStateFlow(false)
     val tokenSaved: StateFlow<Boolean> = _tokenSaved
 
+    private val _showDeletePopup = MutableStateFlow(false)
+    val showDeletePopup: StateFlow<Boolean> = _showDeletePopup
+
+    private val _deleted = MutableStateFlow(false)
+    val deleted: StateFlow<Boolean> = _deleted
+
     fun getEmail() = runBlocking {
-        userPreferences.userEmail.first()
+        repository.getEmail()
     }
     fun resetTokenSavedFlag() {
         _tokenSaved.value = false
@@ -61,15 +61,14 @@ class LoginViewModel @Inject constructor(
 
             _loginResponse.value = response
             if(response is Resource.Success) {
-                userPreferences.saveUserEmail(response.value.user.email)
-                userPreferences.saveAuthToken(response.value.token)
-                userPreferences.saveUserEmail(response.value.user.email)
-                response.value.user.imgUrl?.let {
-                    userPreferences.saveUserImg(it)
+                repository.saveToken((_loginResponse.value as Resource.Success<LoginResponse>).value.token)
+                if(response.value.toDelete) {
+                    _showDeletePopup.value = true
+                }else{
+                    savedetails()
                 }
-                _tokenSaved.value = true
             }else{
-                userPreferences.clear()
+                repository.clear()
             }
 
         } catch (e: Exception) {
@@ -77,6 +76,15 @@ class LoginViewModel @Inject constructor(
                 isNetworkError = e is IOException,
                 errorCode = (e as? HttpException)?.code())
         }
+    }
+    fun savedetails() = viewModelScope.launch{
+        _showDeletePopup.value = false
+        repository.saveUserEmail((_loginResponse.value as Resource.Success<LoginResponse>).value.user.email)
+
+        (_loginResponse.value as Resource.Success<LoginResponse>).value.user.imgUrl?.let {
+            repository.saveUserImg(it)
+        }
+        _tokenSaved.value = true
     }
     fun triggerLogin(context: Context, autoSelect : Boolean) {
         Log.e("Login", "autoSelect $autoSelect")
@@ -108,5 +116,25 @@ class LoginViewModel @Inject constructor(
                     errorCode = (e as? HttpException)?.code())
             }
         }
+    }
+    fun confirmAccountDeletion() = viewModelScope.launch{
+        _showDeletePopup.value = false
+        val response = repository.confirmDelete()
+        if(response is Resource.Success) {
+            repository.clear()
+            _tokenSaved.value = false
+            _loginResponse.value = Resource.Init
+            _deleted.value = true
+        }
+    }
+    fun cancelDeletion() = viewModelScope.launch{
+        _showDeletePopup.value = false
+        val response = repository.cancelDelete()
+        if(response is Resource.Success){
+            savedetails()
+        }
+    }
+    fun resetDeleted() {
+        _deleted.value = false
     }
 }

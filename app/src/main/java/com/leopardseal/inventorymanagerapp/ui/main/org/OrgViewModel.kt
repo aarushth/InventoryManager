@@ -5,7 +5,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.leopardseal.inventorymanagerapp.data.network.Resource
+import com.leopardseal.inventorymanagerapp.data.repositories.BoxRepository
+import com.leopardseal.inventorymanagerapp.data.repositories.ItemRepository
+import com.leopardseal.inventorymanagerapp.data.repositories.LocationRepository
 import com.leopardseal.inventorymanagerapp.data.repositories.OrgRepository
+import com.leopardseal.inventorymanagerapp.data.responses.Item
 import com.leopardseal.inventorymanagerapp.data.responses.Org
 import com.leopardseal.inventorymanagerapp.data.responses.UserRole
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +20,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class OrgViewModel @Inject constructor(
-    private val repository: OrgRepository
+    private val repository: OrgRepository,
+    private val itemRepository: ItemRepository,
+    private val boxRepository: BoxRepository,
+    private val locationRepository: LocationRepository
 ) : ViewModel(){
 
     private val _orgResponse = MutableStateFlow<Resource<List<Org>>>(Resource.Loading)
@@ -35,6 +42,9 @@ class OrgViewModel @Inject constructor(
 
     fun saveOrg(userRole: UserRole) = viewModelScope.launch{
         repository.saveOrg(userRole)
+        itemRepository.clearCache()
+        boxRepository.clearCache()
+        locationRepository.clearCache()
         _orgSaved.emit(true)
     }
     fun getOrgs() = viewModelScope.launch {
