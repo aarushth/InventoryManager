@@ -1,5 +1,2 @@
-#App is not working right now, dont try it
-# How to run
-- in app\release\release there is app-release.apk. Copy this to phone
-- in phone folder, click on app-release.apk and install app
-- open app :)
+Cloud-based Inventory Management System as an Android App including organization tenants for collaboration, barcode scanning, tagging, filtering, and cacheing.
+Pending publishing on Google Play Store
